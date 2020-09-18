@@ -27,4 +27,6 @@ add_executable(supervisor_node src/supervisor_node.cpp)
 add_dependencies(supervisor_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(supervisor_node ${catkin_LIBRARIES})
 
-
+add_executable(human_model_node src/humanModel_node.cpp)
+add_dependencies(human_model_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(human_model_node ${catkin_LIBRARIES})
