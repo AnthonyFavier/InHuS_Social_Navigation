@@ -3,13 +3,7 @@
 
 #include <iostream>
 #include <vector>
-
-struct Pose2D
-{
-	float x;
-	float y;
-	float theta;
-};
+#include "type.h"
 
 enum State{UNKNOWN=0, PLANNED, NEEDED, READY, PROGRESS, DONE, FAILED};
 
