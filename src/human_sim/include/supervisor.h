@@ -4,6 +4,9 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Pose2D.h"
 #include <string>
+#include <time.h>
+
+#include "task.h"
 
 struct Goal
 {
@@ -19,7 +22,9 @@ public:
 	Supervisor(ros::NodeHandle nh);
 
 	void FSM();
+
 	void findAGoal();
+	void askPlan();
 private:
 	ros::NodeHandle nh_;
 
@@ -28,14 +33,17 @@ private:
 	enum ChoiceGoalDecision{AUTONOMOUS, SPECIFIED};
 	ChoiceGoalDecision choice_goal_decision_;
 
-	bool new_goal_;
-
+	bool goal_received_;
 	Goal current_goal_;
+	Plan plan_;
 
 	ros::Subscriber sub_new_goal_;
 	void newGoalCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 
-	
+	ros::Subscriber sub_human_pos_;
+	void humanPosCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
+
+	Pose2D human_pos_;
 };
 
 #endif

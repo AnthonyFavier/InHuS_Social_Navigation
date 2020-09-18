@@ -23,7 +23,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(supervisor_node src/supervisor_node.cpp)
+add_executable(supervisor_node src/supervisor_node.cpp src/task.cpp)
 add_dependencies(supervisor_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(supervisor_node ${catkin_LIBRARIES})
 
