@@ -60,7 +60,7 @@ void Supervisor::FSM()
 			{
 				// check current action
 				plan_.updateCurrentAction();
-				State curr_act_state=plan_.getCurrentActionState();
+				std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
 
 				// if PLANNED or NEEDED
 				// 	check precond
@@ -75,29 +75,34 @@ void Supervisor::FSM()
 				// 	check postcondition
 				// 	if ok -> DONE
 
-				if(curr_act_state==PLANNED || curr_act_state==NEEDED)
+				if(*curr_act_.state==PLANNED || *curr_act_.state==NEEDED)
 				{
 					// check preconditions
 					// => for now no checking
 
 					//if(precond==ok)
-						plan_.setCurrentActionState(READY);
+						*curr_action_.state=READY;
 					//else
-					//	plan_.setCurrentActionState(NEEDED);
+					//	*curr_action_.state=NEEDED;
 				}
-				else if(curr_act_state==READY)
+				else if(*curr_act_.state==READY)
 				{
 					// send to geometric planner (do action)
-					plan_.setCurrentActionState(PROGRESS);
+					// client action
+					*curr_action_.state=PROGRESS;
 				}
-				else if(curr_act_state==PROGRESS)
+				else if(*curr_act_.state==PROGRESS)
 				{
 					// check postconditions
 					// for now : if human at destination
-					std::cout << "human_pos = " << human_pos_.x << "," << human_pos_.y << "," << human_pos_.theta << std::endl;
+
+					/*std::cout << "human_pos = " << human_pos_.x << "," << human_pos_.y << "," << human_pos_.theta << std::endl;
 					Pose2D dest = plan_.getCurrentActionDestination();
 					if(human_pos_.x==dest.x && human_pos_.y==dest.y)
-						plan_.setCurrentActionState(DONE);
+						plan_.setCurrentActionState(DONE);*/
+
+					// client wait for result
+					// *curr_action_.state=DONE;
 				}
 			}
 			else

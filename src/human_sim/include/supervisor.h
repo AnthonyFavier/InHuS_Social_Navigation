@@ -5,6 +5,7 @@
 #include "geometry_msgs/Pose2D.h"
 #include <string>
 #include <time.h>
+#include "human_sim/ActionH.h"
 
 #include "task.h"
 

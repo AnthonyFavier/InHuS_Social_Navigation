@@ -9,12 +9,26 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   geometry_msgs
+  genmsg
+  actionlib_msgs
+  actionlib
 )
+
+
+
+add_action_files(DIRECTORY action 
+  FILES 
+  ActionH.action
+)
+
+
+generate_messages(DEPENDENCIES actionlib_msgs)
+
 
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES human_sim
-  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs actionlib_msgs
 #  DEPENDS system_lib
 )
 

@@ -1,0 +1,6 @@
+string type
+geometry_msgs/Pose2D destination
+string preconditions
+---
+---
+geometry_msgs/Pose2D current_pose

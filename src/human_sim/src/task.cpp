@@ -1,120 +1,60 @@
 #include "task.h"
 
-///////////////////////////// ACTION //////////////////////////////////
-
-Action::Action()
-{
-	state_=UNKNOWN;
-}
-
-Action::~Action(){}
-
-void Action::setState(State state)
-{
-	state_=state;
-}
-
-State Action::getState()
-{
-	return state_;
-}
-
-///////////////////////// TYPE OF ACTION //////////////////////////////
-
-Movement::Movement(float x, float y, float theta): Action()
-{
-	type="Movement";
-
-	destination_.x = x;
-	destination_.y = y;
-	destination_.theta = theta;
-}
-
-void Movement::show()
-{
-	std::cout << type << " (" << destination_.x << ", " << destination_.y << ", " << destination_.theta << ") " << state_ << std::endl;
-}
-
-Pose2D Movement::getDestination()
-{
-	return destination_;
-}
-
-/*PickPlace::PickPlace(): Action()
-{
-	type="PickPlace";
-}*/
-
 //////////////////////////////// PLAN /////////////////////////////////
 
 Plan::Plan()
 {
 	state_=UNKNOWN;
-	current_action_=0;
+	curr_action_=action_series_.begin();
 }
 
-void Plan::addAction(Action* action)
+void Plan::addAction(human_sim::Action action)
 {
+	Action act;
+	act.action = action;
+	act.state=PLANNED;
 	action_series_.push_back(action);
 }
 
 void Plan::show()
 {
+	printf("Plan: size=%d\n", action_series_.size());
 	for(int i=0; i<action_series_.size(); i++)
-		action_series_[i]->show();
+		printf("\ttype=%s pose= (%f, %f, %f)", actions_series_[i].action.type, actions_series_[i].action.pose.x, actions_series_[i].action.pose.y, actions_series_[i].action.pose.theta);
 }
 
 void Plan::clear()
 {
-	for(int i=0; i<action_series_.size(); i++)
-		delete action_series_[i];
 	action_series_.clear();
 	current_action_=0;
 
 	state_=UNKNOWN;
 }
 
-void Plan::setState(State state)
+void Plan::updateState()
 {
-	state_=state;
+	if(action_series_.back().state==DONE)
+		state_=DONE;
+	else
+		state_=PROGRESS;
 }
 
 bool Plan::isDone()
 {
-	if(action_series_.back()->getState()==DONE)
-		state_=DONE;
-	else
-		state_=PROGRESS;
-
 	return state_==DONE;
 }
 
 void Plan::updateCurrentAction()
 {
-	for(int i=0; i<action_series_.size(); i++)
-	{
-		if(action_series_[i]->getState()!=DONE)
-		{
-			current_action_=i;
-			break;
-		}
-	}
+	curr_action_=action_series_.begin();
+
+	while(*curr_action_.state==DONE && curr_action_!=action_series_.end())
+		curr_action_++;
 }
 
-State Plan::getCurrentActionState()
+std::vector<Action>::iterator Plan::getCurrentAction()
 {
-	return action_series_[current_action_]->getState();
-}
-
-void Plan::setCurrentActionState(State state)
-{
-	action_series_[current_action_]->setState(state);
-}
-
-Pose2D Plan::getCurrentActionDestination()
-{
-	Movement* mvt = reinterpret_cast<Movement*>(action_series_[current_action_]);
-	return mvt->getDestination();
+	return *curr_action_;
 }
 
 ///////////////////////////////////////////////////////////////////////
