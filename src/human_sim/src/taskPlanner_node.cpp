@@ -14,17 +14,19 @@ bool TaskPlanner::computePlan(human_sim::ComputePlan::Request& req, human_sim::C
 {
 	human_sim::ActionHGoal action;
 
-	if(req.type=="Position")
+	if(req.goal.type=="Position")
 		action.type = "movement";
 	else
 		action.type = "unknown";
-	action.destination.x =		req.x;
-	action.destination.y =		req.y;
-	action.destination.theta =	req.theta;
+	action.destination.x =		req.goal.x;
+	action.destination.y =		req.goal.y;
+	action.destination.theta =	req.goal.theta;
 	res.actions.push_back(action);
 
-	action.destination.y =		req.y+1;
+	action.destination.y =		req.goal.y+1;
 	res.actions.push_back(action);
+
+	printf("plan done !\n");
 }
 
 /////////////////////// MAIN /////////////////////////

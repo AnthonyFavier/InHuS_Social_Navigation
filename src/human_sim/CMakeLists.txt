@@ -14,14 +14,19 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
 )
 
-add_action_files(DIRECTORY action 
-  FILES 
-  ActionH.action
+add_message_files(
+  FILES
+  Goal.msg
 )
 
 add_service_files(
   FILES
   ComputePlan.srv
+)
+
+add_action_files(DIRECTORY action 
+  FILES 
+  ActionH.action
 )
 
 generate_messages(

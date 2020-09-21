@@ -10,13 +10,4 @@ struct Pose2D
 	float theta;
 };
 
-struct Goal
-{
-	std::string type; // for now only position
-	float x;
-	float y;
-	float theta;
-};
-
-
 #endif

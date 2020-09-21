@@ -12,16 +12,13 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("do_action",
 
 	client_plan_ = nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
 
-	sub_new_goal_  = nh_.subscribe("new_goal", 100, &Supervisor::newGoalCallback, this);
-	sub_human_pos_ = nh_.subscribe("human_pos", 100, &Supervisor::humanPosCallback, this);
+	sub_new_goal_  = 		nh_.subscribe("boss/new_goal", 100, &Supervisor::newGoalCallback, this);
+	sub_teleoperation_boss_ =	nh_.subscribe("boss/teleoperation", 100, &Supervisor::teleopBossCallback, this);
+	sub_operating_mode_ =		nh_.subscribe("boss/operationg_mode", 100, &Supervisor::operatingModeBossCallback, this);
 
 	state_global_ = GET_GOAL;
 
 	goal_received_ = false;
-
-	human_pos_.x =     	0;
-	human_pos_.y = 	   	0;
-	human_pos_.theta =	0;
 
 	srand(time(NULL));
 
@@ -149,10 +146,10 @@ void Supervisor::askPlan()
 
 	//symPlanner.askPlan(&plan);
 	human_sim::ComputePlan srv;
-	srv.request.type = 	current_goal_.type;
-	srv.request.x = 	current_goal_.x;
-	srv.request.y = 	current_goal_.y;
-	srv.request.theta = 	current_goal_.theta;
+	srv.request.goal.type = 	current_goal_.type;
+	srv.request.goal.x = 		current_goal_.x;
+	srv.request.goal.y = 		current_goal_.y;
+	srv.request.goal.theta = 	current_goal_.theta;
 	if(!client_plan_.call(srv))
 	{
 		ROS_ERROR("Ask for a plan failed");
@@ -171,25 +168,38 @@ void Supervisor::askPlan()
 	}
 }
 
-void Supervisor::newGoalCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 {
-	ROS_INFO("New goal received !");
+	ROS_INFO("New goal received!");
 
 	goal_received_=true;
 
-	current_goal_.type="Position";
+	current_goal_.type=msg->type;
 	current_goal_.x=msg->x;
 	current_goal_.y=msg->y;
 	current_goal_.theta=msg->theta;
 }
 
-void Supervisor::humanPosCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+void Supervisor::teleopBossCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-	ROS_INFO("HumanPos received !");
+}
 
-	human_pos_.x=msg->x;
-	human_pos_.y=msg->y;
-	human_pos_.theta=msg->theta;
+void Supervisor::operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg)
+{
+	switch(msg->data)
+	{
+		case AUTONOMOUS: // 0
+			choice_goal_decision_=AUTONOMOUS;
+			break;
+
+		case SPECIFIED:  // 1
+			choice_goal_decision_=SPECIFIED;
+			break;
+
+		default:
+			choice_goal_decision_=AUTONOMOUS;
+			break;
+	}
 }
 
 /////////////////////////////// MAIN /////////////////////////////////////

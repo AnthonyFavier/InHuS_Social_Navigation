@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "geoPlanner");
 	ros::NodeHandle nh;
 
-	ros::Subscriber sub_pos = nh.subscribe("geo_pos_human", 100, poseCallback);
+	ros::Subscriber sub_pos = nh.subscribe("human_model/human_pos", 100, poseCallback);
 
 	Server server(nh, "do_action", boost::bind(&execute, _1, &server), false);
 	server.start();
