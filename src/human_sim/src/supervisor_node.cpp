@@ -4,13 +4,16 @@
 
 Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client("do_action", true)
 {
+	///////////////////////////////////
+	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
+	///////////////////////////////////
+
 	nh_ = nh;
 
 	sub_new_goal_ = nh_.subscribe("new_goal", 100, &Supervisor::newGoalCallback, this);
 	sub_human_pos_ = nh_.subscribe("human_pos", 100, &Supervisor::humanPosCallback, this);
 
 	state_global_ = GET_GOAL;
-	choice_goal_decision_ = AUTONOMOUS;
 
 	goal_received_ = false;
 
@@ -20,11 +23,14 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client("do_action", true)
 
 	srand(time(NULL));
 
+	printf("Waiting for action server\n");
 	client.waitForServer();
+	printf("Connected to action server\n");
 }
 
 void Supervisor::FSM()
 {
+	printf("\n");
 	switch(state_global_)
 	{
 		case GET_GOAL:
@@ -77,41 +83,48 @@ void Supervisor::FSM()
 				// 	check postcondition
 				// 	if ok -> DONE
 
-				if((*curr_action).state==PLANNED || (*curr_action).state==NEEDED)
+				switch((*curr_action).state)
 				{
-					// check preconditions
-					// => for now no checking
+					case PLANNED:
+					case NEEDED:
+						printf("NEEDED\n");
+						// check preconditions
+						// => for now no checking
 
-					//if(precond==ok)
-						(*curr_action).state=READY;
-					//else
-					//	(*curr_action).state=NEEDED;
-				}
-				else if((*curr_action).state==READY)
-				{
-					// send to geometric planner (do action)
-					// client action
-					(*curr_action).state=PROGRESS;
-				}
-				else if((*curr_action).state==PROGRESS)
-				{
-					// check postconditions
-					// for now : if human at destination
+						//if(precond==ok)
+							(*curr_action).state=READY;
+						//else
+						//	(*curr_action).state=NEEDED;
+						break;
 
-					/*std::cout << "human_pos = " << human_pos_.x << "," << human_pos_.y << "," << human_pos_.theta << std::endl;
-					Pose2D dest = plan_.getCurrentActionDestination();
-					if(human_pos_.x==dest.x && human_pos_.y==dest.y)
-						plan_.setCurrentActionState(DONE);*/
+					case READY:
+						printf("READY\n");
+						// send to geometric planner (do action)
+						client.sendGoal((*curr_action).action);
+						(*curr_action).state=PROGRESS;
+						break;
 
-					// client wait for result
-					// *curr_action_.state=DONE;
+					case PROGRESS:
+						printf("PROGRESS\n");
+						// check postconditions
+						// for now : if human at destination
+						// done in geoPlanner ?
+
+						if(client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+						{
+							printf("Client succeeded\n");
+							(*curr_action).state = DONE;
+						}
+						break;
 				}
 			}
 			else
 			{
 				ROS_INFO("Plan is DONE !");
+				plan_.clear();
 				state_global_ = GET_GOAL;
 			}
+			plan_.updateState();
 			break;
 
 		default:
@@ -136,8 +149,15 @@ void Supervisor::askPlan()
 	
 	// trickery for only navigation without sub goal
 	Action action;
+
 	action.action.type="movement";
+	action.action.destination.x=current_goal_.x;
+	action.action.destination.y=current_goal_.y;
+	action.action.destination.theta=current_goal_.theta;
 	action.state=PLANNED;
+	plan_.addAction(action);
+
+	action.action.destination.y=current_goal_.y+1;
 	plan_.addAction(action);
 }
 
