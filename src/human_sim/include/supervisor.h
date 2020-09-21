@@ -5,17 +5,9 @@
 #include "geometry_msgs/Pose2D.h"
 #include <string>
 #include <time.h>
-#include "human_sim/ActionH.h"
 
 #include "task.h"
-
-struct Goal
-{
-	std::string type; // for now only position
-	float x;
-	float y;
-	float theta;
-};
+#include <actionlib/client/simple_action_client.h>
 
 class Supervisor
 {
@@ -45,6 +37,8 @@ private:
 	void humanPosCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 
 	Pose2D human_pos_;
+
+	actionlib::SimpleActionClient<human_sim::ActionHAction> client;
 };
 
 #endif

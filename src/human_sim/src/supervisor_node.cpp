@@ -2,7 +2,7 @@
 
 ///////////////////////////// SUPERVISOR /////////////////////////////////
 
-Supervisor::Supervisor(ros::NodeHandle nh): plan_()
+Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client("do_action", true)
 {
 	nh_ = nh;
 
@@ -19,6 +19,8 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_()
 	human_pos_.theta=0;
 
 	srand(time(NULL));
+
+	client.waitForServer();
 }
 
 void Supervisor::FSM()
@@ -66,32 +68,32 @@ void Supervisor::FSM()
 				// 	check precond
 				// 	if ok -> READY
 				// 	else -> NEEDED
-
+				//
 				// else if current action READY
 				// 	do action (send to geometric planner)
 				// 	action -> progress
-
+				//
 				// else if PROGRESS
 				// 	check postcondition
 				// 	if ok -> DONE
 
-				if(*curr_act_.state==PLANNED || *curr_act_.state==NEEDED)
+				if((*curr_action).state==PLANNED || (*curr_action).state==NEEDED)
 				{
 					// check preconditions
 					// => for now no checking
 
 					//if(precond==ok)
-						*curr_action_.state=READY;
+						(*curr_action).state=READY;
 					//else
-					//	*curr_action_.state=NEEDED;
+					//	(*curr_action).state=NEEDED;
 				}
-				else if(*curr_act_.state==READY)
+				else if((*curr_action).state==READY)
 				{
 					// send to geometric planner (do action)
 					// client action
-					*curr_action_.state=PROGRESS;
+					(*curr_action).state=PROGRESS;
 				}
-				else if(*curr_act_.state==PROGRESS)
+				else if((*curr_action).state==PROGRESS)
 				{
 					// check postconditions
 					// for now : if human at destination
@@ -133,10 +135,10 @@ void Supervisor::askPlan()
 	//symPlanner.askPlan(&plan);
 	
 	// trickery for only navigation without sub goal
-	Movement* mvt = new Movement(current_goal_.x,current_goal_.y,current_goal_.theta);
-	mvt->setState(PLANNED);
-	plan_.addAction(mvt);
-
+	Action action;
+	action.action.type="movement";
+	action.state=PLANNED;
+	plan_.addAction(action);
 }
 
 void Supervisor::newGoalCallback(const geometry_msgs::Pose2D::ConstPtr& msg)

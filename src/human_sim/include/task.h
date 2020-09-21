@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "type.h"
-#include <human_sim/ActionH.h>
+#include <human_sim/ActionHAction.h>
 
 enum State{UNKNOWN=0, PLANNED, NEEDED, READY, PROGRESS, DONE, FAILED};
 
@@ -11,7 +11,7 @@ enum State{UNKNOWN=0, PLANNED, NEEDED, READY, PROGRESS, DONE, FAILED};
 
 struct Action
 {
-	human_sim::ActionH action;
+	human_sim::ActionHGoal action;
 	State state;
 };
 
@@ -22,7 +22,7 @@ class Plan
 public:
 	Plan();
 
-	void addAction(human_sim::Action action);
+	void addAction(Action action);
 
 	void show();
 	void clear();
@@ -33,6 +33,7 @@ public:
 
 	void updateCurrentAction();
 	std::vector<Action>::iterator getCurrentAction();
+	void updateState();
 
 private:
 	State state_;
