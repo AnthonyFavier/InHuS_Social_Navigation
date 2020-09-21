@@ -14,13 +14,15 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
 )
 
-
-
 add_action_files(DIRECTORY action 
   FILES 
   ActionH.action
 )
 
+add_service_files(
+  FILES
+  ComputePlan.srv
+)
 
 generate_messages(
   DEPENDENCIES 
@@ -32,7 +34,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES human_sim
-  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs actionlib_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs actionlib_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -49,7 +51,12 @@ add_executable(human_model_node src/humanModel_node.cpp)
 add_dependencies(human_model_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(human_model_node ${catkin_LIBRARIES})
 
-add_executable(geo_planner_node src/geoPlanner_node.cpp src/task.cpp)
+add_executable(geo_planner_node src/geoPlanner_node.cpp)
 add_dependencies(geo_planner_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(geo_planner_node ${catkin_LIBRARIES})
+
+add_executable(task_planner_node src/taskPlanner_node.cpp src/task.cpp)
+add_dependencies(task_planner_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(task_planner_node ${catkin_LIBRARIES})
+
 

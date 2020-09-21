@@ -5,6 +5,7 @@
 #include "geometry_msgs/Pose2D.h"
 #include <string>
 #include <time.h>
+#include "human_sim/ComputePlan.h"
 
 #include "task.h"
 #include <actionlib/client/simple_action_client.h>
@@ -38,7 +39,8 @@ private:
 
 	Pose2D human_pos_;
 
-	actionlib::SimpleActionClient<human_sim::ActionHAction> client;
+	actionlib::SimpleActionClient<human_sim::ActionHAction> client_action_;
+	ros::ServiceClient client_plan_;
 };
 
 #endif

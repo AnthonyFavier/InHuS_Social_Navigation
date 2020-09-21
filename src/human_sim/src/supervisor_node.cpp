@@ -2,7 +2,7 @@
 
 ///////////////////////////// SUPERVISOR /////////////////////////////////
 
-Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client("do_action", true)
+Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("do_action", true)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
@@ -10,21 +10,23 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client("do_action", true)
 
 	nh_ = nh;
 
-	sub_new_goal_ = nh_.subscribe("new_goal", 100, &Supervisor::newGoalCallback, this);
+	client_plan_ = nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
+
+	sub_new_goal_  = nh_.subscribe("new_goal", 100, &Supervisor::newGoalCallback, this);
 	sub_human_pos_ = nh_.subscribe("human_pos", 100, &Supervisor::humanPosCallback, this);
 
 	state_global_ = GET_GOAL;
 
 	goal_received_ = false;
 
-	human_pos_.x=0;
-	human_pos_.y=0;
-	human_pos_.theta=0;
+	human_pos_.x =     	0;
+	human_pos_.y = 	   	0;
+	human_pos_.theta =	0;
 
 	srand(time(NULL));
 
 	printf("Waiting for action server\n");
-	client.waitForServer();
+	client_action_.waitForServer();
 	printf("Connected to action server\n");
 }
 
@@ -100,7 +102,7 @@ void Supervisor::FSM()
 					case READY:
 						printf("READY\n");
 						// send to geometric planner (do action)
-						client.sendGoal((*curr_action).action);
+						client_action_.sendGoal((*curr_action).action);
 						(*curr_action).state=PROGRESS;
 						break;
 
@@ -110,7 +112,7 @@ void Supervisor::FSM()
 						// for now : if human at destination
 						// done in geoPlanner ?
 
-						if(client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+						if(client_action_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
 						{
 							printf("Client succeeded\n");
 							(*curr_action).state = DONE;
@@ -135,10 +137,10 @@ void Supervisor::FSM()
 
 void Supervisor::findAGoal()
 {
-	current_goal_.type="Position";
-	current_goal_.x=(rand()%100)/10.0;
-	current_goal_.y=(rand()%100)/10.0;
-	current_goal_.theta=(rand()%30)/10.0;
+	current_goal_.type = 	"Position";
+	current_goal_.x = 	(rand()%100)/10.0;
+	current_goal_.y = 	(rand()%100)/10.0;
+	current_goal_.theta = 	(rand()%30)/10.0;
 }
 
 void Supervisor::askPlan()
@@ -146,19 +148,27 @@ void Supervisor::askPlan()
 	plan_.clear();
 
 	//symPlanner.askPlan(&plan);
+	human_sim::ComputePlan srv;
+	srv.request.type = 	current_goal_.type;
+	srv.request.x = 	current_goal_.x;
+	srv.request.y = 	current_goal_.y;
+	srv.request.theta = 	current_goal_.theta;
+	if(!client_plan_.call(srv))
+	{
+		ROS_ERROR("Ask for a plan failed");
+		exit(-1);
+	}
 	
-	// trickery for only navigation without sub goal
 	Action action;
-
-	action.action.type="movement";
-	action.action.destination.x=current_goal_.x;
-	action.action.destination.y=current_goal_.y;
-	action.action.destination.theta=current_goal_.theta;
-	action.state=PLANNED;
-	plan_.addAction(action);
-
-	action.action.destination.y=current_goal_.y+1;
-	plan_.addAction(action);
+	for(int i=0; i<srv.response.actions.size(); i++)
+	{
+		action.action.type = 			srv.response.actions[i].type;
+		action.action.destination.x = 		srv.response.actions[i].destination.x;
+		action.action.destination.y = 		srv.response.actions[i].destination.y;
+		action.action.destination.theta =	srv.response.actions[i].destination.theta;
+		action.state=PLANNED;
+		plan_.addAction(action);
+	}
 }
 
 void Supervisor::newGoalCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
