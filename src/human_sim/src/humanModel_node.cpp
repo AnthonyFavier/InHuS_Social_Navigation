@@ -20,10 +20,15 @@ Map::Map(float rx, float ry, float tile_size)
 			column.push_back(FREE);
 		map_.push_back(column);
 	}
+
+	map_[7][1]=GOAL;
+
+	map_[7][5]=GOAL;
 }
 
 void Map::show()
 {
+	printf("\n");
 	if(map_.size()>0)
 	{
 		for(int j=0; j<map_[0].size(); j++)
@@ -33,6 +38,7 @@ void Map::show()
 			printf("\n");
 		}
 	}
+	printf("\n");
 }
 
 /////////////////////// HUMAN MODEL ///////////////////////
@@ -59,9 +65,10 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 	last_cmd_geo_.angular.y=0;
 	last_cmd_geo_.angular.z=0;
 
-	sub_pose_ = 	 nh_.subscribe("sim/human_pose", 100, &HumanModel::poseCallback, this);
-	sub_robot_pose_ = nh_.subscribe("sim/robot_pose", 100, &HumanModel::robotPoseCallback, this);
-	sub_cmd_geo_ =	 nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
+	sub_pose_ = 	 	nh_.subscribe("sim/human_pose", 100, &HumanModel::poseCallback, this);
+	sub_robot_pose_ =	nh_.subscribe("sim/robot_pose", 100, &HumanModel::robotPoseCallback, this);
+	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
+	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanModel::goalDoneCallback, this);
 
 	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("boss/new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
@@ -106,15 +113,48 @@ void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 	pub_noisy_cmd_.publish(noisy_cmd);
 }
 
+void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
+{
+	printf("received !!\n");
+	if(msg->type=="Position")
+	{
+		printf("REMOVE GOAL\n");
+		map_.map_[map_.getNX()/2-(int)msg->y][map_.getNY()/2-(int)msg->x]=Map::FREE;
+	}
+}
+
 bool HumanModel::chooseGoal(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res)
 {
-	// search for goals in the map
-	// by default random pos
+	map_.show();
 
-	res.goal.type = 	"Position"; // only choice for now
-	res.goal.x = 		(rand()%100)/10.0;
-	res.goal.y = 		(rand()%100)/10.0;
-	res.goal.theta = 	(rand()%30)/10.0;
+	// search for goals in the map
+	int x(-1),y(-1);
+	for(int i=0; i<map_.getNX(); i++)
+	{
+		for(int j=0; j< map_.getNY(); j++)
+		{
+			if(map_.map_[i][j]==Map::GOAL)
+			{
+				x=i;
+				y=j;
+			}
+		}
+	}
+
+	res.goal.type =	 "Position"; // only choice for now
+	res.goal.theta = (rand()%30)/10.0;
+	if(x!=-1 && y!=-1)
+	{
+		printf("x=%d y=%d\n", x, y);
+		res.goal.x = map_.getNX()/2-y;
+		res.goal.y = map_.getNY()/2-x;
+	}
+	else
+	{
+		// randomly pick a position as a goal
+		res.goal.x = 	(rand()%100)/10.0;
+		res.goal.y = 	(rand()%100)/10.0;
+	}
 
 	printf("goal choosen !\n");
 	printf("%s (%f, %f, %f)\n", res.goal.type.c_str(), res.goal.x, res.goal.y, res.goal.theta);

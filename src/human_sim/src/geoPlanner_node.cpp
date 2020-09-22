@@ -11,7 +11,7 @@ Pose2D human_pose;
 Pose2D robot_pose;
 ros::Publisher pub_cmd;
 
-#define DELTA 0.2
+#define DELTA 0.5
 
 void execute(const human_sim::HActionGoalConstPtr& goal, Server* as)
 {

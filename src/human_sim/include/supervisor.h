@@ -42,6 +42,7 @@ private:
 	void operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg);
 
 	ros::Publisher pub_teleop_;
+	ros::Publisher pub_goal_done_;
 
 	actionlib::SimpleActionClient<human_sim::HActionAction> client_action_;
 

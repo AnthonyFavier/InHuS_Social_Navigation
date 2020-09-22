@@ -17,7 +17,8 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("do_action",
 	sub_teleop_boss_ =	nh_.subscribe("boss/teleoperation", 100, &Supervisor::teleopBossCallback, this);
 	sub_operating_mode_ =	nh_.subscribe("boss/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
 
-	pub_teleop_ = 	nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
+	pub_teleop_ = 		nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
+	pub_goal_done_ = 	nh_.advertise<human_sim::Goal>("goal_done", 100);
 
 	state_global_ = GET_GOAL;
 
@@ -27,7 +28,7 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("do_action",
 	printf("Connected to taskPlanner server\n");
 
 	ros::service::waitForService("choose_goal");
-	printf("Connected to choose_goal server");
+	printf("Connected to choose_goal server\n");
 
 	printf("Waiting for action server\n");
 	client_action_.waitForServer();
@@ -73,6 +74,7 @@ void Supervisor::FSM()
 
 		case EXEC_PLAN:
 			ROS_INFO("EXEC_PLAN");
+			printf("current_goal : %s (%f, %f, %f)\n", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
 			if(goal_received_)
 			{
 				goal_received_ = false;
@@ -138,6 +140,7 @@ void Supervisor::FSM()
 				else
 				{
 					ROS_INFO("Plan is DONE !");
+					pub_goal_done_.publish(current_goal_);
 					plan_.clear();
 					state_global_ = GET_GOAL;
 				}
@@ -154,6 +157,7 @@ void Supervisor::FSM()
 void Supervisor::findAGoal()
 {
 	human_sim::ChooseGoal srv;
+	ros::service::waitForService("choose_goal");
 	client_goal_.call(srv);
 
 	current_goal_.type = 	srv.response.goal.type;	
@@ -171,9 +175,12 @@ void Supervisor::askPlan()
 	srv.request.goal.x = 		current_goal_.x;
 	srv.request.goal.y = 		current_goal_.y;
 	srv.request.goal.theta = 	current_goal_.theta;
+	ros::service::waitForService("compute_plan");
 	if(!client_plan_.call(srv))
 	{
 		ROS_ERROR("Failure while asking for a plan");
+		int test;
+		std::cin >> test;
 		exit(-1);
 	}
 	
