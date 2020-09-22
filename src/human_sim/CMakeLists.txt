@@ -26,7 +26,7 @@ add_service_files(
 
 add_action_files(DIRECTORY action 
   FILES 
-  ActionH.action
+  HAction.action
 )
 
 generate_messages(

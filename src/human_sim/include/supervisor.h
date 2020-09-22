@@ -41,7 +41,7 @@ private:
 	ros::Subscriber sub_operating_mode_;
 	void operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg);
 
-	actionlib::SimpleActionClient<human_sim::ActionHAction> client_action_;
+	actionlib::SimpleActionClient<human_sim::HActionAction> client_action_;
 	ros::ServiceClient client_plan_;
 };
 

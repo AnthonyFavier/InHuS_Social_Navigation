@@ -4,7 +4,7 @@
 #include "ros/ros.h"
 #include "human_sim/ComputePlan.h"
 #include "geometry_msgs/Pose2D.h"
-#include "human_sim/ActionHAction.h"
+#include "human_sim/HActionAction.h"
 //#include "human_sim/Goal.h"
 
 class TaskPlanner

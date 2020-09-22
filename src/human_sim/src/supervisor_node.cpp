@@ -37,7 +37,7 @@ void Supervisor::FSM()
 			switch(choice_goal_decision_)
 			{
 				case AUTONOMOUS:
-					// Decide a goal
+					// Find itself a goal
 					this->findAGoal();
 					state_global_ = ASK_PLAN;
 					break;
@@ -49,6 +49,10 @@ void Supervisor::FSM()
 						goal_received_ = false;
 						state_global_ = ASK_PLAN;
 					}
+					break;
+
+				default:
+					choice_goal_decision_ = SPECIFIED;
 					break;
 			}
 			break;
@@ -134,7 +138,7 @@ void Supervisor::FSM()
 
 void Supervisor::findAGoal()
 {
-	current_goal_.type = 	"Position";
+	current_goal_.type = 	"Position"; // only choice for now
 	current_goal_.x = 	(rand()%100)/10.0;
 	current_goal_.y = 	(rand()%100)/10.0;
 	current_goal_.theta = 	(rand()%30)/10.0;
@@ -144,7 +148,6 @@ void Supervisor::askPlan()
 {
 	plan_.clear();
 
-	//symPlanner.askPlan(&plan);
 	human_sim::ComputePlan srv;
 	srv.request.goal.type = 	current_goal_.type;
 	srv.request.goal.x = 		current_goal_.x;
@@ -152,7 +155,7 @@ void Supervisor::askPlan()
 	srv.request.goal.theta = 	current_goal_.theta;
 	if(!client_plan_.call(srv))
 	{
-		ROS_ERROR("Ask for a plan failed");
+		ROS_ERROR("Failure while asking for a plan");
 		exit(-1);
 	}
 	

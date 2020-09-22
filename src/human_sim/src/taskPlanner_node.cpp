@@ -12,7 +12,7 @@ TaskPlanner::TaskPlanner(ros::NodeHandle nh)
 
 bool TaskPlanner::computePlan(human_sim::ComputePlan::Request& req, human_sim::ComputePlan::Response& res)
 {
-	human_sim::ActionHGoal action;
+	human_sim::HActionGoal action;
 
 	if(req.goal.type=="Position")
 		action.type = "movement";

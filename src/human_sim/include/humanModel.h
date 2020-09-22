@@ -18,24 +18,24 @@ public:
 private:
 	ros::NodeHandle nh_;
 
-	Pose2D sim_pos_;
-	Pose2D sim_robot_pos_;
+	Pose2D sim_pose_;
+	Pose2D sim_robot_pose_;
 
-	Pose2D model_pos_;
-	Pose2D model_robot_pos_;
+	Pose2D model_pose_;
+	Pose2D model_robot_pose_;
 
 	geometry_msgs::Twist last_cmd_geo_;
 
-	ros::Subscriber sub_pos_;
-	void posCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
-	ros::Subscriber sub_robot_pos_;
-	void robotPosCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
+	ros::Subscriber sub_pose_;
+	void poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
+	ros::Subscriber sub_robot_pose_;
+	void robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 	ros::Subscriber sub_cmd_geo_;
 	void cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg);
 
 	ros::Publisher pub_new_goal_;
-	ros::Publisher pub_human_pos_;
-	ros::Publisher pub_robot_pos_;
+	ros::Publisher pub_human_pose_;
+	ros::Publisher pub_robot_pose_;
 	ros::Publisher pub_noisy_cmd_;
 
 	//Map map;
