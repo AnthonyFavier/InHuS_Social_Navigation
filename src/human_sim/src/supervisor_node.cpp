@@ -73,68 +73,76 @@ void Supervisor::FSM()
 
 		case EXEC_PLAN:
 			ROS_INFO("EXEC_PLAN");
-			plan_.show();
-			if(!plan_.isDone())
+			if(goal_received_)
 			{
-				// check current action
-				plan_.updateCurrentAction();
-				std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
-
-				// if PLANNED or NEEDED
-				// 	check precond
-				// 	if ok -> READY
-				// 	else -> NEEDED
-				//
-				// else if current action READY
-				// 	do action (send to geometric planner)
-				// 	action -> progress
-				//
-				// else if PROGRESS
-				// 	check postcondition
-				// 	if ok -> DONE
-
-				switch((*curr_action).state)
-				{
-					case PLANNED:
-					case NEEDED:
-						printf("NEEDED\n");
-						// check preconditions
-						// => for now no checking
-
-						//if(precond==ok)
-							(*curr_action).state=READY;
-						//else
-						//	(*curr_action).state=NEEDED;
-						break;
-
-					case READY:
-						printf("READY\n");
-						// send to geometric planner (do action)
-						client_action_.sendGoal((*curr_action).action);
-						(*curr_action).state=PROGRESS;
-						break;
-
-					case PROGRESS:
-						printf("PROGRESS\n");
-						// check postconditions
-						// for now : if human at destination
-						// done in geoPlanner ?
-
-						if(client_action_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-						{
-							printf("Client succeeded\n");
-							(*curr_action).state = DONE;
-						}
-						break;
-				}
+				goal_received_ = false;
+				state_global_ = ASK_PLAN;
 			}
 			else
 			{
-				ROS_INFO("Plan is DONE !");
-				plan_.clear();
-				state_global_ = GET_GOAL;
+				plan_.show();
+				if(!plan_.isDone())
+				{
+					// check current action
+					plan_.updateCurrentAction();
+					std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
+
+					// if PLANNED or NEEDED
+					// 	check precond
+					// 	if ok -> READY
+					// 	else -> NEEDED
+					//
+					// else if current action READY
+					// 	do action (send to geometric planner)
+					// 	action -> progress
+					//
+					// else if PROGRESS
+					// 	check postcondition
+					// 	if ok -> DONE
+
+					switch((*curr_action).state)
+					{
+						case PLANNED:
+						case NEEDED:
+							printf("NEEDED\n");
+							// check preconditions
+							// => for now no checking
+
+							//if(precond==ok)
+								(*curr_action).state=READY;
+							//else
+							//	(*curr_action).state=NEEDED;
+							break;
+
+						case READY:
+							printf("READY\n");
+							// send to geometric planner (do action)
+							client_action_.sendGoal((*curr_action).action);
+							(*curr_action).state=PROGRESS;
+							break;
+
+						case PROGRESS:
+							printf("PROGRESS\n");
+							// check postconditions
+							// for now : if human at destination
+							// done in geoPlanner ?
+
+							if(client_action_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+							{
+								printf("Client succeeded\n");
+								(*curr_action).state = DONE;
+							}
+							break;
+					}
+				}
+				else
+				{
+					ROS_INFO("Plan is DONE !");
+					plan_.clear();
+					state_global_ = GET_GOAL;
+				}
+				plan_.updateState();
 			}
-			plan_.updateState();
 			break;
 
 		default:
