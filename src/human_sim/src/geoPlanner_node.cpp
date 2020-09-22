@@ -11,6 +11,8 @@ Pose2D human_pose;
 Pose2D robot_pose;
 ros::Publisher pub_cmd;
 
+#define DELTA 0.2
+
 void execute(const human_sim::HActionGoalConstPtr& goal, Server* as)
 {
 	printf("type=%s destination= (%f, %f, %f)\n", goal->type.c_str(), goal->destination.x, goal->destination.y, goal->destination.theta);
@@ -18,9 +20,8 @@ void execute(const human_sim::HActionGoalConstPtr& goal, Server* as)
 	ros::Rate rate(3);
 	geometry_msgs::Twist cmd;
 
-	while(ros::ok() && (human_pose.x!=goal->destination.x
-		|| human_pose.y!=goal->destination.y
-		|| human_pose.theta!=goal->destination.theta))
+	while(ros::ok() && ((human_pose.x<goal->destination.x-DELTA || human_pose.x>goal->destination.x+DELTA)
+		|| (human_pose.y<goal->destination.y-DELTA || human_pose.y>goal->destination.y+DELTA)))
 	{
 		printf("human_pose = (%f, %f, %f)\n", human_pose.x, human_pose.y, human_pose.theta);
 		pub_cmd.publish(cmd);
