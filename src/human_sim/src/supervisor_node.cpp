@@ -12,9 +12,11 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("do_action",
 
 	client_plan_ = nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
 
-	sub_new_goal_  = 		nh_.subscribe("boss/new_goal", 100, &Supervisor::newGoalCallback, this);
-	sub_teleoperation_boss_ =	nh_.subscribe("boss/teleoperation", 100, &Supervisor::teleopBossCallback, this);
-	sub_operating_mode_ =		nh_.subscribe("boss/operationg_mode", 100, &Supervisor::operatingModeBossCallback, this);
+	sub_new_goal_  = 	nh_.subscribe("boss/new_goal", 100, &Supervisor::newGoalCallback, this);
+	sub_teleop_boss_ =	nh_.subscribe("boss/teleoperation", 100, &Supervisor::teleopBossCallback, this);
+	sub_operating_mode_ =	nh_.subscribe("boss/operationg_mode", 100, &Supervisor::operatingModeBossCallback, this);
+
+	pub_teleop_ = 	nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
 
 	state_global_ = GET_GOAL;
 
@@ -185,6 +187,7 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 
 void Supervisor::teleopBossCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
+	pub_teleop_.publish(*msg);
 }
 
 void Supervisor::operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg)

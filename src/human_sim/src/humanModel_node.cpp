@@ -29,7 +29,7 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("boss/new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
-	pub_noisy_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("noisy_cmd", 100);
+	pub_noisy_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/noisy_cmd", 100);
 
 	printf("I am human\n");
 }

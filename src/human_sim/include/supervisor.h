@@ -36,10 +36,12 @@ private:
 
 	ros::Subscriber sub_new_goal_;
 	void newGoalCallback(const human_sim::Goal::ConstPtr& msg);
-	ros::Subscriber sub_teleoperation_boss_;
+	ros::Subscriber sub_teleop_boss_;
 	void teleopBossCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_operating_mode_;
 	void operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg);
+
+	ros::Publisher pub_teleop_;
 
 	actionlib::SimpleActionClient<human_sim::HActionAction> client_action_;
 	ros::ServiceClient client_plan_;
