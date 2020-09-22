@@ -4,5 +4,6 @@
 	<node name="geo_planner_node" type="geo_planner_node" pkg="human_sim" output="screen" launch-prefix="xterm -geometry '80x25+0+380' -e"/>
 	<node name="task_planner_node" type="task_planner_node" pkg="human_sim" output="screen" launch-prefix="xterm -geometry '80x25+490+0' -e"/>
 	<node name="human_model_node" type="human_model_node" pkg="human_sim" output="screen" launch-prefix="xterm -geometry '80x25+490+380' -e"/>
+	<node name="preprocessing_node" type="preprocessing_node" pkg="human_sim"/>
 
 </launch>
