@@ -24,6 +24,10 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("do_action",
 
 	srand(time(NULL));
 
+	printf("Waiting for taskPlanner server\n");
+	ros::service::waitForService("compute_plan");
+	printf("Connected to taskPlanner server\n");
+
 	printf("Waiting for action server\n");
 	client_action_.waitForServer();
 	printf("Connected to action server\n");

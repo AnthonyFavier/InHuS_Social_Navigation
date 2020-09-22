@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 
 	Server server(nh, "do_action", boost::bind(&execute, _1, &server), false);
 	server.start();
-	printf("server on\n");
+	printf("action server is on\n");
 
 	ros::spin();
 
