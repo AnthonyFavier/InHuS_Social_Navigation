@@ -6,6 +6,20 @@
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
 #include "human_sim/Goal.h"
+#include <vector>
+
+class Map
+{
+public:
+	Map(float rx, float ry, float tile_size);
+	enum Tile{FREE=0, OBSTACLE, GOAL};
+	void show();
+private:
+	float real_size_x_;
+	float real_size_y_;
+	float tile_size_;
+	std::vector<std::vector<Tile>> map_;
+};
 
 class HumanModel
 {
@@ -38,7 +52,7 @@ private:
 	ros::Publisher pub_robot_pose_;
 	ros::Publisher pub_noisy_cmd_;
 
-	//Map map;
+	Map map_;
 };
 
 #endif

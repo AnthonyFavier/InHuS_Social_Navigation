@@ -1,8 +1,43 @@
 #include "humanModel.h"
 
+
+/////////////////////////// MAP ///////////////////////////
+
+Map::Map(float rx, float ry, float tile_size)
+{
+	real_size_x_ = rx;
+	real_size_y_ = ry;
+	tile_size_ = tile_size;
+
+	int nx = real_size_x_/tile_size_;
+	int ny = real_size_y_/tile_size_;
+
+	std::vector<Tile> column;
+	for(int i=0; i<nx; i++)
+	{
+		column.clear();
+		for(int j=0; j<ny; j++)
+			column.push_back(FREE);
+		map_.push_back(column);
+	}
+}
+
+void Map::show()
+{
+	if(map_.size()>0)
+	{
+		for(int j=0; j<map_[0].size(); j++)
+		{
+			for(int i=0; i<map_.size(); i++)
+				printf("%d ", map_[i][j]);
+			printf("\n");
+		}
+	}
+}
+
 /////////////////////// HUMAN MODEL ///////////////////////
 
-HumanModel::HumanModel(ros::NodeHandle nh)
+HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 {
 	nh_ = nh;
 
@@ -32,6 +67,8 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	pub_noisy_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/noisy_cmd", 100);
 
 	printf("I am human\n");
+
+	map_.show();
 }
 
 void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
