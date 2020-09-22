@@ -5,7 +5,7 @@
 TaskPlanner::TaskPlanner(ros::NodeHandle nh)
 {
 	nh_=nh;
-	service = nh_.advertiseService("compute_plan", &TaskPlanner::computePlan, this);
+	service_ = nh_.advertiseService("compute_plan", &TaskPlanner::computePlan, this);
 
 	printf("compute_plan service is on\n");
 }

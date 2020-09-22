@@ -7,6 +7,8 @@
 #include "geometry_msgs/Twist.h"
 #include "human_sim/Goal.h"
 #include <vector>
+#include "human_sim/ChooseGoal.h"
+#include <time.h>
 
 class Map
 {
@@ -28,6 +30,7 @@ public:
 
 	void processSimData();
 	void publishModelData();
+	bool chooseGoal(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res);
 
 private:
 	ros::NodeHandle nh_;
@@ -51,6 +54,8 @@ private:
 	ros::Publisher pub_human_pose_;
 	ros::Publisher pub_robot_pose_;
 	ros::Publisher pub_noisy_cmd_;
+
+	ros::ServiceServer service_;
 
 	Map map_;
 };

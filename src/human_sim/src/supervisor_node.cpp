@@ -11,10 +11,11 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("do_action",
 	nh_ = nh;
 
 	client_plan_ = nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
+	client_goal_ = nh_.serviceClient<human_sim::ChooseGoal>("choose_goal");
 
 	sub_new_goal_  = 	nh_.subscribe("boss/new_goal", 100, &Supervisor::newGoalCallback, this);
 	sub_teleop_boss_ =	nh_.subscribe("boss/teleoperation", 100, &Supervisor::teleopBossCallback, this);
-	sub_operating_mode_ =	nh_.subscribe("boss/operationg_mode", 100, &Supervisor::operatingModeBossCallback, this);
+	sub_operating_mode_ =	nh_.subscribe("boss/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
 
 	pub_teleop_ = 	nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
 
@@ -22,11 +23,11 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("do_action",
 
 	goal_received_ = false;
 
-	srand(time(NULL));
-
-	printf("Waiting for taskPlanner server\n");
 	ros::service::waitForService("compute_plan");
 	printf("Connected to taskPlanner server\n");
+
+	ros::service::waitForService("choose_goal");
+	printf("Connected to choose_goal server");
 
 	printf("Waiting for action server\n");
 	client_action_.waitForServer();
@@ -144,10 +145,13 @@ void Supervisor::FSM()
 
 void Supervisor::findAGoal()
 {
-	current_goal_.type = 	"Position"; // only choice for now
-	current_goal_.x = 	(rand()%100)/10.0;
-	current_goal_.y = 	(rand()%100)/10.0;
-	current_goal_.theta = 	(rand()%30)/10.0;
+	human_sim::ChooseGoal srv;
+	client_goal_.call(srv);
+
+	current_goal_.type = 	srv.response.goal.type;	
+	current_goal_.x = 	srv.response.goal.x;
+	current_goal_.y = 	srv.response.goal.y;
+	current_goal_.theta = 	srv.response.goal.theta;
 }
 
 void Supervisor::askPlan()

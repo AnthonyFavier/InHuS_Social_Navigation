@@ -5,8 +5,8 @@
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
 #include <string>
-#include <time.h>
 #include "human_sim/ComputePlan.h"
+#include "human_sim/ChooseGoal.h"
 #include "human_sim/Goal.h"
 #include "std_msgs/Int32.h"
 
@@ -44,7 +44,9 @@ private:
 	ros::Publisher pub_teleop_;
 
 	actionlib::SimpleActionClient<human_sim::HActionAction> client_action_;
+
 	ros::ServiceClient client_plan_;
+	ros::ServiceClient client_goal_;
 };
 
 #endif

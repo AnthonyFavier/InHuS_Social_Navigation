@@ -41,6 +41,8 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 {
 	nh_ = nh;
 
+	srand(time(NULL));
+
 	Pose2D zero;
 	zero.x = 	0;
 	zero.y = 	0;
@@ -65,6 +67,8 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_noisy_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/noisy_cmd", 100);
+
+	service_ = nh_.advertiseService("choose_goal", &HumanModel::chooseGoal, this);
 
 	printf("I am human\n");
 
@@ -100,6 +104,20 @@ void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 
 	// publish noisy cmd
 	pub_noisy_cmd_.publish(noisy_cmd);
+}
+
+bool HumanModel::chooseGoal(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res)
+{
+	// search for goals in the map
+	// by default random pos
+
+	res.goal.type = 	"Position"; // only choice for now
+	res.goal.x = 		(rand()%100)/10.0;
+	res.goal.y = 		(rand()%100)/10.0;
+	res.goal.theta = 	(rand()%30)/10.0;
+
+	printf("goal choosen !\n");
+	printf("%s (%f, %f, %f)\n", res.goal.type.c_str(), res.goal.x, res.goal.y, res.goal.theta);
 }
 
 void HumanModel::processSimData()

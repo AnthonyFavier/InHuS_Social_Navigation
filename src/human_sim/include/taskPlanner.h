@@ -14,7 +14,7 @@ public:
 	bool computePlan(human_sim::ComputePlan::Request& req, human_sim::ComputePlan::Response& res);
 private:
 	ros::NodeHandle nh_;
-	ros::ServiceServer service;
+	ros::ServiceServer service_;
 };
 
 #endif

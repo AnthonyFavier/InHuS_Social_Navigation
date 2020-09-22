@@ -22,6 +22,7 @@ add_message_files(
 add_service_files(
   FILES
   ComputePlan.srv
+  ChooseGoal.srv
 )
 
 add_action_files(DIRECTORY action 
