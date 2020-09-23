@@ -73,7 +73,7 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("boss/new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
-	pub_noisy_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/noisy_cmd", 100);
+	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
 
 	service_ = nh_.advertiseService("choose_goal", &HumanModel::chooseGoal, this);
 
@@ -98,19 +98,19 @@ void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 
 void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-	geometry_msgs::Twist noisy_cmd;
+	geometry_msgs::Twist perturbated_cmd;
 
-	// add noise using the last cmd eg: (cmd-last)/deltaT*ratio + cmd
-	// for now no noise/perturbation
-	noisy_cmd.linear.x=msg->linear.x;
-	noisy_cmd.linear.y=msg->linear.y;
-	noisy_cmd.linear.z=msg->linear.z;
-	noisy_cmd.angular.x=msg->angular.x;
-	noisy_cmd.angular.y=msg->angular.y;
-	noisy_cmd.angular.z=msg->angular.z;
+	// add perturbation using the last cmd eg: (cmd-last)/deltaT*ratio + cmd
+	// for now no perturbation
+	perturbated_cmd.linear.x=msg->linear.x;
+	perturbated_cmd.linear.y=msg->linear.y;
+	perturbated_cmd.linear.z=msg->linear.z;
+	perturbated_cmd.angular.x=msg->angular.x;
+	perturbated_cmd.angular.y=msg->angular.y;
+	perturbated_cmd.angular.z=msg->angular.z;
 
 	// publish noisy cmd
-	pub_noisy_cmd_.publish(noisy_cmd);
+	pub_perturbated_cmd_.publish(perturbated_cmd);
 }
 
 void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)

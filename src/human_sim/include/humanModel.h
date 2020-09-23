@@ -62,7 +62,7 @@ private:
 	ros::Publisher pub_new_goal_;
 	ros::Publisher pub_human_pose_;
 	ros::Publisher pub_robot_pose_;
-	ros::Publisher pub_noisy_cmd_;
+	ros::Publisher pub_perturbated_cmd_;
 
 	ros::ServiceServer service_;
 
