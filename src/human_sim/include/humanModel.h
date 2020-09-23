@@ -48,8 +48,6 @@ private:
 	Pose2D model_pose_;
 	Pose2D model_robot_pose_;
 
-	geometry_msgs::Twist last_cmd_geo_;
-
 	ros::Subscriber sub_pose_;
 	void poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 	ros::Subscriber sub_robot_pose_;
@@ -65,6 +63,8 @@ private:
 	ros::Publisher pub_perturbated_cmd_;
 
 	ros::ServiceServer service_;
+
+	float ratio_perturbation_;
 
 	Map map_;
 };

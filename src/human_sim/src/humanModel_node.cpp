@@ -58,12 +58,8 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 	model_pose_ = 	   zero;
 	model_robot_pose_ = zero;
 
-	last_cmd_geo_.linear.x=0;
-	last_cmd_geo_.linear.y=0;
-	last_cmd_geo_.linear.z=0;
-	last_cmd_geo_.angular.x=0;
-	last_cmd_geo_.angular.y=0;
-	last_cmd_geo_.angular.z=0;
+	//ratio_perturbation_ = 0.2; // +/- 20% of value
+	ratio_perturbation_ = 0;
 
 	sub_pose_ = 	 	nh_.subscribe("sim/human_pose", 100, &HumanModel::poseCallback, this);
 	sub_robot_pose_ =	nh_.subscribe("sim/robot_pose", 100, &HumanModel::robotPoseCallback, this);
@@ -100,16 +96,13 @@ void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 	geometry_msgs::Twist perturbated_cmd;
 
-	// add perturbation using the last cmd eg: (cmd-last)/deltaT*ratio + cmd
-	// for now no perturbation
-	perturbated_cmd.linear.x=msg->linear.x;
-	perturbated_cmd.linear.y=msg->linear.y;
-	perturbated_cmd.linear.z=msg->linear.z;
-	perturbated_cmd.angular.x=msg->angular.x;
-	perturbated_cmd.angular.y=msg->angular.y;
-	perturbated_cmd.angular.z=msg->angular.z;
+	perturbated_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
+	perturbated_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
+	perturbated_cmd.linear.z = 0;
+	perturbated_cmd.angular.x = 0;
+	perturbated_cmd.angular.y = 0;
+	perturbated_cmd.angular.z = msg->angular.z; // no angular perturbation
 
-	// publish noisy cmd
 	pub_perturbated_cmd_.publish(perturbated_cmd);
 }
 
