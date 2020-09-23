@@ -5,8 +5,10 @@
 TaskPlanner::TaskPlanner(ros::NodeHandle nh)
 {
 	nh_=nh;
-	service_ = nh_.advertiseService("compute_plan", &TaskPlanner::computePlan, this);
 
+	sub_human_pose_ = nh_.subscribe("human_model/human_pose", 100, &TaskPlanner::humanPoseCallback, this);
+
+	service_ = nh_.advertiseService("compute_plan", &TaskPlanner::computePlan, this);
 	printf("compute_plan service is on\n");
 }
 
@@ -18,15 +20,25 @@ bool TaskPlanner::computePlan(human_sim::ComputePlan::Request& req, human_sim::C
 		action.type = "movement";
 	else
 		action.type = "unknown";
+
+	action.destination.x =		human_pose_.x+(req.goal.x-human_pose_.x)/2;
+	action.destination.y =		human_pose_.y+(req.goal.y-human_pose_.y)/2;
+	action.destination.theta =	human_pose_.theta+(req.goal.theta-human_pose_.theta)/2;
+	res.actions.push_back(action);
+
 	action.destination.x =		req.goal.x;
 	action.destination.y =		req.goal.y;
 	action.destination.theta =	req.goal.theta;
 	res.actions.push_back(action);
 
-	action.destination.y =		req.goal.y+1;
-	res.actions.push_back(action);
-
 	printf("plan done !\n");
+}
+
+void TaskPlanner::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+{
+	human_pose_.x=msg->x;
+	human_pose_.y=msg->y;
+	human_pose_.theta=msg->theta;
 }
 
 /////////////////////// MAIN /////////////////////////

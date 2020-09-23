@@ -5,16 +5,22 @@
 #include "human_sim/ComputePlan.h"
 #include "geometry_msgs/Pose2D.h"
 #include "human_sim/HActionAction.h"
-//#include "human_sim/Goal.h"
+#include "type.h"
 
 class TaskPlanner
 {
 public:
 	TaskPlanner(ros::NodeHandle nh);
 	bool computePlan(human_sim::ComputePlan::Request& req, human_sim::ComputePlan::Response& res);
+
+	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 private:
 	ros::NodeHandle nh_;
 	ros::ServiceServer service_;
+
+	Pose2D human_pose_;
+
+	ros::Subscriber sub_human_pose_;
 };
 
 #endif
