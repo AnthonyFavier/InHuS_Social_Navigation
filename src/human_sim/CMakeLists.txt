@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   genmsg
   actionlib_msgs
   actionlib
+  roslib
 )
 
 add_message_files(
@@ -68,4 +69,9 @@ target_link_libraries(task_planner_node ${catkin_LIBRARIES})
 add_executable(preprocessing_node src/preprocessing_node.cpp)
 add_dependencies(preprocessing_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(preprocessing_node ${catkin_LIBRARIES})
+
+add_executable(log_manager_node src/logManager.cpp)
+add_dependencies(log_manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(log_manager_node ${catkin_LIBRARIES})
+
 
