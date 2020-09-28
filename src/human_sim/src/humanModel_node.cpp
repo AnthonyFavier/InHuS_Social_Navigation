@@ -58,6 +58,11 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 	model_pose_ = 	   zero;
 	model_robot_pose_ = zero;
 
+	current_goal_.type = 	"Position";
+	current_goal_.x  =	0;
+	current_goal_.y = 	0;
+	current_goal_.theta = 	0;
+
 	//ratio_perturbation_ = 0.2; // +/- 20% of value
 	ratio_perturbation_ = 0;
 
@@ -71,11 +76,15 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
 
-	service_ = nh_.advertiseService("choose_goal", &HumanModel::chooseGoal, this);
+	service_ = nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 
 	printf("I am human\n");
 
 	map_.show();
+
+	chance_decide_new_goal_ = 4; //x%
+	delay_think_about_new_goal_ = ros::Duration(2); // x% chance every 2s
+	last_time_ = ros::Time::now();
 }
 
 void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
@@ -116,9 +125,20 @@ void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 	}
 }
 
-bool HumanModel::chooseGoal(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res)
+bool HumanModel::chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res)
+{
+	human_sim::Goal goal = this->chooseGoal();
+
+	res.goal.type = 	goal.type;
+	res.goal.x = 		goal.x;
+	res.goal.y = 		goal.y;
+	res.goal.theta = 	goal.theta;
+}
+
+human_sim::Goal HumanModel::chooseGoal()
 {
 	map_.show();
+	human_sim::Goal goal;
 
 	// search for goals in the map
 	int x(-1),y(-1);
@@ -134,23 +154,27 @@ bool HumanModel::chooseGoal(human_sim::ChooseGoal::Request& req, human_sim::Choo
 		}
 	}
 
-	res.goal.type =	 "Position"; // only choice for now
-	res.goal.theta = (rand()%30)/10.0;
+	goal.type =	 "Position"; // only choice for now
+	goal.theta = (rand()%30)/10.0;
 	if(x!=-1 && y!=-1)
 	{
 		printf("x=%d y=%d\n", x, y);
-		res.goal.x = map_.getNX()/2-y;
-		res.goal.y = map_.getNY()/2-x;
+		goal.x = map_.getNX()/2-y;
+		goal.y = map_.getNY()/2-x;
 	}
 	else
 	{
 		// randomly pick a position as a goal
-		res.goal.x = 	(rand()%100)/10.0;
-		res.goal.y = 	(rand()%100)/10.0;
+		goal.x = 	(rand()%100)/10.0;
+		goal.y = 	(rand()%100)/10.0;
 	}
 
+	current_goal_=goal;
+
 	printf("goal choosen !\n");
-	printf("%s (%f, %f, %f)\n", res.goal.type.c_str(), res.goal.x, res.goal.y, res.goal.theta);
+	printf("%s (%f, %f, %f)\n", goal.type.c_str(), goal.x, goal.y, goal.theta);
+
+	return goal;
 }
 
 void HumanModel::processSimData()
@@ -173,6 +197,29 @@ void HumanModel::publishModelData()
 	pub_robot_pose_.publish(pose);
 }
 
+void HumanModel::newGoalGeneration()
+{
+	int nb;
+	if(ros::Time::now()-last_time_> delay_think_about_new_goal_)
+	{
+		nb = rand()%100 + 1;
+		if(nb < chance_decide_new_goal_)
+		{
+			printf("DECIDE NEW GOAL ! \n");
+			human_sim::Goal previous_goal = current_goal_;
+			human_sim::Goal new_goal = this->chooseGoal();
+			if(new_goal.x != previous_goal.x || new_goal.y != previous_goal.y)
+			{
+				pub_new_goal_.publish(this->chooseGoal());
+				printf("published\n");
+			}
+			else
+				printf("ALREADY GOING!\n");
+		}
+		last_time_=ros::Time::now();
+	}
+}
+
 ////////////////////////// MAIN ///////////////////////////
 
 int main(int argc, char** argv)
@@ -193,6 +240,9 @@ int main(int argc, char** argv)
 
 		// Publish data as perceived by the human model
 		human_model.publishModelData();
+
+		// Chance of generating a new goal
+		human_model.newGoalGeneration();
 
 		rate.sleep();
 		ros::spinOnce();

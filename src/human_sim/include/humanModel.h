@@ -37,7 +37,9 @@ public:
 
 	void processSimData();
 	void publishModelData();
-	bool chooseGoal(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res);
+	bool chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res);
+	human_sim::Goal chooseGoal();
+	void newGoalGeneration();
 
 private:
 	ros::NodeHandle nh_;
@@ -66,7 +68,13 @@ private:
 
 	float ratio_perturbation_;
 
+	human_sim::Goal current_goal_;
+
 	Map map_;
+
+	ros::Time last_time_;
+	ros::Duration delay_think_about_new_goal_;
+	int chance_decide_new_goal_;
 };
 
 #endif
