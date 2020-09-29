@@ -1,0 +1,11 @@
+<launch>
+
+	<node name="slam" pkg="gmapping" type="slam_gmapping">
+		<param name="odom_frame" value="odom"/>
+		<param name="base_frame" value="base_footprint"/>
+		<param name="map_frame" value="map"/>
+		<param name="map_update_interval" value="0.5"/>
+		<remap from="scan" to="robot/scan"/>
+	</node>
+
+</launch>
