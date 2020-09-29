@@ -6,5 +6,6 @@
 	<node name="supervisor_node" type="supervisor_node" pkg="human_sim" output="screen" launch-prefix="xterm -geometry '80x25+0+0' -e"/>
 	<node name="preprocessing_node" type="preprocessing_node" pkg="human_sim"/>
 	<node name="log_manager_node" type="log_manager_node" pkg="human_sim"/>
+	<node name="controller_node" type="controller_node" pkg="human_sim"/>
 
 </launch>

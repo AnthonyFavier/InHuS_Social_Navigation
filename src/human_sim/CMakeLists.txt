@@ -70,8 +70,11 @@ add_executable(preprocessing_node src/preprocessing_node.cpp)
 add_dependencies(preprocessing_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(preprocessing_node ${catkin_LIBRARIES})
 
-add_executable(log_manager_node src/logManager.cpp)
+add_executable(log_manager_node src/logManager_node.cpp)
 add_dependencies(log_manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(log_manager_node ${catkin_LIBRARIES})
 
+add_executable(controller_node src/controller_node.cpp)
+add_dependencies(controller_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(controller_node ${catkin_LIBRARIES})
 
