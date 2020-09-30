@@ -2,7 +2,7 @@
 
 ///////////////////////////// SUPERVISOR /////////////////////////////////
 
-Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("do_action", true)
+Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("move_base", true)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
@@ -118,7 +118,7 @@ void Supervisor::FSM()
 
 						case READY:
 							printf("READY\n");
-							// send to geometric planner (do action)
+							// send to geometric planner 
 							client_action_.sendGoal((*curr_action).action);
 							(*curr_action).state=PROGRESS;
 							break;
@@ -184,15 +184,12 @@ void Supervisor::askPlan()
 		exit(-1);
 	}
 	
-	Action action;
+	Action ac;
 	for(int i=0; i<srv.response.actions.size(); i++)
 	{
-		action.action.type = 			srv.response.actions[i].type;
-		action.action.destination.x = 		srv.response.actions[i].destination.x;
-		action.action.destination.y = 		srv.response.actions[i].destination.y;
-		action.action.destination.theta =	srv.response.actions[i].destination.theta;
-		action.state=PLANNED;
-		plan_.addAction(action);
+		ac.action = srv.response.actions[i];
+		ac.state=PLANNED;
+		plan_.addAction(ac);
 	}
 }
 

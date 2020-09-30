@@ -14,21 +14,24 @@ TaskPlanner::TaskPlanner(ros::NodeHandle nh)
 
 bool TaskPlanner::computePlan(human_sim::ComputePlan::Request& req, human_sim::ComputePlan::Response& res)
 {
-	human_sim::HActionGoal action;
+	move_base_msgs::MoveBaseGoal action;
 
-	if(req.goal.type=="Position")
-		action.type = "movement";
-	else
-		action.type = "unknown";
+	action.target_pose.header.frame_id = "map";
 
-	action.destination.x =		human_pose_.x+(req.goal.x-human_pose_.x)/2;
-	action.destination.y =		human_pose_.y+(req.goal.y-human_pose_.y)/2;
-	action.destination.theta =	human_pose_.theta+(req.goal.theta-human_pose_.theta)/2;
+	action.target_pose.header.stamp = ros::Time::now();
+	action.target_pose.pose.position.x =		human_pose_.x+(req.goal.x-human_pose_.x)/2;
+	action.target_pose.pose.position.y =		human_pose_.y+(req.goal.y-human_pose_.y)/2;
+	tf2::Quaternion q;
+	q.setRPY(0,0,req.goal.theta);
+	action.target_pose.pose.orientation.x =	q.x();
+	action.target_pose.pose.orientation.y =	q.y();
+	action.target_pose.pose.orientation.z =	q.z();
+	action.target_pose.pose.orientation.w =	q.w();
 	res.actions.push_back(action);
 
-	action.destination.x =		req.goal.x;
-	action.destination.y =		req.goal.y;
-	action.destination.theta =	req.goal.theta;
+	action.target_pose.header.stamp = ros::Time::now();
+	action.target_pose.pose.position.x =		req.goal.x;
+	action.target_pose.pose.position.y =		req.goal.y;
 	res.actions.push_back(action);
 
 	printf("plan done !\n");

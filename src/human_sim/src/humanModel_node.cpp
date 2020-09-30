@@ -23,7 +23,7 @@ Map::Map(float rx, float ry, float tile_size)
 
 	map_[7][1]=GOAL;
 
-	map_[7][5]=GOAL;
+	map_[2][6]=GOAL;
 }
 
 void Map::show()
@@ -82,7 +82,7 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 
 	map_.show();
 
-	chance_decide_new_goal_ = 4; //x%
+	chance_decide_new_goal_ = 0; //x%
 	delay_think_about_new_goal_ = ros::Duration(2); // x% chance every 2s
 	last_time_ = ros::Time::now();
 }

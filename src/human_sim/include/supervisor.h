@@ -12,6 +12,7 @@
 
 #include "task.h"
 #include <actionlib/client/simple_action_client.h>
+#include <move_base_msgs/MoveBaseAction.h>
 
 class Supervisor
 {
@@ -44,7 +45,7 @@ private:
 	ros::Publisher pub_teleop_;
 	ros::Publisher pub_goal_done_;
 
-	actionlib::SimpleActionClient<human_sim::HActionAction> client_action_;
+	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client_action_;
 
 	ros::ServiceClient client_plan_;
 	ros::ServiceClient client_goal_;

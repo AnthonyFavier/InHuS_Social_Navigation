@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "type.h"
-#include <human_sim/HActionAction.h>
+#include <move_base_msgs/MoveBaseAction.h>
 
 enum State{UNKNOWN=0, PLANNED, NEEDED, READY, PROGRESS, DONE, FAILED};
 
@@ -11,7 +11,7 @@ enum State{UNKNOWN=0, PLANNED, NEEDED, READY, PROGRESS, DONE, FAILED};
 
 struct Action
 {
-	human_sim::HActionGoal action;
+	move_base_msgs::MoveBaseGoal action;
 	State state;
 };
 
