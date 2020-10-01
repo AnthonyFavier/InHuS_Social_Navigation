@@ -11,24 +11,24 @@ publish_voxel_map: true
 transform_tolerance: 0.5
 meter_scoring: true
 
-footprint: [[-0.21, -0.165], [-0.21, 0.165], [0.21, 0.165], [0.21, -0.165]]
+footprint: [[-0.4, -0.4], [-0.4, 0.4], [0.4, 0.4], [0.4, -0.4]]
 footprint_padding: 0.1
 
 plugins:
-        - {name: static_layer, type: "costmap_2d::StaticLayer"}
-        - {name: obstacles_layer, type: "costmap_2d::VoxelLayer"}
-        - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+  - {name: static_layer, type: "costmap_2d::StaticLayer"}
+  - {name: obstacles_layer, type: "costmap_2d::VoxelLayer"}
+  - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
 
 static_layer:
-        map_topic: /map
-        subscribe_to_updates: true
-        static_map: true
+  map_topic: /map
+  subscribe_to_updates: true
+  static_map: true
 
 obstacles_layer:
-        observation_sources: scan
-        scan: {sensor_frame: base_link_sensor, data_type: LaserScan, topic: robot/scan, marking: true, clearing: true}
+  observation_sources: scan
+  scan: {sensor_frame: base_link_sensor, data_type: LaserScan, topic: robot/scan, marking: true, clearing: true}
 
 inflation_layer:
-        enabled:              true
-        cost_scaling_factor:  5.0  # exponential rate at which the obstacle cost drops off (default: 10)
-        inflation_radius:     0.4  # max. distance from an obstacle at which costs are incurred for planning paths.
+  enabled:              true
+  cost_scaling_factor:  5.0  # exponential rate at which the obstacle cost drops off (default: 10)
+  inflation_radius:     0.55  # max. distance from an obstacle at which costs are incurred for planning paths.

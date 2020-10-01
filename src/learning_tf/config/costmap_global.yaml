@@ -1,7 +1,7 @@
 global_costmap:
-        global_fram: map
-        robot_base_frame: base_footprint
-        update_frequency: 5.0
-        static_map: true
-        width: 40.0
-        height: 40.0
+  global_fram: map
+  robot_base_frame: base_footprint
+  update_frequency: 4.0
+  static_map: true
+  width: 40.0
+  height: 40.0
