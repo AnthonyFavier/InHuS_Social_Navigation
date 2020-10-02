@@ -16,7 +16,7 @@ GlobalPlanner:
 DWAPlannerROS:
   # Robot configuration parameters  
   acc_lim_x: 3
-  acc_lim_y: 0
+  acc_lim_y: 3
   acc_lim_th: 6
 
   max_vel_trans: 1.0
@@ -27,7 +27,7 @@ DWAPlannerROS:
 
   max_vel_x: 1.0
   min_vel_x: 0.0
-  max_vel_y: 0.0
+  max_vel_y: 0.3
   min_vel_y: 0.0
 
 
@@ -38,10 +38,10 @@ DWAPlannerROS:
 
   # # Forward Simulation Parameters
   sim_time: 4.0
-  sim_granularity: 0.025
-  vx_samples: 10
-  vy_samples: 0
-  vtheta_samples: 20
+  sim_granularity: 0.03
+  vx_samples: 7
+  vy_samples: 5
+  vtheta_samples: 15
   penalize_negative_x: false
 
   # # Trajectory scoring parameters

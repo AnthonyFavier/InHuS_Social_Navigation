@@ -5,10 +5,10 @@
 
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
 
-		<rosparam file="$(find learning_tf)/config/planner.yaml" command="load"/>
-
 		<param name="base_global_planner" value="$(arg base_global_planner)"/>
 		<param name="base_local_planner" value="$(arg base_local_planner)"/>
+
+		<rosparam file="$(find learning_tf)/config/planner.yaml" command="load"/>
 
 		<rosparam file="$(find learning_tf)/config/costmap_common.yaml" command="load" ns="global_costmap" />
 		<rosparam file="$(find learning_tf)/config/costmap_common.yaml" command="load" ns="local_costmap" />
