@@ -3,7 +3,6 @@
 	<include file="$(find learning_tf)/launch/map.launch"/>
 
 	<node pkg="learning_tf" type="test_tf" name="test_tf"/>
-	<node pkg="learning_tf" type="odom_correction" name="odom_correction"/>
 
 	<include file="$(find learning_tf)/launch/move_base.launch"/>
 

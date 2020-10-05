@@ -125,10 +125,6 @@ add_executable(test_tf src/test.cpp)
 add_dependencies(test_tf ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(test_tf ${catkin_LIBRARIES})
 
-add_executable(odom_correction src/odom_correction.cpp)
-add_dependencies(odom_correction ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(odom_correction ${catkin_LIBRARIES})
-
 
 
 ## Declare a C++ library

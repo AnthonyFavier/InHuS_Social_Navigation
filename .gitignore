@@ -2,3 +2,4 @@ build/
 devel/
 *.swp
 log.txt
+src/navigation/

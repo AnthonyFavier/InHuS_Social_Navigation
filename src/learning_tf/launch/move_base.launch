@@ -5,6 +5,9 @@
 
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
 
+		<remap from="odom" to="sim/human_odom"/>
+		<remap from="cmd_vel" to="cmd_geo"/>
+
 		<param name="base_global_planner" value="$(arg base_global_planner)"/>
 		<param name="base_local_planner" value="$(arg base_local_planner)"/>
 
