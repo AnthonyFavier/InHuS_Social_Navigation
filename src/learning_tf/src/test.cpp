@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 	tf::TransformBroadcaster br;
 
 	tf::Transform transform;
-	transform.setOrigin( tf::Vector3(0, 0, 0.0) );
+	transform.setOrigin( tf::Vector3(2, 2, 0.0) );
 	tf::Quaternion q;
 	q.setRPY(0, 0, 0);
 	transform.setRotation(q);
