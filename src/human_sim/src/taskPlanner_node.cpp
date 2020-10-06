@@ -19,8 +19,10 @@ bool TaskPlanner::computePlan(human_sim::ComputePlan::Request& req, human_sim::C
 	action.target_pose.header.frame_id = "map";
 
 	action.target_pose.header.stamp = ros::Time::now();
-	action.target_pose.pose.position.x =		human_pose_.x+(req.goal.x-human_pose_.x)/2;
-	action.target_pose.pose.position.y =		human_pose_.y+(req.goal.y-human_pose_.y)/2;
+	//action.target_pose.pose.position.x =		human_pose_.x+(req.goal.x-human_pose_.x)/2;
+	//action.target_pose.pose.position.y =		human_pose_.y+(req.goal.y-human_pose_.y)/2;
+	action.target_pose.pose.position.x =		req.goal.x;
+	action.target_pose.pose.position.y =		req.goal.y;
 	tf2::Quaternion q;
 	q.setRPY(0,0,req.goal.theta);
 	action.target_pose.pose.orientation.x =	q.x();
@@ -29,12 +31,14 @@ bool TaskPlanner::computePlan(human_sim::ComputePlan::Request& req, human_sim::C
 	action.target_pose.pose.orientation.w =	q.w();
 	res.actions.push_back(action);
 
-	action.target_pose.header.stamp = ros::Time::now();
+	/*action.target_pose.header.stamp = ros::Time::now();
 	action.target_pose.pose.position.x =		req.goal.x;
 	action.target_pose.pose.position.y =		req.goal.y;
-	res.actions.push_back(action);
+	res.actions.push_back(action);*/
 
 	printf("plan done !\n");
+
+	return true;
 }
 
 void TaskPlanner::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)

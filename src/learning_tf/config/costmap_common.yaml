@@ -12,11 +12,10 @@ transform_tolerance: 0.5
 meter_scoring: true
 
 footprint: [[-0.3, -0.3], [-0.3, 0.3], [0.3, 0.3], [0.3, -0.3]]
-footprint_padding: 0.1
+footprint_padding: 0.0
 
 plugins:
   - {name: static_layer, type: "costmap_2d::StaticLayer"}
-  - {name: obstacles_layer, type: "costmap_2d::VoxelLayer"}
   - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
 
 static_layer:
@@ -24,11 +23,7 @@ static_layer:
   subscribe_to_updates: true
   static_map: true
 
-obstacles_layer:
-  observation_sources: scan
-  scan: {sensor_frame: base_link_sensor, data_type: LaserScan, topic: human/scan, marking: true, clearing: true}
-
 inflation_layer:
   enabled:              true
-  cost_scaling_factor:  10  # exponential rate at which the obstacle cost drops off (default: 10)
   inflation_radius:     1.75  # max. distance from an obstacle at which costs are incurred for planning paths.
+  cost_scaling_factor:  2.58  # exponential rate at which the obstacle cost drops off (default: 10)

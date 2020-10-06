@@ -10,6 +10,8 @@
 #include "human_sim/ChooseGoal.h"
 #include <time.h>
 
+#define PI 3.1415926535897932384626433832795
+
 class Map
 {
 public:
@@ -69,8 +71,10 @@ private:
 	float ratio_perturbation_;
 
 	human_sim::Goal current_goal_;
+	human_sim::Goal previous_goal_;
 
-	Map map_;
+	//Map map_;
+	std::vector<human_sim::Goal> known_goals_;
 
 	ros::Time last_time_;
 	ros::Duration delay_think_about_new_goal_;

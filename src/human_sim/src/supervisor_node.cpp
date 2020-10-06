@@ -176,12 +176,10 @@ void Supervisor::askPlan()
 	srv.request.goal.y = 		current_goal_.y;
 	srv.request.goal.theta = 	current_goal_.theta;
 	ros::service::waitForService("compute_plan");
-	if(!client_plan_.call(srv))
+	while(!client_plan_.call(srv))
 	{
-		ROS_ERROR("Failure while asking for a plan");
-		int test;
-		std::cin >> test;
-		exit(-1);
+		ROS_ERROR("Failure while asking for a plan, asking again in 1s");
+		ros::Duration(1).sleep();
 	}
 	
 	Action ac;

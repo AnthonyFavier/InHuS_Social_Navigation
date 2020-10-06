@@ -43,7 +43,7 @@ void Map::show()
 
 /////////////////////// HUMAN MODEL ///////////////////////
 
-HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
+HumanModel::HumanModel(ros::NodeHandle nh)//: map_(10, 10, 1)
 {
 	nh_ = nh;
 
@@ -63,6 +63,8 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 	current_goal_.y = 	0;
 	current_goal_.theta = 	0;
 
+	previous_goal_=current_goal_;
+
 	//ratio_perturbation_ = 0.2; // +/- 20% of value
 	ratio_perturbation_ = 0;
 
@@ -80,11 +82,31 @@ HumanModel::HumanModel(ros::NodeHandle nh): map_(10, 10, 1)
 
 	printf("I am human\n");
 
-	map_.show();
+	//map_.show();
 
 	chance_decide_new_goal_ = 0; //x%
 	delay_think_about_new_goal_ = ros::Duration(2); // x% chance every 2s
 	last_time_ = ros::Time::now();
+
+	// Init goals
+	human_sim::Goal goal;
+	goal.type="Position";
+	goal.x=0.9; 	goal.y=0.9; 	goal.theta=-PI/2;
+	known_goals_.push_back(goal);
+	goal.x=3.15; 	goal.y=3.6; 	goal.theta=PI/2;
+	known_goals_.push_back(goal);
+	goal.x=10.51; 	goal.y=-3.98; 	goal.theta=0;
+	known_goals_.push_back(goal);
+	goal.x=8.07; 	goal.y=5.07; 	goal.theta=-PI/2;
+	known_goals_.push_back(goal);
+	goal.x=7.8; 	goal.y=9.98; 	goal.theta=-PI;
+	known_goals_.push_back(goal);
+	goal.x=3.42; 	goal.y=9.48; 	goal.theta=PI/2;
+	known_goals_.push_back(goal);
+	goal.x=4.72; 	goal.y=17.68; 	goal.theta=PI/2;
+	known_goals_.push_back(goal);
+	goal.x=10.71; 	goal.y=15.8; 	goal.theta=0;
+	known_goals_.push_back(goal);
 }
 
 void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
@@ -118,11 +140,14 @@ void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 {
 	printf("received !!\n");
-	if(msg->type=="Position")
+	previous_goal_ = current_goal_;
+
+/*	if(msg->type=="Position")
 	{
 		printf("REMOVE GOAL\n");
 		map_.map_[map_.getNX()/2-(int)msg->y][map_.getNY()/2-(int)msg->x]=Map::FREE;
 	}
+*/
 }
 
 bool HumanModel::chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res)
@@ -137,9 +162,10 @@ bool HumanModel::chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::C
 
 human_sim::Goal HumanModel::chooseGoal()
 {
-	map_.show();
 	human_sim::Goal goal;
 
+/*
+	map_.show();
 	// search for goals in the map
 	int x(-1),y(-1);
 	for(int i=0; i<map_.getNX(); i++)
@@ -168,6 +194,18 @@ human_sim::Goal HumanModel::chooseGoal()
 		goal.x = 	(rand()%100)/10.0;
 		goal.y = 	(rand()%100)/10.0;
 	}
+*/
+
+/*	int i;
+	do
+	{
+		i=rand()%known_goals_.size();
+	}while(known_goals_[i].x==previous_goal_.x && known_goals_[i].y==previous_goal_.y);*/
+
+	static int i=-1;
+	i=(i+1)%known_goals_.size();
+
+	goal = known_goals_[i];
 
 	current_goal_=goal;
 
