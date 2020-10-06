@@ -1,0 +1,15 @@
+<launch>
+
+	<include file="$(find learning_tf)/launch/map.launch"/>
+
+	<node pkg="learning_tf" type="test_tf" name="test_tf"/>
+
+	<include file="$(find learning_tf)/launch/move_base.launch"/>
+
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find learning_tf)/config/rviz.rviz"/>
+
+	<include file="$(find morse_ros)/launch/test.launch"/>
+
+	<include file="$(find human_sim)/launch/human_sim.launch"/>
+
+</launch>

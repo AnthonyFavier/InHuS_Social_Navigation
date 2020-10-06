@@ -1,0 +1,21 @@
+<launch>
+    <!-- start morse with a scenario -->
+    <arg name="scenario" default="laas_adream" />
+    <arg name="rear_laser" default="false" />
+    <node pkg="morse_ros" type="start_morse.sh"
+        args="$(find morse_ros)/scenarios/pepper_human_$(arg scenario)_scenario.py"
+        name="morse" output="screen" required="true" unless="$(arg rear_laser)" />
+    <node pkg="morse_ros" type="start_morse.sh"
+        args="$(find morse_ros)/scenarios/pepper_human_$(arg scenario)_scenario.py --rear_laser"
+        name="morse" output="screen" required="true" if="$(arg rear_laser)" />
+
+    <!-- use simulated clock -->
+    <param name="use_sim_time" type="bool" value="True" />
+
+    <!--<node pkg="tf" type="static_transform_publisher" name="base_footprint_base_link_transform"
+        args="0 0 0 0 0 0 /base_footprint /base_link 20"/>-->
+
+    <!-- start pepper robot -->
+    <include file="$(find morse_ros)/launch/pepper.launch" />
+
+</launch>

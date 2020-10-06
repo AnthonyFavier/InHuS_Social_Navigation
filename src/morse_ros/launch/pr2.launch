@@ -1,0 +1,15 @@
+<launch>
+    <!-- setting up robot frames and model -->
+    <param name="robot_description" command="cat $(find morse_ros)/urdf/pr2.urdf" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    <arg name="publish_tf" value="false" />
+
+    <arg name="rear_laser" default="false" />
+    <node pkg="tf" type="static_transform_publisher"
+        name="rear_laser_link_broadcaster"
+        args="-0.275 0 0.252 0 0 1 0 base_link rear_laser_link 50"
+        if="$(arg rear_laser)" />
+
+    <!-- tuck the arms by default -->
+    <include file="$(find morse_ros)/launch/pr2_tuck_arms.launch" />
+</launch>
