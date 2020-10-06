@@ -20,11 +20,11 @@ human.append(keyboard)
 
 pose = Pose()
 human.append(pose)
-pose.add_interface('ros', topic="human/pose")
+pose.add_interface('ros', topic="morse/human_pose")
 
 odometry = Odometry()
 human.append(odometry)
-odometry.add_interface('ros', topic="human/odom")
+odometry.add_interface('ros', topic="morse/human_odom")
 
 # add clock
 clock = Clock()

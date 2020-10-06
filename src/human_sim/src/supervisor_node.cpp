@@ -232,7 +232,7 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "supervisor");
 	ros::NodeHandle nh;
-	ros::Rate loop_rate(2);
+	ros::Rate loop_rate(5);
 
 	Supervisor supervisor(nh);
 

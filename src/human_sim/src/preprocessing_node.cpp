@@ -39,10 +39,10 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "preprocessing");
 	ros::NodeHandle nh;
 
-	ros::Subscriber sub_human_pose = nh.subscribe("human/pose", 100, humanPoseCallback);
+	ros::Subscriber sub_human_pose = nh.subscribe("morse/human_pose", 100, humanPoseCallback);
 	pub_sim_human_pose = nh.advertise<geometry_msgs::Pose2D>("sim/human_pose", 100);
 
-	ros::Subscriber sub_odom = nh.subscribe("human/odom", 100, odomCallback);
+	ros::Subscriber sub_odom = nh.subscribe("morse/human_odom", 100, odomCallback);
 	pub_corr_odom = nh.advertise<nav_msgs::Odometry>("sim/human_odom", 100);
 
 	ros::spin();

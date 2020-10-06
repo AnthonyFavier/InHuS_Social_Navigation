@@ -9,27 +9,14 @@
 #include <vector>
 #include "human_sim/ChooseGoal.h"
 #include <time.h>
+#include <math.h>
 
 #define PI 3.1415926535897932384626433832795
 
-class Map
+struct GoalArea
 {
-public:
-	Map(float rx, float ry, float tile_size);
-	enum Tile{FREE=0, OBSTACLE, GOAL};
-	void show();
-
-	std::vector<std::vector<Tile>> map_;
-
-	int getNX(){return map_.size();};
-	int getNY(){if(map_.size()){return map_[0].size();}else{return 0;}};
-	float getRSizeX(){return real_size_x_;};
-	float getRSizeY(){return real_size_y_;};
-	float getTileSize(){return tile_size_;};
-private:
-	float real_size_x_;
-	float real_size_y_;
-	float tile_size_;
+	human_sim::Goal goal;
+	float radius;
 };
 
 class HumanModel
@@ -73,8 +60,7 @@ private:
 	human_sim::Goal current_goal_;
 	human_sim::Goal previous_goal_;
 
-	//Map map_;
-	std::vector<human_sim::Goal> known_goals_;
+	std::vector<GoalArea> known_goals_;
 
 	ros::Time last_time_;
 	ros::Duration delay_think_about_new_goal_;

@@ -1,49 +1,8 @@
 #include "humanModel.h"
 
-
-/////////////////////////// MAP ///////////////////////////
-
-Map::Map(float rx, float ry, float tile_size)
-{
-	real_size_x_ = rx;
-	real_size_y_ = ry;
-	tile_size_ = tile_size;
-
-	int nx = real_size_x_/tile_size_;
-	int ny = real_size_y_/tile_size_;
-
-	std::vector<Tile> column;
-	for(int i=0; i<nx; i++)
-	{
-		column.clear();
-		for(int j=0; j<ny; j++)
-			column.push_back(FREE);
-		map_.push_back(column);
-	}
-
-	map_[7][1]=GOAL;
-
-	map_[2][6]=GOAL;
-}
-
-void Map::show()
-{
-	printf("\n");
-	if(map_.size()>0)
-	{
-		for(int j=0; j<map_[0].size(); j++)
-		{
-			for(int i=0; i<map_.size(); i++)
-				printf("%d ", map_[i][j]);
-			printf("\n");
-		}
-	}
-	printf("\n");
-}
-
 /////////////////////// HUMAN MODEL ///////////////////////
 
-HumanModel::HumanModel(ros::NodeHandle nh)//: map_(10, 10, 1)
+HumanModel::HumanModel(ros::NodeHandle nh)
 {
 	nh_ = nh;
 
@@ -65,8 +24,6 @@ HumanModel::HumanModel(ros::NodeHandle nh)//: map_(10, 10, 1)
 
 	previous_goal_=current_goal_;
 
-	//ratio_perturbation_ = 0.2; // +/- 20% of value
-	ratio_perturbation_ = 0;
 
 	sub_pose_ = 	 	nh_.subscribe("sim/human_pose", 100, &HumanModel::poseCallback, this);
 	sub_robot_pose_ =	nh_.subscribe("sim/robot_pose", 100, &HumanModel::robotPoseCallback, this);
@@ -78,35 +35,53 @@ HumanModel::HumanModel(ros::NodeHandle nh)//: map_(10, 10, 1)
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
 
-	service_ = nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
+	service_ = 		nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 
 	printf("I am human\n");
 
-	//map_.show();
 
+	// PARAMETERS//
+	
+	// Perturbation ratio
+	//ratio_perturbation_ = 0.2; // +/- 20% of value
+	ratio_perturbation_ = 0;
+
+	// Chance to find a new random goal
 	chance_decide_new_goal_ = 0; //x%
 	delay_think_about_new_goal_ = ros::Duration(2); // x% chance every 2s
 	last_time_ = ros::Time::now();
 
-	// Init goals
+
+	// INIT GOALS //
 	human_sim::Goal goal;
-	goal.type="Position";
-	goal.x=0.9; 	goal.y=0.9; 	goal.theta=-PI/2;
-	known_goals_.push_back(goal);
-	goal.x=3.15; 	goal.y=3.6; 	goal.theta=PI/2;
-	known_goals_.push_back(goal);
-	goal.x=10.51; 	goal.y=-3.98; 	goal.theta=0;
-	known_goals_.push_back(goal);
-	goal.x=8.07; 	goal.y=5.07; 	goal.theta=-PI/2;
-	known_goals_.push_back(goal);
-	goal.x=7.8; 	goal.y=9.98; 	goal.theta=-PI;
-	known_goals_.push_back(goal);
-	goal.x=3.42; 	goal.y=9.48; 	goal.theta=PI/2;
-	known_goals_.push_back(goal);
-	goal.x=4.72; 	goal.y=17.68; 	goal.theta=PI/2;
-	known_goals_.push_back(goal);
-	goal.x=10.71; 	goal.y=15.8; 	goal.theta=0;
-	known_goals_.push_back(goal);
+	GoalArea area;
+	area.goal.type="Position";
+
+	area.goal.x=0.9; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
+	known_goals_.push_back(area);
+	area.goal.x=3.15; 	area.goal.y=3.6; 	area.goal.theta=PI/2;	area.radius=0;
+	known_goals_.push_back(area);
+	area.goal.x=10.51; 	area.goal.y=-3.98; 	area.goal.theta=0;	area.radius=0;
+	known_goals_.push_back(area);
+	area.goal.x=8.07; 	area.goal.y=5.07; 	area.goal.theta=-PI/2;	area.radius=0;
+	known_goals_.push_back(area);
+	area.goal.x=7.8; 	area.goal.y=9.98; 	area.goal.theta=-PI;	area.radius=0;
+	known_goals_.push_back(area);
+	area.goal.x=3.42; 	area.goal.y=9.48; 	area.goal.theta=PI/2;	area.radius=0;
+	known_goals_.push_back(area);
+	area.goal.x=4.72; 	area.goal.y=17.68; 	area.goal.theta=PI/2;	area.radius=0;
+	known_goals_.push_back(area);
+	area.goal.x=10.71; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
+	known_goals_.push_back(area);
+	area.goal.x=1.15; 	area.goal.y=6.52; 	area.goal.theta=-PI;	area.radius=0;
+	known_goals_.push_back(area);
+
+	area.goal.x=8.8; 	area.goal.y=0.8; 	area.goal.theta=0;	area.radius=1.3;
+	known_goals_.push_back(area);
+	area.goal.x=3.0; 	area.goal.y=15.3; 	area.goal.theta=0;	area.radius=2;
+	known_goals_.push_back(area);	
+	area.goal.x=8.0; 	area.goal.y=15.5; 	area.goal.theta=0;	area.radius=2;
+	known_goals_.push_back(area);
 }
 
 void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
@@ -141,13 +116,6 @@ void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 {
 	printf("received !!\n");
 	previous_goal_ = current_goal_;
-
-/*	if(msg->type=="Position")
-	{
-		printf("REMOVE GOAL\n");
-		map_.map_[map_.getNX()/2-(int)msg->y][map_.getNY()/2-(int)msg->x]=Map::FREE;
-	}
-*/
 }
 
 bool HumanModel::chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res)
@@ -164,38 +132,6 @@ human_sim::Goal HumanModel::chooseGoal()
 {
 	human_sim::Goal goal;
 
-/*
-	map_.show();
-	// search for goals in the map
-	int x(-1),y(-1);
-	for(int i=0; i<map_.getNX(); i++)
-	{
-		for(int j=0; j< map_.getNY(); j++)
-		{
-			if(map_.map_[i][j]==Map::GOAL)
-			{
-				x=i;
-				y=j;
-			}
-		}
-	}
-
-	goal.type =	 "Position"; // only choice for now
-	goal.theta = (rand()%30)/10.0;
-	if(x!=-1 && y!=-1)
-	{
-		printf("x=%d y=%d\n", x, y);
-		goal.x = map_.getNX()/2-y;
-		goal.y = map_.getNY()/2-x;
-	}
-	else
-	{
-		// randomly pick a position as a goal
-		goal.x = 	(rand()%100)/10.0;
-		goal.y = 	(rand()%100)/10.0;
-	}
-*/
-
 /*	int i;
 	do
 	{
@@ -205,7 +141,23 @@ human_sim::Goal HumanModel::chooseGoal()
 	static int i=-1;
 	i=(i+1)%known_goals_.size();
 
-	goal = known_goals_[i];
+	printf("i=%d\n", i);
+	printf("x=%f, y=%f, theta=%f, radius=%f\n", known_goals_[i].goal.x,known_goals_[i].goal.y,known_goals_[i].goal.theta,known_goals_[i].radius);
+
+	if(known_goals_[i].radius!=0)
+	{
+		float alpha = (rand()%(2*314))/100 - PI;
+		float r = (rand()%(int(known_goals_[i].radius*100)))/100.0;
+
+		printf("alpha=%f, r=%f\n", alpha, r);
+
+		goal.type = "Position";
+		goal.x = known_goals_[i].goal.x + r * cos(alpha);
+		goal.y = known_goals_[i].goal.y + r * sin(alpha);
+		goal.theta = 0;
+	}
+	else
+		goal = known_goals_[i].goal;
 
 	current_goal_=goal;
 
@@ -273,7 +225,6 @@ int main(int argc, char** argv)
 	while(ros::ok())
 	{
 		// process data from simu
-		// -> memory etc..
 		human_model.processSimData();
 
 		// Publish data as perceived by the human model
