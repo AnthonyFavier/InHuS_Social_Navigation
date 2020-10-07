@@ -10,6 +10,7 @@
 #include "human_sim/ChooseGoal.h"
 #include <time.h>
 #include <math.h>
+#include "actionlib_msgs/GoalID.h"
 
 #define PI 3.1415926535897932384626433832795
 
@@ -28,10 +29,17 @@ public:
 	void publishModelData();
 	bool chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res);
 	human_sim::Goal chooseGoal();
-	void newGoalGeneration();
+	void newRandomGoalGeneration(bool toss);
+	void stopNearRobot();
+	void behaviors();
 
 private:
 	ros::NodeHandle nh_;
+
+	enum Behavior{NONE, RANDOM, STOP_NEAR};
+	enum SubBehavior{STOP_NEAR_WAIT_ROBOT, STOP_NEAR_STOP, STOP_NEAR_WAIT_AFTER, STOP_NEAR_NEW_GOAL, STOP_NEAR_OVER};
+	Behavior behavior_;
+	SubBehavior sub_behavior_;
 
 	Pose2D sim_pose_;
 	Pose2D sim_robot_pose_;
@@ -52,6 +60,7 @@ private:
 	ros::Publisher pub_human_pose_;
 	ros::Publisher pub_robot_pose_;
 	ros::Publisher pub_perturbated_cmd_;
+	ros::Publisher pub_cancel_goal_;
 
 	ros::ServiceServer service_;
 
@@ -65,6 +74,9 @@ private:
 	ros::Time last_time_;
 	ros::Duration delay_think_about_new_goal_;
 	int chance_decide_new_goal_;
+
+	float dist_near_robot_;
+
 };
 
 #endif

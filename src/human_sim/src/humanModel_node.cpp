@@ -1,5 +1,8 @@
 #include "humanModel.h"
 
+bool hcb=false;
+bool rcb=false;
+
 /////////////////////// HUMAN MODEL ///////////////////////
 
 HumanModel::HumanModel(ros::NodeHandle nh)
@@ -24,7 +27,6 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 
 	previous_goal_=current_goal_;
 
-
 	sub_pose_ = 	 	nh_.subscribe("sim/human_pose", 100, &HumanModel::poseCallback, this);
 	sub_robot_pose_ =	nh_.subscribe("sim/robot_pose", 100, &HumanModel::robotPoseCallback, this);
 	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
@@ -34,6 +36,7 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
+	pub_cancel_goal_ =	nh_.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 
 	service_ = 		nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 
@@ -51,6 +54,12 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	delay_think_about_new_goal_ = ros::Duration(2); // x% chance every 2s
 	last_time_ = ros::Time::now();
 
+	// Behaviors
+	behavior_ = STOP_NEAR;
+	sub_behavior_ = STOP_NEAR_WAIT_ROBOT;
+
+	// Near Robot distance
+	dist_near_robot_ = 2;
 
 	// INIT GOALS //
 	human_sim::Goal goal;
@@ -86,6 +95,8 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 
 void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
+	hcb=true;
+
 	sim_pose_.x=msg->x;
 	sim_pose_.y=msg->y;
 	sim_pose_.theta=msg->theta;
@@ -93,6 +104,8 @@ void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 
 void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
+	rcb=true;
+
 	sim_robot_pose_.x=msg->x;
 	sim_robot_pose_.y=msg->y;
 	sim_robot_pose_.theta=msg->theta;
@@ -187,13 +200,12 @@ void HumanModel::publishModelData()
 	pub_robot_pose_.publish(pose);
 }
 
-void HumanModel::newGoalGeneration()
+void HumanModel::newRandomGoalGeneration(bool toss)
 {
-	int nb;
-	if(ros::Time::now()-last_time_> delay_think_about_new_goal_)
+	if(!toss || ros::Time::now()-last_time_> delay_think_about_new_goal_)
 	{
-		nb = rand()%100 + 1;
-		if(nb < chance_decide_new_goal_)
+		int nb = rand()%100 + 1;
+		if(!toss || nb < chance_decide_new_goal_)
 		{
 			printf("DECIDE NEW GOAL ! \n");
 			human_sim::Goal previous_goal = current_goal_;
@@ -210,6 +222,63 @@ void HumanModel::newGoalGeneration()
 	}
 }
 
+void HumanModel::stopNearRobot()
+{
+	switch(sub_behavior_)
+	{
+		case STOP_NEAR_WAIT_ROBOT:
+			printf("threshold=%f dist=%f\n", dist_near_robot_, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
+			if(sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2))<dist_near_robot_)
+				sub_behavior_=STOP_NEAR_STOP;
+			break;
+
+		case STOP_NEAR_STOP:
+			printf("Stopped !\n");
+			pub_cancel_goal_.publish(actionlib_msgs::GoalID());
+			sub_behavior_=STOP_NEAR_WAIT_AFTER;
+			break;
+
+		case STOP_NEAR_WAIT_AFTER:
+			if(abs(model_pose_.x-model_robot_pose_.x)>=dist_near_robot_
+			|| abs(model_pose_.y-model_robot_pose_.y)>=dist_near_robot_)
+				sub_behavior_=STOP_NEAR_NEW_GOAL;
+			break;
+
+		case STOP_NEAR_NEW_GOAL:
+			printf("Choose new goal\n");
+			this->newRandomGoalGeneration(false); // goal behind
+			sub_behavior_=STOP_NEAR_OVER;
+			break;
+
+		case STOP_NEAR_OVER:
+			break;
+
+		default:
+			sub_behavior_=STOP_NEAR_WAIT_ROBOT;
+	}
+}
+
+void HumanModel::behaviors()
+{
+	switch(behavior_)
+	{
+		case NONE:
+			break;
+
+		case RANDOM:
+			this->newRandomGoalGeneration(true);
+			break;
+
+		case STOP_NEAR:
+			this->stopNearRobot();
+			break;
+
+		default:
+			behavior_=NONE;
+			break;
+	}
+}
+
 ////////////////////////// MAIN ///////////////////////////
 
 int main(int argc, char** argv)
@@ -220,7 +289,15 @@ int main(int argc, char** argv)
 
 	HumanModel human_model(nh);
 
-	ros::Rate rate(5);
+	ros::Rate rate(10);
+
+	while(ros::ok() && (!hcb || !rcb))
+	{
+		ros::spinOnce();
+		rate.sleep();
+	}
+
+	printf("LETS_GO\n");
 
 	while(ros::ok())
 	{
@@ -230,8 +307,8 @@ int main(int argc, char** argv)
 		// Publish data as perceived by the human model
 		human_model.publishModelData();
 
-		// Chance of generating a new goal
-		human_model.newGoalGeneration();
+		// Add perturbation in human behaviors
+		human_model.behaviors();
 
 		rate.sleep();
 		ros::spinOnce();

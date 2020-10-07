@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   roslib
   move_base_msgs
+  tf
 )
 
 add_message_files(

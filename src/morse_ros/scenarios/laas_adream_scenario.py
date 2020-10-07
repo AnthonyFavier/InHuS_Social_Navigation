@@ -15,16 +15,18 @@ motion.properties(ControlType = 'Position')
 human.append(motion)
 motion.add_interface('ros', topic="/cmd_vel")
 
-keyboard = Keyboard()
-human.append(keyboard)
-
 pose = Pose()
 human.append(pose)
 pose.add_interface('ros', topic="morse/human_pose")
 
-odometry = Odometry()
-human.append(odometry)
-odometry.add_interface('ros', topic="morse/human_odom")
+pr2 = BarePR2()
+pr2.translate(5.0, 2.0, 0.0)
+keyboard = Keyboard()
+pr2.append(keyboard)
+
+pose_pr2 = Pose()
+pr2.append(pose_pr2)
+pose_pr2.add_interface('ros', topic="morse/robot_pose")
 
 # add clock
 clock = Clock()

@@ -121,12 +121,6 @@ include_directories(
 )
 
 
-add_executable(test_tf src/test.cpp)
-add_dependencies(test_tf ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(test_tf ${catkin_LIBRARIES})
-
-
-
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/learning_tf.cpp
