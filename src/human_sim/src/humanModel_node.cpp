@@ -56,7 +56,7 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 
 	// Behaviors
 	behavior_ = STOP_NEAR;
-	sub_behavior_ = STOP_NEAR_WAIT_ROBOT;
+	sub_stop_near_ = WAIT_ROBOT;
 
 	// Near Robot distance
 	dist_near_robot_ = 2;
@@ -224,37 +224,37 @@ void HumanModel::newRandomGoalGeneration(bool toss)
 
 void HumanModel::stopNearRobot()
 {
-	switch(sub_behavior_)
+	switch(sub_stop_near_)
 	{
-		case STOP_NEAR_WAIT_ROBOT:
+		case WAIT_ROBOT:
 			printf("threshold=%f dist=%f\n", dist_near_robot_, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
 			if(sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2))<dist_near_robot_)
-				sub_behavior_=STOP_NEAR_STOP;
+				sub_stop_near_=STOP;
 			break;
 
-		case STOP_NEAR_STOP:
+		case STOP:
 			printf("Stopped !\n");
 			pub_cancel_goal_.publish(actionlib_msgs::GoalID());
-			sub_behavior_=STOP_NEAR_WAIT_AFTER;
+			sub_stop_near_=WAIT_AFTER;
 			break;
 
-		case STOP_NEAR_WAIT_AFTER:
+		case WAIT_AFTER:
 			if(abs(model_pose_.x-model_robot_pose_.x)>=dist_near_robot_
 			|| abs(model_pose_.y-model_robot_pose_.y)>=dist_near_robot_)
-				sub_behavior_=STOP_NEAR_NEW_GOAL;
+				sub_stop_near_=NEW_GOAL;
 			break;
 
-		case STOP_NEAR_NEW_GOAL:
+		case NEW_GOAL:
 			printf("Choose new goal\n");
 			this->newRandomGoalGeneration(false); // goal behind
-			sub_behavior_=STOP_NEAR_OVER;
+			sub_stop_near_=OVER;
 			break;
 
-		case STOP_NEAR_OVER:
+		case OVER:
 			break;
 
 		default:
-			sub_behavior_=STOP_NEAR_WAIT_ROBOT;
+			sub_stop_near_=WAIT_ROBOT;
 	}
 }
 

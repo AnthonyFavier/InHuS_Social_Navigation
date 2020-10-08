@@ -37,9 +37,9 @@ private:
 	ros::NodeHandle nh_;
 
 	enum Behavior{NONE, RANDOM, STOP_NEAR};
-	enum SubBehavior{STOP_NEAR_WAIT_ROBOT, STOP_NEAR_STOP, STOP_NEAR_WAIT_AFTER, STOP_NEAR_NEW_GOAL, STOP_NEAR_OVER};
+	enum SubBehaviorStopNear{WAIT_ROBOT, STOP, WAIT_AFTER, NEW_GOAL, OVER};
 	Behavior behavior_;
-	SubBehavior sub_behavior_;
+	SubBehaviorStopNear sub_stop_near_;
 
 	Pose2D sim_pose_;
 	Pose2D sim_robot_pose_;
