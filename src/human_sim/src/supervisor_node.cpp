@@ -16,6 +16,7 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("move_base",
 	sub_new_goal_  = 	nh_.subscribe("boss/new_goal", 100, &Supervisor::newGoalCallback, this);
 	sub_teleop_boss_ =	nh_.subscribe("boss/teleoperation", 100, &Supervisor::teleopBossCallback, this);
 	sub_operating_mode_ =	nh_.subscribe("boss/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
+	sub_cancel_goal_ = 	nh_.subscribe("move_base/cancel", 100, &Supervisor::cancelGoalCallback, this);
 
 	pub_teleop_ = 		nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
 	pub_goal_done_ = 	nh_.advertise<human_sim::Goal>("goal_done", 100);
@@ -38,6 +39,7 @@ Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("move_base",
 void Supervisor::FSM()
 {
 	printf("\n");
+	// modified only here and in cancelGoalCallback
 	switch(state_global_)
 	{
 		case GET_GOAL:
@@ -226,13 +228,18 @@ void Supervisor::operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg)
 	}
 }
 
+void Supervisor::cancelGoalCallback(const actionlib_msgs::GoalID::ConstPtr& msg)
+{
+	state_global_=GET_GOAL;
+}
+
 /////////////////////////////// MAIN /////////////////////////////////////
 
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "supervisor");
 	ros::NodeHandle nh;
-	ros::Rate loop_rate(5);
+	ros::Rate loop_rate(15);
 
 	Supervisor supervisor(nh);
 

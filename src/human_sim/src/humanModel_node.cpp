@@ -289,7 +289,7 @@ int main(int argc, char** argv)
 
 	HumanModel human_model(nh);
 
-	ros::Rate rate(10);
+	ros::Rate rate(15);
 
 	while(ros::ok() && (!hcb || !rcb))
 	{

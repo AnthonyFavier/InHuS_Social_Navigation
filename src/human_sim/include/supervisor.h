@@ -41,6 +41,8 @@ private:
 	void teleopBossCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_operating_mode_;
 	void operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg);
+	ros::Subscriber sub_cancel_goal_;
+	void cancelGoalCallback(const actionlib_msgs::GoalID::ConstPtr& msg);
 
 	ros::Publisher pub_teleop_;
 	ros::Publisher pub_goal_done_;
