@@ -7,6 +7,7 @@ bool rcb=false;
 
 HumanModel::HumanModel(ros::NodeHandle nh)
 {
+
 	nh_ = nh;
 
 	srand(time(NULL));
@@ -38,6 +39,7 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
 	pub_cancel_goal_ =	nh_.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 	pub_op_mode_ = 		nh_.advertise<std_msgs::Int32>("boss/operating_mode", 100);
+	pub_goal_move_base_ =	nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
 
 	service_ = 		nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 
@@ -56,11 +58,16 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	last_time_ = ros::Time::now();
 
 	// Behaviors
-	behavior_ = STOP_LOOK;
+	behavior_ = HARASS;
 	sub_stop_look_ = WAIT_ROBOT;
 
 	// Near Robot distance
 	dist_near_robot_ = 2;
+
+	// Harass
+	dist_in_front_ = 2;
+	delay_harass_replan_ = ros::Duration(0.5);
+	last_harass_ = ros::Time::now();
 
 	// INIT GOALS //
 	human_sim::Goal goal;
@@ -316,6 +323,32 @@ void HumanModel::stopLookRobot()
 	}
 }
 
+void HumanModel::harassRobot()
+{
+	if(ros::Time::now() > last_harass_ + delay_harass_replan_)
+	{
+		Pose2D in_front;
+		in_front.x = model_robot_pose_.x + cos(model_robot_pose_.theta)*dist_in_front_;
+		in_front.y = model_robot_pose_.y + sin(model_robot_pose_.theta)*dist_in_front_;
+		in_front.theta = model_robot_pose_.theta;
+
+		move_base_msgs::MoveBaseActionGoal goal;
+		goal.goal.target_pose.header.frame_id = "map";
+		goal.goal.target_pose.header.stamp = ros::Time::now();
+		goal.goal.target_pose.pose.position.x = in_front.x;
+		goal.goal.target_pose.pose.position.y = in_front.y;
+		tf2::Quaternion q;
+		q.setRPY(0,0,in_front.theta);
+		goal.goal.target_pose.pose.orientation.x = q.x();
+		goal.goal.target_pose.pose.orientation.y = q.y();
+		goal.goal.target_pose.pose.orientation.z = q.z();
+		goal.goal.target_pose.pose.orientation.w = q.w();
+		pub_goal_move_base_.publish(goal);
+
+		last_harass_ = ros::Time::now();
+	}
+}
+
 void HumanModel::behaviors()
 {
 	switch(behavior_)
@@ -329,6 +362,10 @@ void HumanModel::behaviors()
 
 		case STOP_LOOK:
 			this->stopLookRobot();
+			break;
+
+		case HARASS:
+			this->harassRobot();
 			break;
 
 		default:

@@ -12,6 +12,8 @@
 #include <math.h>
 #include "actionlib_msgs/GoalID.h"
 #include "std_msgs/Int32.h"
+#include "move_base_msgs/MoveBaseActionGoal.h"
+#include <tf2/LinearMath/Quaternion.h>
 
 #define PI 3.1415926535897932384626433832795
 
@@ -32,12 +34,13 @@ public:
 	human_sim::Goal chooseGoal();
 	void newRandomGoalGeneration(bool toss);
 	void stopLookRobot();
+	void harassRobot();
 	void behaviors();
 
 private:
 	ros::NodeHandle nh_;
 
-	enum Behavior{NONE, RANDOM, STOP_LOOK};
+	enum Behavior{NONE, RANDOM, STOP_LOOK, HARASS};
 	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, NEW_GOAL, OVER};
 	Behavior behavior_;
 	SubBehaviorStopLook sub_stop_look_;
@@ -63,6 +66,7 @@ private:
 	ros::Publisher pub_robot_pose_;
 	ros::Publisher pub_perturbated_cmd_;
 	ros::Publisher pub_cancel_goal_;
+	ros::Publisher pub_goal_move_base_;
 
 	ros::ServiceServer service_;
 
@@ -79,6 +83,9 @@ private:
 
 	float dist_near_robot_;
 
+	float dist_in_front_;
+	ros::Duration delay_harass_replan_;
+	ros::Time last_harass_;
 };
 
 #endif
