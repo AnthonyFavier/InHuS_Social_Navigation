@@ -37,6 +37,7 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
 	pub_cancel_goal_ =	nh_.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
+	pub_op_mode_ = 		nh_.advertise<std_msgs::Int32>("boss/operating_mode", 100);
 
 	service_ = 		nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 
@@ -44,7 +45,7 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 
 
 	// PARAMETERS//
-	
+
 	// Perturbation ratio
 	//ratio_perturbation_ = 0.2; // +/- 20% of value
 	ratio_perturbation_ = 0;
@@ -55,8 +56,8 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	last_time_ = ros::Time::now();
 
 	// Behaviors
-	behavior_ = STOP_NEAR;
-	sub_stop_near_ = WAIT_ROBOT;
+	behavior_ = STOP_LOOK;
+	sub_stop_look_ = WAIT_ROBOT;
 
 	// Near Robot distance
 	dist_near_robot_ = 2;
@@ -88,7 +89,7 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	area.goal.x=8.8; 	area.goal.y=0.8; 	area.goal.theta=0;	area.radius=1.3;
 	known_goals_.push_back(area);
 	area.goal.x=3.0; 	area.goal.y=15.3; 	area.goal.theta=0;	area.radius=2;
-	known_goals_.push_back(area);	
+	known_goals_.push_back(area);
 	area.goal.x=8.0; 	area.goal.y=15.5; 	area.goal.theta=0;	area.radius=2;
 	known_goals_.push_back(area);
 }
@@ -222,39 +223,96 @@ void HumanModel::newRandomGoalGeneration(bool toss)
 	}
 }
 
-void HumanModel::stopNearRobot()
+void HumanModel::stopLookRobot()
 {
-	switch(sub_stop_near_)
+	switch(sub_stop_look_)
 	{
 		case WAIT_ROBOT:
 			printf("threshold=%f dist=%f\n", dist_near_robot_, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
 			if(sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2))<dist_near_robot_)
-				sub_stop_near_=STOP;
+				sub_stop_look_=STOP;
 			break;
 
 		case STOP:
+		{
 			printf("Stopped !\n");
 			pub_cancel_goal_.publish(actionlib_msgs::GoalID());
-			sub_stop_near_=WAIT_AFTER;
+			std_msgs::Int32 msg;
+			msg.data=1;
+			pub_op_mode_.publish(msg); // Passe en SPECIFIED, save if was in AUTO ?
+			sub_stop_look_=LOOK_AT_ROBOT;
 			break;
+		}
 
-		case WAIT_AFTER:
-			if(abs(model_pose_.x-model_robot_pose_.x)>=dist_near_robot_
-			|| abs(model_pose_.y-model_robot_pose_.y)>=dist_near_robot_)
-				sub_stop_near_=NEW_GOAL;
+		case LOOK_AT_ROBOT:
+		{
+			float qy = model_robot_pose_.y - model_pose_.y;
+			float qx = model_robot_pose_.x - model_pose_.x;
+
+			float q;
+			float alpha;
+
+			if(qx==0)
+			{
+				if(qy>0)
+					alpha = PI/2;
+				else
+					alpha = -PI/2;
+			}
+			else
+			{
+				q = abs(qy/qx);
+				if(qx>0)
+				{
+					if(qy>0)
+						alpha = atan(q);
+					else
+						alpha = -atan(q);
+				}
+				else
+				{
+					if(qy>0)
+						alpha = PI - atan(q);
+					else
+						alpha = atan(q) - PI;
+				}
+			}
+
+			printf("alpha=%f\n", alpha);//*180/PI);
+
+			geometry_msgs::Twist cmd;
+			if(abs(alpha-model_pose_.theta)>0.1)
+			{
+				cmd.angular.z=2;
+				if(alpha-model_pose_.theta<0) 	
+					cmd.angular.z=-cmd.angular.z;
+
+				if(abs(alpha-model_pose_.theta)>PI)
+					cmd.angular.z=-cmd.angular.z;
+			}
+			pub_perturbated_cmd_.publish(cmd);
+
+			printf("threshold=%f dist=%f\n", dist_near_robot_*1.1, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
+			if(sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2))>dist_near_robot_*1.1)
+			{
+				printf("NEW GOALLLLL\n");
+				sub_stop_look_=NEW_GOAL;
+			}
 			break;
+		}
 
 		case NEW_GOAL:
-			printf("Choose new goal\n");
-			this->newRandomGoalGeneration(false); // goal behind
-			sub_stop_near_=OVER;
-			break;
+		printf("Choose new goal\n");
+		this->newRandomGoalGeneration(false); // goal behind
+		// put back in AUTONOMOUS if it was
+		sub_stop_look_=OVER;
+		break;
 
 		case OVER:
-			break;
+		break;
 
 		default:
-			sub_stop_near_=WAIT_ROBOT;
+		sub_stop_look_=WAIT_ROBOT;
 	}
 }
 
@@ -269,8 +327,8 @@ void HumanModel::behaviors()
 			this->newRandomGoalGeneration(true);
 			break;
 
-		case STOP_NEAR:
-			this->stopNearRobot();
+		case STOP_LOOK:
+			this->stopLookRobot();
 			break;
 
 		default:

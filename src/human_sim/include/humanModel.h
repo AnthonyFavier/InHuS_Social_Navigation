@@ -11,6 +11,7 @@
 #include <time.h>
 #include <math.h>
 #include "actionlib_msgs/GoalID.h"
+#include "std_msgs/Int32.h"
 
 #define PI 3.1415926535897932384626433832795
 
@@ -30,16 +31,16 @@ public:
 	bool chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res);
 	human_sim::Goal chooseGoal();
 	void newRandomGoalGeneration(bool toss);
-	void stopNearRobot();
+	void stopLookRobot();
 	void behaviors();
 
 private:
 	ros::NodeHandle nh_;
 
-	enum Behavior{NONE, RANDOM, STOP_NEAR};
-	enum SubBehaviorStopNear{WAIT_ROBOT, STOP, WAIT_AFTER, NEW_GOAL, OVER};
+	enum Behavior{NONE, RANDOM, STOP_LOOK};
+	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, NEW_GOAL, OVER};
 	Behavior behavior_;
-	SubBehaviorStopNear sub_stop_near_;
+	SubBehaviorStopLook sub_stop_look_;
 
 	Pose2D sim_pose_;
 	Pose2D sim_robot_pose_;
@@ -57,6 +58,7 @@ private:
 	void goalDoneCallback(const human_sim::Goal::ConstPtr& msg);
 
 	ros::Publisher pub_new_goal_;
+	ros::Publisher pub_op_mode_;
 	ros::Publisher pub_human_pose_;
 	ros::Publisher pub_robot_pose_;
 	ros::Publisher pub_perturbated_cmd_;
