@@ -32,6 +32,7 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	sub_robot_pose_ =	nh_.subscribe("sim/robot_pose", 100, &HumanModel::robotPoseCallback, this);
 	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
 	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanModel::goalDoneCallback, this);
+	sub_set_behavior_ = 	nh_.subscribe("human_model/set_behavior", 100, &HumanModel::setBehaviorCallback, this);
 
 	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("boss/new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
@@ -57,9 +58,10 @@ HumanModel::HumanModel(ros::NodeHandle nh)
 	delay_think_about_new_goal_ = ros::Duration(2); // x% chance every 2s
 	last_time_ = ros::Time::now();
 
-	// Behaviors
-	behavior_ = HARASS;
+	// BEHAVIORS //
+	behavior_ = NONE;
 	sub_stop_look_ = WAIT_ROBOT;
+	sub_harass_ = INIT;
 
 	// Near Robot distance
 	dist_near_robot_ = 2;
@@ -153,11 +155,11 @@ human_sim::Goal HumanModel::chooseGoal()
 {
 	human_sim::Goal goal;
 
-/*	int i;
-	do
-	{
+	/*	int i;
+		do
+		{
 		i=rand()%known_goals_.size();
-	}while(known_goals_[i].x==previous_goal_.x && known_goals_[i].y==previous_goal_.y);*/
+		}while(known_goals_[i].x==previous_goal_.x && known_goals_[i].y==previous_goal_.y);*/
 
 	static int i=-1;
 	i=(i+1)%known_goals_.size();
@@ -206,6 +208,25 @@ void HumanModel::publishModelData()
 	pose.y = model_robot_pose_.y;
 	pose.theta = model_robot_pose_.theta;
 	pub_robot_pose_.publish(pose);
+}
+
+void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
+{
+	switch(msg->data)
+	{
+		case NONE:
+		case RANDOM:
+		case STOP_LOOK:
+		case HARASS:
+			printf("Behavior set !\n");
+			behavior_ = (Behavior)msg->data;
+			sub_stop_look_ = WAIT_ROBOT;
+			sub_harass_ = INIT;
+			break;
+
+		default:
+			break;
+	}
 }
 
 void HumanModel::newRandomGoalGeneration(bool toss)
@@ -309,43 +330,57 @@ void HumanModel::stopLookRobot()
 		}
 
 		case NEW_GOAL:
-		printf("Choose new goal\n");
-		this->newRandomGoalGeneration(false); // goal behind
-		// put back in AUTONOMOUS if it was
-		sub_stop_look_=OVER;
-		break;
+			printf("Choose new goal\n");
+			this->newRandomGoalGeneration(false); // goal behind
+			// put back in AUTONOMOUS if it was
+			sub_stop_look_=OVER;
+			break;
 
 		case OVER:
-		break;
+			break;
 
 		default:
-		sub_stop_look_=WAIT_ROBOT;
+			sub_stop_look_=WAIT_ROBOT;
+			break;
 	}
 }
 
 void HumanModel::harassRobot()
 {
-	if(ros::Time::now() > last_harass_ + delay_harass_replan_)
+	switch(sub_harass_)
 	{
-		Pose2D in_front;
-		in_front.x = model_robot_pose_.x + cos(model_robot_pose_.theta)*dist_in_front_;
-		in_front.y = model_robot_pose_.y + sin(model_robot_pose_.theta)*dist_in_front_;
-		in_front.theta = model_robot_pose_.theta;
+		case INIT:
+			pub_cancel_goal_.publish(actionlib_msgs::GoalID());
+			sub_harass_=HARASSING;
+			break;
+		case HARASSING:
+			if(ros::Time::now() > last_harass_ + delay_harass_replan_)
+			{
+				Pose2D in_front;
+				in_front.x = model_robot_pose_.x + cos(model_robot_pose_.theta)*dist_in_front_;
+				in_front.y = model_robot_pose_.y + sin(model_robot_pose_.theta)*dist_in_front_;
+				in_front.theta = model_robot_pose_.theta;
 
-		move_base_msgs::MoveBaseActionGoal goal;
-		goal.goal.target_pose.header.frame_id = "map";
-		goal.goal.target_pose.header.stamp = ros::Time::now();
-		goal.goal.target_pose.pose.position.x = in_front.x;
-		goal.goal.target_pose.pose.position.y = in_front.y;
-		tf2::Quaternion q;
-		q.setRPY(0,0,in_front.theta);
-		goal.goal.target_pose.pose.orientation.x = q.x();
-		goal.goal.target_pose.pose.orientation.y = q.y();
-		goal.goal.target_pose.pose.orientation.z = q.z();
-		goal.goal.target_pose.pose.orientation.w = q.w();
-		pub_goal_move_base_.publish(goal);
+				move_base_msgs::MoveBaseActionGoal goal;
+				goal.goal.target_pose.header.frame_id = "map";
+				goal.goal.target_pose.header.stamp = ros::Time::now();
+				goal.goal.target_pose.pose.position.x = in_front.x;
+				goal.goal.target_pose.pose.position.y = in_front.y;
+				tf2::Quaternion q;
+				q.setRPY(0,0,in_front.theta);
+				goal.goal.target_pose.pose.orientation.x = q.x();
+				goal.goal.target_pose.pose.orientation.y = q.y();
+				goal.goal.target_pose.pose.orientation.z = q.z();
+				goal.goal.target_pose.pose.orientation.w = q.w();
+				pub_goal_move_base_.publish(goal);
 
-		last_harass_ = ros::Time::now();
+				last_harass_ = ros::Time::now();
+			}
+			break;
+
+		default:
+			sub_harass_=INIT;
+			break;
 	}
 }
 

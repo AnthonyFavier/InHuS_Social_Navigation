@@ -40,10 +40,12 @@ public:
 private:
 	ros::NodeHandle nh_;
 
-	enum Behavior{NONE, RANDOM, STOP_LOOK, HARASS};
+	enum Behavior{NONE=0, RANDOM, STOP_LOOK, HARASS};
 	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, NEW_GOAL, OVER};
+	enum SubBehaviorHarass{INIT, HARASSING};
 	Behavior behavior_;
 	SubBehaviorStopLook sub_stop_look_;
+	SubBehaviorHarass sub_harass_;
 
 	Pose2D sim_pose_;
 	Pose2D sim_robot_pose_;
@@ -59,6 +61,8 @@ private:
 	void cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_goal_done_;
 	void goalDoneCallback(const human_sim::Goal::ConstPtr& msg);
+	ros::Subscriber sub_set_behavior_;
+	void setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg);
 
 	ros::Publisher pub_new_goal_;
 	ros::Publisher pub_op_mode_;
