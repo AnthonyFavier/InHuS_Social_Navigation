@@ -1,5 +1,7 @@
 controller_frequency: 4.0
-recovery_behaviour_enabled: true
+recovery_behaviour_enabled: false
+clearing_rotation_allowed: false
+max_planning_retries: 0
 
 GlobalPlanner:
   allow_unknow: true
