@@ -2,10 +2,9 @@
 
 ///////////////////// PLACE ROBOT MAP //////////////////////
 
-PlaceRobotMap::PlaceRobotMap(ros::NodeHandle nh)
+PlaceRobotMap::PlaceRobotMap()
 {
 	ROS_INFO("DEBUT constu\n");
-	nh_=nh;
 
 	robot_pose_.x = 	0;
 	robot_pose_.y = 	0;
@@ -104,9 +103,7 @@ int main(int argc, char** argv)
 
 	ros::init(argc, argv, "place_robot");
 
-	ros::NodeHandle nh;
-
-	PlaceRobotMap place_robot_map(nh);
+	PlaceRobotMap place_robot_map;
 
 	ros::Rate loop(25);
 

@@ -17,7 +17,7 @@
 class Supervisor
 {
 public:
-	Supervisor(ros::NodeHandle nh);
+	Supervisor();
 
 	void FSM();
 

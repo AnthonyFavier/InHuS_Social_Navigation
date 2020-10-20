@@ -11,7 +11,7 @@
 class TaskPlanner
 {
 public:
-	TaskPlanner(ros::NodeHandle nh);
+	TaskPlanner();
 	bool computePlan(human_sim::ComputePlan::Request& req, human_sim::ComputePlan::Response& res);
 
 	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);

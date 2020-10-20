@@ -11,7 +11,7 @@ using namespace std;
 class LogManager
 {
 public:
-	LogManager(ros::NodeHandle nh);
+	LogManager();
 	~LogManager();
 	void logCallback(const std_msgs::String::ConstPtr& msg);
 private:

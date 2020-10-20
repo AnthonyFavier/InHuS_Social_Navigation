@@ -2,10 +2,8 @@
 
 //////////////////// LOG MANAGER ////////////////////////////
 
-LogManager::LogManager(ros::NodeHandle nh)
+LogManager::LogManager()
 {
-	nh_=nh;
-
 	path_ = ros::package::getPath("human_sim");
 	log_file_.open(path_ + "/log.txt");
 
@@ -27,9 +25,8 @@ void LogManager::logCallback(const std_msgs::String::ConstPtr& msg)
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "logManager");
-	ros::NodeHandle nh;
 
-	LogManager log_manager(nh);
+	LogManager log_manager;
 
 	ros::spin();
 

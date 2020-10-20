@@ -26,7 +26,7 @@ struct GoalArea
 class HumanModel
 {
 public:
-	HumanModel(ros::NodeHandle nh);
+	HumanModel();
 
 	void processSimData();
 	void publishModelData();

@@ -2,10 +2,8 @@
 
 /////////////////// TASK PLANNER /////////////////////
 
-TaskPlanner::TaskPlanner(ros::NodeHandle nh)
+TaskPlanner::TaskPlanner()
 {
-	nh_=nh;
-
 	sub_human_pose_ = nh_.subscribe("human_model/human_pose", 100, &TaskPlanner::humanPoseCallback, this);
 
 	service_ = nh_.advertiseService("compute_plan", &TaskPlanner::computePlan, this);
@@ -54,9 +52,7 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "taskPlanner");
 
-	ros::NodeHandle nh;
-
-	TaskPlanner task_planner(nh);
+	TaskPlanner task_planner;
 
 	ros::spin();
 

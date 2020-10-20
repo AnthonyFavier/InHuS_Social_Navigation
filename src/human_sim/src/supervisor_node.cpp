@@ -2,13 +2,11 @@
 
 ///////////////////////////// SUPERVISOR /////////////////////////////////
 
-Supervisor::Supervisor(ros::NodeHandle nh): plan_(), client_action_("move_base", true)
+Supervisor::Supervisor(): plan_(), client_action_("move_base", true)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
 	///////////////////////////////////
-
-	nh_ = nh;
 
 	client_plan_ = nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
 	client_goal_ = nh_.serviceClient<human_sim::ChooseGoal>("choose_goal");
@@ -238,10 +236,10 @@ void Supervisor::cancelGoalCallback(const actionlib_msgs::GoalID::ConstPtr& msg)
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "supervisor");
-	ros::NodeHandle nh;
-	ros::Rate loop_rate(15);
 
-	Supervisor supervisor(nh);
+	Supervisor supervisor;
+
+	ros::Rate loop_rate(15);
 
 	while(ros::ok())
 	{

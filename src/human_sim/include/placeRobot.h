@@ -10,7 +10,7 @@
 class PlaceRobotMap
 {
 public:
-	PlaceRobotMap(ros::NodeHandle nh);
+	PlaceRobotMap();
 	void computeAndPublish();
 
 private:

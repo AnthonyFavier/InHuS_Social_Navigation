@@ -5,11 +5,8 @@ bool rcb=false;
 
 /////////////////////// HUMAN MODEL ///////////////////////
 
-HumanModel::HumanModel(ros::NodeHandle nh)
+HumanModel::HumanModel()
 {
-
-	nh_ = nh;
-
 	srand(time(NULL));
 
 	Pose2D zero;
@@ -415,9 +412,7 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "human_model");
 
-	ros::NodeHandle nh;
-
-	HumanModel human_model(nh);
+	HumanModel human_model;
 
 	ros::Rate rate(15);
 
