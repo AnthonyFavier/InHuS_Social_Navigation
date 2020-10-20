@@ -6,6 +6,6 @@
 	<node name="preprocessing_node" type="preprocessing_node" pkg="human_sim"/>
 	<node name="log_manager_node" type="log_manager_node" pkg="human_sim"/>
 	<node name="controller_node" type="controller_node" pkg="human_sim"/>
-	<node name="place_robot_node" type="place_robot_node" pkg="human_sim"/>
+	<node name="place_robot_node" type="place_robot_node" pkg="human_sim" respawn="true">
 
 </launch>
