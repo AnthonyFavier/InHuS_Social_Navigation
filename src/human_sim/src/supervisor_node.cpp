@@ -37,6 +37,28 @@ Supervisor::Supervisor(): plan_(), client_action_("move_base", true)
 void Supervisor::FSM()
 {
 	printf("\n");
+
+	printf("CLIENT STATE : ");
+	actionlib::SimpleClientGoalState state = client_action_.getState();
+	if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
+		printf("SUCCEEDED");
+	else if (state == actionlib::SimpleClientGoalState::PENDING)
+		printf("PENDING");
+	else if (state == actionlib::SimpleClientGoalState::ACTIVE)
+		printf("ACTIVE");
+	else if (state == actionlib::SimpleClientGoalState::RECALLED)
+		printf("RECALLED");
+	else if (state == actionlib::SimpleClientGoalState::REJECTED)
+		printf("REJECTED");
+	else if (state == actionlib::SimpleClientGoalState::PREEMPTED)
+		printf("PREEMPTED");
+	else if (state == actionlib::SimpleClientGoalState::ABORTED)
+		printf("ABORTED");
+	else if (state == actionlib::SimpleClientGoalState::LOST)
+		printf("LOST");
+
+	printf("\n");
+
 	// modified only here and in cancelGoalCallback
 	switch(state_global_)
 	{

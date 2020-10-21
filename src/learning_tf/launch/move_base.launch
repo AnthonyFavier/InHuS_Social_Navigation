@@ -1,7 +1,8 @@
 <launch>
 
 	<arg name="base_global_planner" default="global_planner/GlobalPlanner"/>
-	<arg name="base_local_planner" default="dwa_local_planner/DWAPlannerROS"/>
+	<!--arg name="base_local_planner" default="dwa_local_planner/DWAPlannerROS"/-->
+	<arg name="base_local_planner" default="teb_local_planner/TebLocalPlannerROS"/>
 
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
 
