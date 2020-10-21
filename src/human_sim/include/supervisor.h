@@ -21,6 +21,7 @@ public:
 
 	void FSM();
 
+	void checkGoalAborted();
 	void findAGoal();
 	void askPlan();
 private:
@@ -46,6 +47,9 @@ private:
 
 	ros::Publisher pub_teleop_;
 	ros::Publisher pub_goal_done_;
+
+	bool reset_after_goal_aborted_;
+	int goal_aborted_count_;
 
 	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client_action_;
 

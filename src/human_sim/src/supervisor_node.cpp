@@ -23,6 +23,9 @@ Supervisor::Supervisor(): plan_(), client_action_("move_base", true)
 
 	goal_received_ = false;
 
+	reset_after_goal_aborted_ = false;
+	goal_aborted_count_ = 0;
+
 	ros::service::waitForService("compute_plan");
 	printf("Connected to taskPlanner server\n");
 
@@ -38,28 +41,9 @@ void Supervisor::FSM()
 {
 	printf("\n");
 
-	printf("CLIENT STATE : ");
-	actionlib::SimpleClientGoalState state = client_action_.getState();
-	if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
-		printf("SUCCEEDED");
-	else if (state == actionlib::SimpleClientGoalState::PENDING)
-		printf("PENDING");
-	else if (state == actionlib::SimpleClientGoalState::ACTIVE)
-		printf("ACTIVE");
-	else if (state == actionlib::SimpleClientGoalState::RECALLED)
-		printf("RECALLED");
-	else if (state == actionlib::SimpleClientGoalState::REJECTED)
-		printf("REJECTED");
-	else if (state == actionlib::SimpleClientGoalState::PREEMPTED)
-		printf("PREEMPTED");
-	else if (state == actionlib::SimpleClientGoalState::ABORTED)
-		printf("ABORTED");
-	else if (state == actionlib::SimpleClientGoalState::LOST)
-		printf("LOST");
+	this->checkGoalAborted();
 
-	printf("\n");
-
-	// modified only here and in cancelGoalCallback
+	// modified only in : here, cancelGoalCallback, checkGoalAborted
 	switch(state_global_)
 	{
 		case GET_GOAL:
@@ -68,12 +52,14 @@ void Supervisor::FSM()
 			{
 				case AUTONOMOUS:
 					// Find itself a goal
+					printf("AUTONOMOUS\n");
 					this->findAGoal();
 					state_global_ = ASK_PLAN;
 					break;
 
 				case SPECIFIED:
 					// Wait for the boss
+					printf("SPECIFIED\n");
 					if(goal_received_)
 					{
 						goal_received_ = false;
@@ -97,6 +83,7 @@ void Supervisor::FSM()
 		case EXEC_PLAN:
 			ROS_INFO("EXEC_PLAN");
 			printf("current_goal : %s (%f, %f, %f)\n", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
+			reset_after_goal_aborted_=false;
 			if(goal_received_)
 			{
 				goal_received_ = false;
@@ -173,6 +160,42 @@ void Supervisor::FSM()
 		default:
 			state_global_=GET_GOAL;
 			break;
+	}
+}
+
+void Supervisor::checkGoalAborted()
+{
+	printf("CLIENT STATE : ");
+	actionlib::SimpleClientGoalState state = client_action_.getState();
+	if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
+		printf("SUCCEEDED");
+	else if(state == actionlib::SimpleClientGoalState::PENDING)
+		printf("PENDING");
+	else if(state == actionlib::SimpleClientGoalState::ACTIVE)
+		printf("ACTIVE");
+	else if(state == actionlib::SimpleClientGoalState::RECALLED)
+		printf("RECALLED");
+	else if(state == actionlib::SimpleClientGoalState::REJECTED)
+		printf("REJECTED");
+	else if(state == actionlib::SimpleClientGoalState::PREEMPTED)
+		printf("PREEMPTED");
+	else if(state == actionlib::SimpleClientGoalState::ABORTED)
+		printf("ABORTED");
+	else if(state == actionlib::SimpleClientGoalState::LOST)
+		printf("LOST");
+	printf("\n");
+
+	if(!reset_after_goal_aborted_ 
+	&& state==actionlib::SimpleClientGoalState::ABORTED)
+	{
+		if(goal_aborted_count_ < 3)
+			goal_aborted_count_++;
+		else
+		{
+			state_global_ = GET_GOAL;
+			goal_aborted_count_ = 0;
+			reset_after_goal_aborted_ = true;
+		}
 	}
 }
 
