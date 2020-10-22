@@ -6,6 +6,7 @@ LogManager::LogManager()
 {
 	path_ = ros::package::getPath("human_sim");
 	log_file_.open(path_ + "/log.txt");
+	log_file_ << "LOG STARTS :" << ros::Time::now() << endl;
 
 	sub_log_ = nh_.subscribe("log", 100, &LogManager::logCallback, this);
 }
@@ -17,7 +18,7 @@ LogManager::~LogManager()
 
 void LogManager::logCallback(const std_msgs::String::ConstPtr& msg)
 {
-	log_file_ << msg->data;
+	log_file_ << ros::Time::now() << " : " <<  msg->data << endl;
 }
 
 //////////////////////// MAIN ///////////////////////////////

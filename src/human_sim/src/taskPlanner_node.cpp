@@ -6,6 +6,8 @@ TaskPlanner::TaskPlanner()
 {
 	sub_human_pose_ = nh_.subscribe("human_model/human_pose", 100, &TaskPlanner::humanPoseCallback, this);
 
+	pub_log_ =	nh_.advertise<std_msgs::String>("log", 100);
+
 	service_ = nh_.advertiseService("compute_plan", &TaskPlanner::computePlan, this);
 	printf("compute_plan service is on\n");
 }

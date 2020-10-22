@@ -38,6 +38,7 @@ HumanModel::HumanModel()
 	pub_cancel_goal_ =	nh_.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 	pub_op_mode_ = 		nh_.advertise<std_msgs::Int32>("boss/operating_mode", 100);
 	pub_goal_move_base_ =	nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
+	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
 
 	service_ = 		nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 

@@ -2,11 +2,12 @@
 #define DEF_TASKPLANNER
 
 #include "ros/ros.h"
+#include "type.h"
+#include "std_msgs/String.h"
 #include "human_sim/ComputePlan.h"
 #include "geometry_msgs/Pose2D.h"
 #include <move_base_msgs/MoveBaseAction.h>
 #include <tf2/LinearMath/Quaternion.h>
-#include "type.h"
 
 class TaskPlanner
 {
@@ -18,6 +19,8 @@ public:
 private:
 	ros::NodeHandle nh_;
 	ros::ServiceServer service_;
+
+	ros::Publisher pub_log_;
 
 	Pose2D human_pose_;
 

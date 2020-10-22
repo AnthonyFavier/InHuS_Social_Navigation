@@ -15,6 +15,7 @@
 #include "human_sim/Goal.h"
 #include "human_sim/SetGetGoal.h"
 #include "std_msgs/Int32.h"
+#include "std_msgs/String.h"
 #include "nav_msgs/Path.h"
 #include <actionlib/client/simple_action_client.h>
 #include "actionlib_msgs/GoalID.h"
@@ -67,6 +68,7 @@ private:
 	ros::Publisher pub_teleop_;
 	ros::Publisher pub_goal_done_;
 	ros::Publisher pub_cancel_goal_;
+	ros::Publisher pub_log_;
 
 	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client_action_;
 

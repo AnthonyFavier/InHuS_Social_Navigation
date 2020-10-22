@@ -2,18 +2,19 @@
 #define DEF_HUMAN_MODEL
 
 #include "ros/ros.h"
+#include <vector>
+#include <time.h>
+#include <math.h>
 #include "type.h"
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
 #include "human_sim/Goal.h"
-#include <vector>
 #include "human_sim/ChooseGoal.h"
-#include <time.h>
-#include <math.h>
+#include "human_sim/SetGetGoal.h"
 #include "actionlib_msgs/GoalID.h"
 #include "std_msgs/Int32.h"
+#include "std_msgs/String.h"
 #include "move_base_msgs/MoveBaseActionGoal.h"
-#include "human_sim/SetGetGoal.h"
 #include <tf2/LinearMath/Quaternion.h>
 
 #define PI 3.1415926535897932384626433832795
@@ -72,6 +73,7 @@ private:
 	ros::Publisher pub_perturbated_cmd_;
 	ros::Publisher pub_cancel_goal_;
 	ros::Publisher pub_goal_move_base_;
+	ros::Publisher pub_log_;
 
 	ros::ServiceServer service_;
 

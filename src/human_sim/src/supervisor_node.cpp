@@ -20,6 +20,7 @@ Supervisor::Supervisor(): plan_(), client_action_("move_base", true)
 	pub_teleop_ = 		nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
 	pub_goal_done_ = 	nh_.advertise<human_sim::Goal>("goal_done", 100);
 	pub_cancel_goal_ = 	nh_.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
+	pub_log_ =		nh_.advertise<std_msgs::String>("log", 100);
 
 	service_set_get_goal_ =	nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
 
