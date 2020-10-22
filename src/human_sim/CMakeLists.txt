@@ -26,6 +26,7 @@ add_service_files(
   FILES
   ComputePlan.srv
   ChooseGoal.srv
+  SetGetGoal.srv
 )
 
 #add_action_files(DIRECTORY action 

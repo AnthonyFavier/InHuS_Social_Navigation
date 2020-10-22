@@ -41,6 +41,8 @@ HumanModel::HumanModel()
 
 	service_ = 		nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 
+	client_set_get_goal_ = 	nh_.serviceClient<human_sim::SetGetGoal>("set_get_goal");
+
 	printf("I am human\n");
 
 
@@ -72,30 +74,42 @@ HumanModel::HumanModel()
 	human_sim::Goal goal;
 	GoalArea area;
 	area.goal.type="Position";
-
-	area.goal.x=0.9; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
+	
+	//1//
+	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
 	known_goals_.push_back(area);
-	area.goal.x=3.15; 	area.goal.y=3.6; 	area.goal.theta=PI/2;	area.radius=0;
+	//2//
+	area.goal.x=3.15; 	area.goal.y=3.2; 	area.goal.theta=PI/2;	area.radius=0;
 	known_goals_.push_back(area);
-	area.goal.x=10.51; 	area.goal.y=-3.98; 	area.goal.theta=0;	area.radius=0;
+	//3//
+	area.goal.x=10.2; 	area.goal.y=-3.98; 	area.goal.theta=0;	area.radius=0;
 	known_goals_.push_back(area);
-	area.goal.x=8.07; 	area.goal.y=5.07; 	area.goal.theta=-PI/2;	area.radius=0;
+	//4//
+	area.goal.x=7.90; 	area.goal.y=5.1; 	area.goal.theta=-PI/2;	area.radius=0;
 	known_goals_.push_back(area);
+	//5//
 	area.goal.x=7.8; 	area.goal.y=9.98; 	area.goal.theta=-PI;	area.radius=0;
 	known_goals_.push_back(area);
+	//6//
 	area.goal.x=3.42; 	area.goal.y=9.48; 	area.goal.theta=PI/2;	area.radius=0;
 	known_goals_.push_back(area);
+	//7//
 	area.goal.x=4.72; 	area.goal.y=17.68; 	area.goal.theta=PI/2;	area.radius=0;
 	known_goals_.push_back(area);
-	area.goal.x=10.71; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
+	//8//
+	area.goal.x=10.6; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
 	known_goals_.push_back(area);
+	//9//
 	area.goal.x=1.15; 	area.goal.y=6.52; 	area.goal.theta=-PI;	area.radius=0;
 	known_goals_.push_back(area);
 
+	//10//
 	area.goal.x=8.8; 	area.goal.y=0.8; 	area.goal.theta=0;	area.radius=1.3;
 	known_goals_.push_back(area);
+	//11//
 	area.goal.x=3.0; 	area.goal.y=15.3; 	area.goal.theta=0;	area.radius=2;
 	known_goals_.push_back(area);
+	//12//
 	area.goal.x=8.0; 	area.goal.y=15.5; 	area.goal.theta=0;	area.radius=2;
 	known_goals_.push_back(area);
 }
@@ -265,6 +279,8 @@ void HumanModel::stopLookRobot()
 			std_msgs::Int32 msg;
 			msg.data=1;
 			pub_op_mode_.publish(msg); // Passe en SPECIFIED, save if was in AUTO ?
+			human_sim::SetGetGoal srv;
+			client_set_get_goal_.call(srv);
 			sub_stop_look_=LOOK_AT_ROBOT;
 			break;
 		}
@@ -347,9 +363,13 @@ void HumanModel::harassRobot()
 	switch(sub_harass_)
 	{
 		case INIT:
+		{
 			pub_cancel_goal_.publish(actionlib_msgs::GoalID());
+			human_sim::SetGetGoal srv;
+			client_set_get_goal_.call(srv);
 			sub_harass_=HARASSING;
 			break;
+		}
 		case HARASSING:
 			if(ros::Time::now() > last_harass_ + delay_harass_replan_)
 			{

@@ -13,6 +13,7 @@
 #include "actionlib_msgs/GoalID.h"
 #include "std_msgs/Int32.h"
 #include "move_base_msgs/MoveBaseActionGoal.h"
+#include "human_sim/SetGetGoal.h"
 #include <tf2/LinearMath/Quaternion.h>
 
 #define PI 3.1415926535897932384626433832795
@@ -73,6 +74,8 @@ private:
 	ros::Publisher pub_goal_move_base_;
 
 	ros::ServiceServer service_;
+
+	ros::ServiceClient client_set_get_goal_;
 
 	float ratio_perturbation_;
 
