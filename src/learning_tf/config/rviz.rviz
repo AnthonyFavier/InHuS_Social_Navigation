@@ -102,12 +102,12 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: Map
       Topic: /move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -218,5 +218,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 838
-  X: 2757
+  X: 2756
   Y: 0

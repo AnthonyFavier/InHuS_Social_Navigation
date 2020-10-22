@@ -531,7 +531,7 @@ int main(int argc, char** argv)
 
 	Supervisor supervisor;
 
-	ros::Rate loop_rate(5);
+	ros::Rate loop_rate(15);
 
 	while(ros::ok())
 	{

@@ -1,4 +1,4 @@
-controller_frequency: 4.0
+controller_frequency: 20.0
 recovery_behaviour_enabled: false
 clearing_rotation_allowed: false
 max_planning_retries: 0
@@ -23,11 +23,12 @@ TebLocalPlannerROS:
  # Trajectory
   
   teb_autosize: true
-  dt_ref: 0.3
+  dt_ref: 0.25
   dt_hysteresis: 0.1
   global_plan_overwrite_orientation: true
-  max_global_plan_lookahead_dist: 1.0
+  max_global_plan_lookahead_dist: 2.0
   feasibility_check_no_poses: 5
+  global_plan_viapoint_sep: 0.1
      
   # Robot
           
@@ -61,7 +62,7 @@ TebLocalPlannerROS:
   obstacle_association_force_inclusion_factor: 0.0
   obstacle_association_cutoff_factor: 1.0
   costmap_obstacles_behind_robot_dist: 0.4
-  obstacle_poses_affected: 10
+  obstacle_poses_affected: 20
   costmap_converter_plugin: ""
   costmap_converter_spin_thread: true
   costmap_converter_rate: 5
