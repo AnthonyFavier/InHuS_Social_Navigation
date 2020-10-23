@@ -472,6 +472,7 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 	ROS_INFO("New goal received!");
 
 	goal_received_=true;
+	first_path_received_ = true;
 
 	current_goal_.type=msg->type;
 	current_goal_.x=msg->x;
