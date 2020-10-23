@@ -5,7 +5,7 @@
 Supervisor::Supervisor()
 : plan_()
 , client_action_("move_base", true)
-, rate_replan_(1)
+, dur_replan_(2)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
@@ -169,6 +169,8 @@ void Supervisor::FSM()
 							// for now : if human at destination
 							// done in geoPlanner ?
 
+							printf("now = %d last = %d\n", ros::Time::now().sec, last_replan_.sec);
+							printf("dur = %f\n", dur_replan_.toSec());
 							if(client_action_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
 							{
 								printf("Client succeeded\n");
@@ -176,13 +178,13 @@ void Supervisor::FSM()
 								first_path_received_=true;
 								(*curr_action).state = DONE;
 							}
-							/*else if(ros::Time::now() - last_replan_ > rate_replan_.cycleTime())
+							else if(ros::Time::now() - last_replan_ > dur_replan_)
 							{
-								printf("Resend !\n");
+								printf("=> Resend !\n");
 								client_action_.sendGoal((*curr_action).action);
 								this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
 								last_replan_ = ros::Time::now();
-							}*/
+							}
 							break;
 					}
 

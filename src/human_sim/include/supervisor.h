@@ -52,7 +52,7 @@ private:
 	bool reset_after_goal_aborted_;
 	int goal_aborted_count_;
 	float path_diff_threshold_;
-	ros::Rate rate_replan_;
+	ros::Duration dur_replan_;
 	ros::Time last_replan_;	
 
 	nav_msgs::Path current_path_;
