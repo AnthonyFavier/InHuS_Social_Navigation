@@ -4,9 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
         - /Status1
-        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 728
@@ -154,6 +152,14 @@ Visualization Manager:
       Topic: /move_base/TebLocalPlannerROS/local_plan
       Unreliable: false
       Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: visualization_marker
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -218,5 +224,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 838
-  X: 2756
+  X: 2755
   Y: 0

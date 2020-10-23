@@ -2,7 +2,10 @@
 
 ///////////////////////////// SUPERVISOR /////////////////////////////////
 
-Supervisor::Supervisor(): plan_(), client_action_("move_base", true)
+Supervisor::Supervisor()
+: plan_()
+, client_action_("move_base", true)
+, rate_replan_(1)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
@@ -21,6 +24,20 @@ Supervisor::Supervisor(): plan_(), client_action_("move_base", true)
 	pub_goal_done_ = 	nh_.advertise<human_sim::Goal>("goal_done", 100);
 	pub_cancel_goal_ = 	nh_.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 	pub_log_ =		nh_.advertise<std_msgs::String>("log", 100);
+	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
+
+	marker_rviz_.header.frame_id = "map";
+	marker_rviz_.type = 3;
+	marker_rviz_.pose.position.x = 0;
+	marker_rviz_.pose.position.y = 0;
+	marker_rviz_.pose.position.z = 0.25;
+	marker_rviz_.scale.x = 0.1;
+	marker_rviz_.scale.y = 0.1;
+	marker_rviz_.scale.z = 0.5;
+	marker_rviz_.color.r = 1;
+	marker_rviz_.color.g = 1;
+	marker_rviz_.color.b = 0;
+	marker_rviz_.color.a = 0;
 
 	service_set_get_goal_ =	nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
 
@@ -33,6 +50,7 @@ Supervisor::Supervisor(): plan_(), client_action_("move_base", true)
 	reset_after_goal_aborted_ = 	false;
 	goal_aborted_count_ = 		0;
 	path_diff_threshold_ = 		3;
+	last_replan_ = 			ros::Time::now();
 
 	human_pose_.x = 	0;
 	human_pose_.y = 	0;
@@ -141,6 +159,7 @@ void Supervisor::FSM()
 							printf("READY\n");
 							// send to geometric planner 
 							client_action_.sendGoal((*curr_action).action);
+							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
 							(*curr_action).state=PROGRESS;
 							break;
 
@@ -153,9 +172,17 @@ void Supervisor::FSM()
 							if(client_action_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
 							{
 								printf("Client succeeded\n");
+								this->updateMarkerPose(0, 0, 0);
 								first_path_received_=true;
 								(*curr_action).state = DONE;
 							}
+							/*else if(ros::Time::now() - last_replan_ > rate_replan_.cycleTime())
+							{
+								printf("Resend !\n");
+								client_action_.sendGoal((*curr_action).action);
+								this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
+								last_replan_ = ros::Time::now();
+							}*/
 							break;
 					}
 
@@ -231,7 +258,7 @@ bool Supervisor::checkPlanFailure()
 	}
 
 	// Check if path changed too much
-	printf("current_size = %d previous_size = %d\n", current_path_.poses.size(), previous_path_.poses.size());
+	printf("current_size = %d previous_size = %d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	if(previous_path_.poses.size() != 0 && current_path_.poses.size() != 0)
 	{
 		if(float(current_path_.poses.size())/float(previous_path_.poses.size()) > 1.5)
@@ -333,7 +360,7 @@ bool Supervisor::checkPlanFailure()
 
 			float ratio = float(path1.poses.size())/float(path2.poses.size());
 
-			printf("n_path1=%d n_path2=%d ration=%f\n", path1.poses.size(), path2.poses.size(), ratio);
+			printf("n_path1=%d n_path2=%d ration=%f\n", (int)path1.poses.size(), (int)path2.poses.size(), ratio);
 
 			std::vector<int> corr_path2[path2.poses.size()];
 			for(int i=0; i<path1.poses.size(); i++)
@@ -392,6 +419,15 @@ bool Supervisor::checkPlanFailure()
 	}
 
 	return false;
+}
+
+void Supervisor::updateMarkerPose(float x, float y, float alpha)
+{
+	marker_rviz_.pose.position.x = 	x;
+	marker_rviz_.pose.position.y = 	y;
+	marker_rviz_.color.a = 		alpha;
+
+	pub_marker_rviz_.publish(marker_rviz_);
 }
 
 void Supervisor::findAGoal()

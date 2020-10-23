@@ -20,6 +20,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include "actionlib_msgs/GoalID.h"
 #include <move_base_msgs/MoveBaseAction.h>
+#include "visualization_msgs/Marker.h"
 
 class Supervisor
 {
@@ -31,6 +32,8 @@ public:
 	bool checkPlanFailure();
 	void findAGoal();
 	void askPlan();
+	void updateMarkerPose(float x, float y, float alpha);
+
 private:
 	ros::NodeHandle nh_;
 
@@ -49,6 +52,8 @@ private:
 	bool reset_after_goal_aborted_;
 	int goal_aborted_count_;
 	float path_diff_threshold_;
+	ros::Rate rate_replan_;
+	ros::Time last_replan_;	
 
 	nav_msgs::Path current_path_;
 	nav_msgs::Path previous_path_;
@@ -77,6 +82,9 @@ private:
 	
 	ros::ServiceServer service_set_get_goal_;
 	bool setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res);
+
+	visualization_msgs::Marker marker_rviz_;
+	ros::Publisher pub_marker_rviz_;
 };
 
 #endif
