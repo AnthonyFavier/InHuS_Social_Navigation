@@ -48,7 +48,8 @@ void PlaceRobotMap::computeAndPublish()
 			{
 				for(int j=robot_pose_.y-size_rob_; j<robot_pose_.y+size_rob_; j++)
 				{
-					new_map.data[j*new_map.width + i] = 100;
+					if(i>=0 && i<new_map.height && j>=0 && j<new_map.width)
+						new_map.data[j*new_map.width + i] = 100;
 				}
 			}
 
