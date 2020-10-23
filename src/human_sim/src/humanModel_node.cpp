@@ -29,9 +29,9 @@ HumanModel::HumanModel()
 	sub_robot_pose_ =	nh_.subscribe("sim/robot_pose", 100, &HumanModel::robotPoseCallback, this);
 	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
 	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanModel::goalDoneCallback, this);
-	sub_set_behavior_ = 	nh_.subscribe("boss/set_behavior", 100, &HumanModel::setBehaviorCallback, this);
+	sub_set_behavior_ = 	nh_.subscribe("/boss/human/set_behavior", 100, &HumanModel::setBehaviorCallback, this);
 
-	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("boss/new_goal", 100);
+	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("/boss/human/new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);

@@ -10,19 +10,28 @@ human = Human()
 human.properties(GroundRobot = True)
 human.translate(x=2, y=2, z=0);
 
-motion = MotionXYW()
-motion.properties(ControlType = 'Position')
-human.append(motion)
-motion.add_interface('ros', topic="/cmd_vel")
+motionH = MotionXYW()
+motionH.properties(ControlType = 'Position')
+human.append(motionH)
+motionH.add_interface('ros', topic="human_cmd_vel")
 
 pose = Pose()
 human.append(pose)
 pose.add_interface('ros', topic="morse/human_pose")
 
+################################################
+
 pr2 = BarePR2()
+pr2.properties(GroundRobot = True)
 pr2.translate(5.0, 2.0, 0.0)
+
 keyboard = Keyboard()
 pr2.append(keyboard)
+
+motionR = MotionXYW()
+motionR.properties(ControlType = 'Position')
+pr2.append(motionR)
+motionR.add_interface('ros', topic="robot_cmd_vel")
 
 pose_pr2 = Pose()
 pr2.append(pose_pr2)

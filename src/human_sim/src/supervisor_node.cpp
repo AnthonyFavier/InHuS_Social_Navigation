@@ -5,7 +5,7 @@
 Supervisor::Supervisor()
 : plan_()
 , client_action_("move_base", true)
-, dur_replan_(2)
+, dur_replan_(0.5)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
@@ -15,9 +15,9 @@ Supervisor::Supervisor()
 	client_goal_ = nh_.serviceClient<human_sim::ChooseGoal>("choose_goal");
 
 	sub_human_pose_ = 	nh_.subscribe("human_model/human_pose", 100, &Supervisor::humanPoseCallback, this);
-	sub_new_goal_  = 	nh_.subscribe("boss/new_goal", 100, &Supervisor::newGoalCallback, this);
-	sub_teleop_boss_ =	nh_.subscribe("boss/teleoperation", 100, &Supervisor::teleopBossCallback, this);
-	sub_operating_mode_ =	nh_.subscribe("boss/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
+	sub_new_goal_  = 	nh_.subscribe("/boss/human/new_goal", 100, &Supervisor::newGoalCallback, this);
+	sub_teleop_boss_ =	nh_.subscribe("/boss/human/teleoperation", 100, &Supervisor::teleopBossCallback, this);
+	sub_operating_mode_ =	nh_.subscribe("/boss/human/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
 	sub_path_ =		nh_.subscribe("move_base/GlobalPlanner/plan", 100, &Supervisor::pathCallback, this);
 
 	pub_teleop_ = 		nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
@@ -263,7 +263,8 @@ bool Supervisor::checkPlanFailure()
 	printf("current_size = %d previous_size = %d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	if(previous_path_.poses.size() != 0 && current_path_.poses.size() != 0)
 	{
-		if(float(current_path_.poses.size())/float(previous_path_.poses.size()) > 1.5)
+		if(abs((int)current_path_.poses.size()-(int)previous_path_.poses.size()) > 10
+		&& float(current_path_.poses.size())/float(previous_path_.poses.size()) > 1.5)
 			return true;
 
 
