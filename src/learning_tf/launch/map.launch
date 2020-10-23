@@ -1,6 +1,0 @@
-<launch>
-
-	<arg name="map_file" default="$(find learning_tf)/maps/laas_adream.yaml"/>
-	<node name="map_server" pkg="map_server" type="map_server" ns="human" args="$(arg map_file)"/>
-
-</launch>

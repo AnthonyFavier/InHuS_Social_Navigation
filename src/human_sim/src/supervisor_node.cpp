@@ -26,18 +26,22 @@ Supervisor::Supervisor()
 	pub_log_ =		nh_.advertise<std_msgs::String>("log", 100);
 	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
 
-	marker_rviz_.header.frame_id = "map";
-	marker_rviz_.type = 3;
-	marker_rviz_.pose.position.x = 0;
-	marker_rviz_.pose.position.y = 0;
-	marker_rviz_.pose.position.z = 0.25;
-	marker_rviz_.scale.x = 0.1;
-	marker_rviz_.scale.y = 0.1;
-	marker_rviz_.scale.z = 0.5;
-	marker_rviz_.color.r = 1;
-	marker_rviz_.color.g = 1;
-	marker_rviz_.color.b = 0;
-	marker_rviz_.color.a = 0;
+	marker_rviz_.header.frame_id = 		"map";
+	marker_rviz_.type = 			3;
+	marker_rviz_.pose.position.x = 		0;
+	marker_rviz_.pose.position.y = 		0;
+	marker_rviz_.pose.position.z = 		0.25;
+	marker_rviz_.pose.orientation.x = 	0;
+	marker_rviz_.pose.orientation.y = 	0;
+	marker_rviz_.pose.orientation.z = 	0;
+	marker_rviz_.pose.orientation.w = 	0;
+	marker_rviz_.scale.x = 			0.1;
+	marker_rviz_.scale.y = 			0.1;
+	marker_rviz_.scale.z = 			0.5;
+	marker_rviz_.color.r = 			1;
+	marker_rviz_.color.g = 			1;
+	marker_rviz_.color.b = 			0;
+	marker_rviz_.color.a = 			0;
 
 	service_set_get_goal_ =	nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
 

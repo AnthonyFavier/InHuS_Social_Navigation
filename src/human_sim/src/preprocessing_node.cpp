@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 		tf_map_robot.setRotation(q);
 
 		br.sendTransform(tf::StampedTransform(tf_map_footprint, ros::Time::now(), "map", "base_footprint"));
-		br.sendTransform(tf::StampedTransform(tf_map_robot, ros::Time::now(), "map", "base_robott"));
+		br.sendTransform(tf::StampedTransform(tf_map_robot, ros::Time::now(), "map", "base_robot"));
 
 		ros::spinOnce();
 		rate.sleep();
