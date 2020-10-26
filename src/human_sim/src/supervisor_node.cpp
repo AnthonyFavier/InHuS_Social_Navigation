@@ -6,13 +6,15 @@ Supervisor::Supervisor()
 : plan_()
 , client_action_("move_base", true)
 , dur_replan_(0.5)
+, dur_replan_blocked_(1)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
 	///////////////////////////////////
 
-	client_plan_ = nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
-	client_goal_ = nh_.serviceClient<human_sim::ChooseGoal>("choose_goal");
+	client_plan_ = 		nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
+	client_goal_ = 		nh_.serviceClient<human_sim::ChooseGoal>("choose_goal");
+	client_make_plan_ =	nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
 
 	sub_human_pose_ = 	nh_.subscribe("human_model/human_pose", 100, &Supervisor::humanPoseCallback, this);
 	sub_new_goal_  = 	nh_.subscribe("/boss/human/new_goal", 100, &Supervisor::newGoalCallback, this);
@@ -50,6 +52,7 @@ Supervisor::Supervisor()
 	goal_received_ = false;
 
 	first_blocked_ = true;
+	replan_success_nb_ = 0;
 
 	reset_after_goal_aborted_ = 	false;
 	goal_aborted_count_ = 		0;
@@ -67,6 +70,9 @@ Supervisor::Supervisor()
 
 	ros::service::waitForService("choose_goal");
 	printf("Connected to choose_goal server\n");
+
+	ros::service::waitForService("move_base/GlobalPlanner/make_plan");
+	printf("Connected to make_plan server\n");
 
 	printf("Waiting for action server\n");
 	client_action_.waitForServer();
@@ -173,8 +179,6 @@ void Supervisor::FSM()
 							// for now : if human at destination
 							// done in geoPlanner ?
 
-							printf("now = %d last = %d\n", ros::Time::now().sec, last_replan_.sec);
-							printf("dur = %f\n", dur_replan_.toSec());
 							if(client_action_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
 							{
 								printf("Client succeeded\n");
@@ -209,17 +213,55 @@ void Supervisor::FSM()
 			break;
 
 		case BLOCKED_BY_ROBOT:
-			ROS_INFO("BLOCKED_BY_ROBOT");
 			if(first_blocked_)
 			{
+				ROS_INFO("BLOCKED_BY_ROBOT");
 				pub_cancel_goal_.publish(actionlib_msgs::GoalID());
-				current_path_.poses.clear();
-				previous_path_.poses.clear();
-				choice_goal_decision_ = SPECIFIED;
+				last_replan_ = ros::Time::now();
 				first_blocked_=false;
 			}
-			else
+			else if(ros::Time::now() - last_replan_ > dur_replan_blocked_)
 			{
+				printf("try to replan\n");
+
+				plan_.updateCurrentAction();
+				std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
+
+				nav_msgs::GetPlan srv;
+				srv.request.start.pose.position.x = 	human_pose_.x;
+				srv.request.start.pose.position.y = 	human_pose_.y;
+				srv.request.start.header.frame_id = 	"map";
+				srv.request.goal.pose.position.x = 	(*curr_action).action.target_pose.pose.position.x;
+				srv.request.goal.pose.position.y = 	(*curr_action).action.target_pose.pose.position.y;
+				srv.request.goal.header.frame_id = 	"map";
+				srv.request.tolerance = 		0.1;
+
+				if(client_make_plan_.call(srv))
+				{
+					printf("BLOCK : srv.plan=%d previous=%d\n", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
+					if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
+					|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
+					{
+						replan_success_nb_++;
+						printf("replan_success_nb = %d\n", replan_success_nb_);
+						if(replan_success_nb_ >= 2)
+						{
+							printf("replan successfully !\n");
+							(*curr_action).state = NEEDED;
+							state_global_ = EXEC_PLAN;
+							replan_success_nb_ = 0;
+						}
+					}
+					else
+					{
+						replan_success_nb_ = 0;
+						printf("still blocked ..\n");
+					}
+				}
+				else
+					ROS_ERROR("Failed to call service make_plan");
+
+				last_replan_ = ros::Time::now();
 			}
 			break;
 
@@ -515,7 +557,10 @@ void Supervisor::operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg)
 
 bool Supervisor::setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res)
 {
-	state_global_=GET_GOAL;
+	state_global_=GET_GOAL;	
+	current_path_.poses.clear();
+	previous_path_.poses.clear();
+	choice_goal_decision_ = SPECIFIED;
 
 	return true;
 }
@@ -533,33 +578,37 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 	}
 	else
 	{
-		printf("CUTTING path !\n");
-		// seek pose closest to current_pose
-		// only keep path from current_pose to the end
-		if(current_path_.poses.size()!=0)
+		if(state_global_ != BLOCKED_BY_ROBOT)
 		{
-			float dist = sqrt(pow(current_path_.poses[0].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[0].pose.position.y-human_pose_.y,2));
-			float dist_min = dist;
-			int i_min = 0;
-			for(int i=1; i<current_path_.poses.size(); i++)
+			printf("CUTTING path !\n");
+			// seek pose closest to current_pose
+			// only keep path from current_pose to the end
+			if(current_path_.poses.size()!=0)
 			{
-				dist = sqrt(pow(current_path_.poses[i].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[i].pose.position.y-human_pose_.y,2));
-				if(dist < dist_min)
+				float dist = sqrt(pow(current_path_.poses[0].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[0].pose.position.y-human_pose_.y,2));
+				float dist_min = dist;
+				int i_min = 0;
+				for(int i=1; i<current_path_.poses.size(); i++)
 				{
-					dist_min = dist;
-					i_min = i;
+					dist = sqrt(pow(current_path_.poses[i].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[i].pose.position.y-human_pose_.y,2));
+					if(dist < dist_min)
+					{
+						dist_min = dist;
+						i_min = i;
+					}
 				}
+
+				previous_path_.poses.clear();
+				for(int i=i_min; i<current_path_.poses.size(); i++)
+					previous_path_.poses.push_back(current_path_.poses[i]);
 			}
+			else
+				previous_path_ = current_path_;
 
-			previous_path_.poses.clear();
-			for(int i=i_min; i<current_path_.poses.size(); i++)
-				previous_path_.poses.push_back(current_path_.poses[i]);
+			current_path_ = *path;
+
+			printf("CB : current=%d previous=%d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 		}
-		else
-			previous_path_ = current_path_;
-
-
-		current_path_ = *path;
 	}
 }
 

@@ -17,6 +17,7 @@
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "nav_msgs/Path.h"
+#include "nav_msgs/GetPlan.h"
 #include <actionlib/client/simple_action_client.h>
 #include "actionlib_msgs/GoalID.h"
 #include <move_base_msgs/MoveBaseAction.h>
@@ -53,7 +54,9 @@ private:
 	int goal_aborted_count_;
 	float path_diff_threshold_;
 	ros::Duration dur_replan_;
+	ros::Duration dur_replan_blocked_;
 	ros::Time last_replan_;	
+	int replan_success_nb_;
 
 	nav_msgs::Path current_path_;
 	nav_msgs::Path previous_path_;
@@ -79,6 +82,7 @@ private:
 
 	ros::ServiceClient client_plan_;
 	ros::ServiceClient client_goal_;
+	ros::ServiceClient client_make_plan_;
 	
 	ros::ServiceServer service_set_get_goal_;
 	bool setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res);
