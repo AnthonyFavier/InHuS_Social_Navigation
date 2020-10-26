@@ -215,6 +215,7 @@ void Supervisor::FSM()
 				pub_cancel_goal_.publish(actionlib_msgs::GoalID());
 				current_path_.poses.clear();
 				previous_path_.poses.clear();
+				choice_goal_decision_ = SPECIFIED;
 				first_blocked_=false;
 			}
 			else
