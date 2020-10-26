@@ -6,15 +6,16 @@ Supervisor::Supervisor()
 : plan_()
 , client_action_("move_base", true)
 , dur_replan_(0.5)
-, dur_replan_blocked_(1)
+, dur_replan_blocked_(0.7)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
 	///////////////////////////////////
 
-	client_plan_ = 		nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
-	client_goal_ = 		nh_.serviceClient<human_sim::ChooseGoal>("choose_goal");
-	client_make_plan_ =	nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
+	client_plan_ = 			nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
+	client_goal_ = 			nh_.serviceClient<human_sim::ChooseGoal>("choose_goal");
+	client_make_plan_ =		nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
+	client_cancel_goal_and_stop_= 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
 
 	sub_human_pose_ = 	nh_.subscribe("human_model/human_pose", 100, &Supervisor::humanPoseCallback, this);
 	sub_new_goal_  = 	nh_.subscribe("/boss/human/new_goal", 100, &Supervisor::newGoalCallback, this);
@@ -24,7 +25,6 @@ Supervisor::Supervisor()
 
 	pub_teleop_ = 		nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
 	pub_goal_done_ = 	nh_.advertise<human_sim::Goal>("goal_done", 100);
-	pub_cancel_goal_ = 	nh_.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 	pub_log_ =		nh_.advertise<std_msgs::String>("log", 100);
 	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
 
@@ -81,12 +81,12 @@ Supervisor::Supervisor()
 
 void Supervisor::FSM()
 {
-	printf("\n");
 
-	// modified only in : here, cancelGoalCallback
+	// modified only in : here
 	switch(state_global_)
 	{
 		case GET_GOAL:
+			printf("\n");
 			ROS_INFO("GET_GOAL");
 			switch(choice_goal_decision_)
 			{
@@ -114,6 +114,7 @@ void Supervisor::FSM()
 			break;
 
 		case ASK_PLAN:
+			printf("\n");
 			ROS_INFO("ASK_PLAN");
 			this->askPlan();
 			plan_.show();
@@ -121,6 +122,7 @@ void Supervisor::FSM()
 			break;
 
 		case EXEC_PLAN:
+			printf("\n");
 			ROS_INFO("EXEC_PLAN");
 			printf("current_goal : %s (%f, %f, %f)\n", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
 			reset_after_goal_aborted_=false;
@@ -216,7 +218,8 @@ void Supervisor::FSM()
 			if(first_blocked_)
 			{
 				ROS_INFO("BLOCKED_BY_ROBOT");
-				pub_cancel_goal_.publish(actionlib_msgs::GoalID());
+				human_sim::CancelGoalAndStop srv;
+				client_cancel_goal_and_stop_.call(srv);
 				last_replan_ = ros::Time::now();
 				first_blocked_=false;
 			}
@@ -247,9 +250,10 @@ void Supervisor::FSM()
 						if(replan_success_nb_ >= 2)
 						{
 							printf("replan successfully !\n");
+							replan_success_nb_ = 0;
+							first_blocked_ = true;
 							(*curr_action).state = NEEDED;
 							state_global_ = EXEC_PLAN;
-							replan_success_nb_ = 0;
 						}
 					}
 					else

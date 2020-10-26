@@ -11,7 +11,7 @@
 #include "human_sim/Goal.h"
 #include "human_sim/ChooseGoal.h"
 #include "human_sim/SetGetGoal.h"
-#include "actionlib_msgs/GoalID.h"
+#include "human_sim/CancelGoalAndStop.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "move_base_msgs/MoveBaseActionGoal.h"
@@ -78,6 +78,7 @@ private:
 	ros::ServiceServer service_;
 
 	ros::ServiceClient client_set_get_goal_;
+	ros::ServiceClient client_cancel_goal_and_stop_;
 
 	float ratio_perturbation_;
 

@@ -35,14 +35,14 @@ HumanModel::HumanModel()
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
-	pub_cancel_goal_ =	nh_.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 	pub_op_mode_ = 		nh_.advertise<std_msgs::Int32>("boss/operating_mode", 100);
 	pub_goal_move_base_ =	nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
 
 	service_ = 		nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 
-	client_set_get_goal_ = 	nh_.serviceClient<human_sim::SetGetGoal>("set_get_goal");
+	client_set_get_goal_ = 		nh_.serviceClient<human_sim::SetGetGoal>("set_get_goal");
+	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
 
 	printf("I am human\n");
 
@@ -276,12 +276,15 @@ void HumanModel::stopLookRobot()
 		case STOP:
 		{
 			printf("Stopped !\n");
-			pub_cancel_goal_.publish(actionlib_msgs::GoalID());
+			human_sim::CancelGoalAndStop srv_cancel;
+			client_cancel_goal_and_stop_.call(srv_cancel);
+
 			std_msgs::Int32 msg;
 			msg.data=1;
 			pub_op_mode_.publish(msg); // Passe en SPECIFIED, save if was in AUTO ?
-			human_sim::SetGetGoal srv;
-			client_set_get_goal_.call(srv);
+
+			human_sim::SetGetGoal srv_set;
+			client_set_get_goal_.call(srv_set);
 			sub_stop_look_=LOOK_AT_ROBOT;
 			break;
 		}
@@ -365,9 +368,11 @@ void HumanModel::harassRobot()
 	{
 		case INIT:
 		{
-			pub_cancel_goal_.publish(actionlib_msgs::GoalID());
-			human_sim::SetGetGoal srv;
-			client_set_get_goal_.call(srv);
+			human_sim::CancelGoalAndStop srv_cancel;
+			client_cancel_goal_and_stop_.call(srv_cancel);
+
+			human_sim::SetGetGoal srv_set;
+			client_set_get_goal_.call(srv_set);
 			sub_harass_=HARASSING;
 			break;
 		}
