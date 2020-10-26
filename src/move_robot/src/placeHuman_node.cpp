@@ -48,7 +48,7 @@ void PlaceHumanMap::computeAndPublish()
 			{
 				for(int j=human_pose_.y-size_rob_; j<human_pose_.y+size_rob_; j++)
 				{
-					if(i>=0 && i<new_map.height && j>=0 && j<new_map.width)
+					if(i>=0 && i<new_map.width && j>=0 && j<new_map.height)
 						new_map.data[j*new_map.width + i] = 100;
 				}
 			}

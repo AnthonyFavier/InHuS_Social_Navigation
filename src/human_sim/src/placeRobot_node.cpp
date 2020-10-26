@@ -44,11 +44,14 @@ void PlaceRobotMap::computeAndPublish()
 			new_map.height=	map_.info.height;
 			new_map.data = 	map_.data;
 
+			printf("r_pose = %f, %f\n", robot_pose_.x, robot_pose_.y);
+			printf("x(i)= %f, %f\n", robot_pose_.x-size_rob_, robot_pose_.x+size_rob_);
+			printf("y(j)= %f, %f\n", robot_pose_.y-size_rob_, robot_pose_.y+size_rob_);
 			for(int i=robot_pose_.x-size_rob_; i<robot_pose_.x+size_rob_; i++)
 			{
 				for(int j=robot_pose_.y-size_rob_; j<robot_pose_.y+size_rob_; j++)
 				{
-					if(i>=0 && i<new_map.height && j>=0 && j<new_map.width)
+					if(i>=0 && i<new_map.width && j>=0 && j<new_map.height)
 						new_map.data[j*new_map.width + i] = 100;
 				}
 			}
