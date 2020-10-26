@@ -213,6 +213,8 @@ void Supervisor::FSM()
 			if(first_blocked_)
 			{
 				pub_cancel_goal_.publish(actionlib_msgs::GoalID());
+				current_path_.poses.clear();
+				previous_path_.poses.clear();
 				first_blocked_=false;
 			}
 			else
