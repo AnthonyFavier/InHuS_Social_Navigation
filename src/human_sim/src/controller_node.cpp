@@ -6,6 +6,11 @@
 ros::Publisher pub_cmd_vel;
 ros::Publisher pub_cancel_goal;
 
+bool delay_stop_required=false;
+ros::Time time_delay_stop_required;
+
+geometry_msgs::Twist cmd_zero;
+
 void teleopCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 
@@ -22,14 +27,10 @@ bool cancelGoalAndStop(human_sim::CancelGoalAndStop::Request &req, human_sim::Ca
 	goal_id.stamp = ros::Time::now();
 	pub_cancel_goal.publish(goal_id);
 
-	geometry_msgs::Twist cmd;
-	cmd.linear.x = 	0;
-	cmd.linear.y = 	0;
-	cmd.linear.z = 	0;
-	cmd.angular.x = 0;
-	cmd.angular.y = 0;
-	cmd.angular.z = 0;
-	pub_cmd_vel.publish(cmd);
+	pub_cmd_vel.publish(cmd_zero);
+
+	delay_stop_required = true;
+	time_delay_stop_required = ros::Time::now();
 
 	return true;
 }
@@ -47,7 +48,27 @@ int main(int argc, char** argv)
 
 	ros::ServiceServer service_cancel_goal_and_stop = nh.advertiseService("cancel_goal_and_stop", cancelGoalAndStop);
 
-	ros::spin();
+	ros::Duration delay(0.3);
+	ros::Rate rate(15);
+
+	cmd_zero.linear.x = 0;
+	cmd_zero.linear.y = 0;
+	cmd_zero.linear.z = 0;
+	cmd_zero.angular.x = 0;
+	cmd_zero.angular.y = 0;
+	cmd_zero.angular.z = 0;
+
+	while(ros::ok())
+	{
+		if(delay_stop_required && ros::Time::now() - time_delay_stop_required > delay)
+		{
+			pub_cmd_vel.publish(cmd_zero);
+			delay_stop_required = false;
+		}
+
+		ros::spinOnce();
+		rate.sleep();
+	}
 
 	return 0;
 }
