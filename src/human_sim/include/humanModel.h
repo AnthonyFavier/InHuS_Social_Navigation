@@ -33,8 +33,8 @@ public:
 	void processSimData();
 	void publishModelData();
 	bool chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res);
-	human_sim::Goal chooseGoal();
-	void newRandomGoalGeneration(bool toss);
+	human_sim::Goal chooseGoal(bool random);
+	void newRandomGoalGeneration();
 	void stopLookRobot();
 	void harassRobot();
 	void behaviors();
@@ -65,6 +65,8 @@ private:
 	void goalDoneCallback(const human_sim::Goal::ConstPtr& msg);
 	ros::Subscriber sub_set_behavior_;
 	void setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg);
+	ros::Subscriber sub_new_goal_;
+	void newGoalCallback(const human_sim::Goal::ConstPtr& goal);
 
 	ros::Publisher pub_new_goal_;
 	ros::Publisher pub_op_mode_;

@@ -30,6 +30,7 @@ HumanModel::HumanModel()
 	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
 	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanModel::goalDoneCallback, this);
 	sub_set_behavior_ = 	nh_.subscribe("/boss/human/set_behavior", 100, &HumanModel::setBehaviorCallback, this);
+	sub_new_goal_ =		nh_.subscribe("/boss/human/new_goal", 100, &HumanModel::newGoalCallback, this);
 
 	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("/boss/human/new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
@@ -47,7 +48,7 @@ HumanModel::HumanModel()
 	printf("I am human\n");
 
 
-	// PARAMETERS//
+////////// PARAMETERS////////////////////////////////////////////////////////////////////////////
 
 	// Perturbation ratio
 	//ratio_perturbation_ = 0.2; // +/- 20% of value
@@ -155,30 +156,39 @@ void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 
 bool HumanModel::chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res)
 {
-	human_sim::Goal goal = this->chooseGoal();
+	human_sim::Goal goal = this->chooseGoal(false);
 
 	res.goal.type = 	goal.type;
 	res.goal.x = 		goal.x;
 	res.goal.y = 		goal.y;
 	res.goal.theta = 	goal.theta;
+
 }
 
-human_sim::Goal HumanModel::chooseGoal()
+human_sim::Goal HumanModel::chooseGoal(bool random)
 {
 	human_sim::Goal goal;
+	static int index_list=-1;
+	int i=0;
 
-	/*	int i;
+	if(random)
+	{
 		do
 		{
-		i=rand()%known_goals_.size();
-		}while(known_goals_[i].x==previous_goal_.x && known_goals_[i].y==previous_goal_.y);*/
-
-	static int i=-1;
-	i=(i+1)%known_goals_.size();
+			i=rand()%known_goals_.size();
+		}while(known_goals_[i].goal.x==previous_goal_.x && known_goals_[i].goal.y==previous_goal_.y);
+	}
+	// follow list of known goals
+	else
+	{
+		index_list=(index_list+1)%known_goals_.size();
+		i = index_list;
+	}
 
 	printf("i=%d\n", i);
 	printf("x=%f, y=%f, theta=%f, radius=%f\n", known_goals_[i].goal.x,known_goals_[i].goal.y,known_goals_[i].goal.theta,known_goals_[i].radius);
 
+	// if it's an area, pick a goal in it
 	if(known_goals_[i].radius!=0)
 	{
 		float alpha = (rand()%(2*314))/100 - PI;
@@ -222,6 +232,26 @@ void HumanModel::publishModelData()
 	pub_robot_pose_.publish(pose);
 }
 
+void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
+{
+	if(goal->x != current_goal_.x 
+	|| goal->y != current_goal_.y 
+	|| goal->theta != current_goal_.theta)
+	{
+		previous_goal_.x = 	current_goal_.x;
+		previous_goal_.y = 	current_goal_.y;
+		previous_goal_.theta = 	current_goal_.theta;
+
+		current_goal_.x = 	goal->x;
+		current_goal_.y = 	goal->y;
+		current_goal_.theta = 	goal->theta;
+	}
+
+
+	printf("current_goal = %f,%f\n", current_goal_.x, current_goal_.y);
+	printf("previous_goal = %f,%f\n", previous_goal_.x, previous_goal_.y);
+}
+
 void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 {
 	switch(msg->data)
@@ -241,19 +271,19 @@ void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 	}
 }
 
-void HumanModel::newRandomGoalGeneration(bool toss)
+void HumanModel::newRandomGoalGeneration()
 {
-	if(!toss || ros::Time::now()-last_time_> delay_think_about_new_goal_)
+	if(ros::Time::now()-last_time_> delay_think_about_new_goal_)
 	{
 		int nb = rand()%100 + 1;
-		if(!toss || nb < chance_decide_new_goal_)
+		if(nb < chance_decide_new_goal_)
 		{
 			printf("DECIDE NEW GOAL ! \n");
 			human_sim::Goal previous_goal = current_goal_;
-			human_sim::Goal new_goal = this->chooseGoal();
+			human_sim::Goal new_goal = this->chooseGoal(true);
 			if(new_goal.x != previous_goal.x || new_goal.y != previous_goal.y)
 			{
-				pub_new_goal_.publish(this->chooseGoal());
+				pub_new_goal_.publish(new_goal);
 				printf("published\n");
 			}
 			else
@@ -274,82 +304,86 @@ void HumanModel::stopLookRobot()
 			break;
 
 		case STOP:
-		{
-			printf("Stopped !\n");
-			human_sim::CancelGoalAndStop srv_cancel;
-			client_cancel_goal_and_stop_.call(srv_cancel);
+			{
+				printf("current_goal = %f,%f\n", current_goal_.x, current_goal_.y);
+				printf("previous_goal = %f,%f\n", previous_goal_.x, previous_goal_.y);
 
-			std_msgs::Int32 msg;
-			msg.data=1;
-			pub_op_mode_.publish(msg); // Passe en SPECIFIED, save if was in AUTO ?
+				printf("Stopped !\n");
+				human_sim::CancelGoalAndStop srv_cancel;
+				client_cancel_goal_and_stop_.call(srv_cancel);
 
-			human_sim::SetGetGoal srv_set;
-			client_set_get_goal_.call(srv_set);
-			sub_stop_look_=LOOK_AT_ROBOT;
-			break;
-		}
+				std_msgs::Int32 msg;
+				msg.data=1;
+				pub_op_mode_.publish(msg); // Passe en SPECIFIED, save if was in AUTO ?
+
+				human_sim::SetGetGoal srv_set;
+				client_set_get_goal_.call(srv_set);
+				sub_stop_look_=LOOK_AT_ROBOT;
+				break;
+			}
 
 		case LOOK_AT_ROBOT:
-		{
-			float qy = model_robot_pose_.y - model_pose_.y;
-			float qx = model_robot_pose_.x - model_pose_.x;
-
-			float q;
-			float alpha;
-
-			if(qx==0)
 			{
-				if(qy>0)
-					alpha = PI/2;
-				else
-					alpha = -PI/2;
-			}
-			else
-			{
-				q = abs(qy/qx);
-				if(qx>0)
+				float qy = model_robot_pose_.y - model_pose_.y;
+				float qx = model_robot_pose_.x - model_pose_.x;
+
+				float q;
+				float alpha;
+
+				if(qx==0)
 				{
 					if(qy>0)
-						alpha = atan(q);
+						alpha = PI/2;
 					else
-						alpha = -atan(q);
+						alpha = -PI/2;
 				}
 				else
 				{
-					if(qy>0)
-						alpha = PI - atan(q);
+					q = abs(qy/qx);
+					if(qx>0)
+					{
+						if(qy>0)
+							alpha = atan(q);
+						else
+							alpha = -atan(q);
+					}
 					else
-						alpha = atan(q) - PI;
+					{
+						if(qy>0)
+							alpha = PI - atan(q);
+						else
+							alpha = atan(q) - PI;
+					}
 				}
+
+				printf("alpha=%f\n", alpha);//*180/PI);
+
+				geometry_msgs::Twist cmd;
+				if(abs(alpha-model_pose_.theta)>0.1)
+				{
+					cmd.angular.z=2;
+					if(alpha-model_pose_.theta<0) 	
+						cmd.angular.z=-cmd.angular.z;
+
+					if(abs(alpha-model_pose_.theta)>PI)
+						cmd.angular.z=-cmd.angular.z;
+				}
+				pub_perturbated_cmd_.publish(cmd);
+
+				printf("threshold=%f dist=%f\n", dist_near_robot_*1.1, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
+				if(sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2))>dist_near_robot_*1.1)
+				{
+					printf("NEW GOALLLLL\n");
+					sub_stop_look_=NEW_GOAL;
+				}
+				break;
 			}
-
-			printf("alpha=%f\n", alpha);//*180/PI);
-
-			geometry_msgs::Twist cmd;
-			if(abs(alpha-model_pose_.theta)>0.1)
-			{
-				cmd.angular.z=2;
-				if(alpha-model_pose_.theta<0) 	
-					cmd.angular.z=-cmd.angular.z;
-
-				if(abs(alpha-model_pose_.theta)>PI)
-					cmd.angular.z=-cmd.angular.z;
-			}
-			pub_perturbated_cmd_.publish(cmd);
-
-			printf("threshold=%f dist=%f\n", dist_near_robot_*1.1, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
-			if(sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2))>dist_near_robot_*1.1)
-			{
-				printf("NEW GOALLLLL\n");
-				sub_stop_look_=NEW_GOAL;
-			}
-			break;
-		}
 
 		case NEW_GOAL:
 			printf("Choose new goal\n");
-			this->newRandomGoalGeneration(false); // goal behind
-			// put back in AUTONOMOUS if it was
+			// resume current goal
+			pub_new_goal_.publish(current_goal_);
+			// put back in AUTONOMOUS if it was ?
 			sub_stop_look_=OVER;
 			break;
 
@@ -367,15 +401,15 @@ void HumanModel::harassRobot()
 	switch(sub_harass_)
 	{
 		case INIT:
-		{
-			human_sim::CancelGoalAndStop srv_cancel;
-			client_cancel_goal_and_stop_.call(srv_cancel);
+			{
+				human_sim::CancelGoalAndStop srv_cancel;
+				client_cancel_goal_and_stop_.call(srv_cancel);
 
-			human_sim::SetGetGoal srv_set;
-			client_set_get_goal_.call(srv_set);
-			sub_harass_=HARASSING;
-			break;
-		}
+				human_sim::SetGetGoal srv_set;
+				client_set_get_goal_.call(srv_set);
+				sub_harass_=HARASSING;
+				break;
+			}
 		case HARASSING:
 			if(ros::Time::now() > last_harass_ + delay_harass_replan_)
 			{
@@ -415,7 +449,7 @@ void HumanModel::behaviors()
 			break;
 
 		case RANDOM:
-			this->newRandomGoalGeneration(true);
+			this->newRandomGoalGeneration();
 			break;
 
 		case STOP_LOOK:

@@ -166,6 +166,8 @@ void Supervisor::FSM()
 						case READY:
 							printf("READY\n");
 							// send to geometric planner
+							current_path_.poses.clear();
+							previous_path_.poses.clear();
 							client_action_.sendGoal((*curr_action).action);
 							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
 							(*curr_action).state=PROGRESS;
