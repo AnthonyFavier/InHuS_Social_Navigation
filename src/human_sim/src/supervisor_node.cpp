@@ -54,7 +54,6 @@ Supervisor::Supervisor()
 	first_blocked_ = true;
 	replan_success_nb_ = 0;
 
-	reset_after_goal_aborted_ = 	false;
 	goal_aborted_count_ = 		0;
 	path_diff_threshold_ = 		3;
 	last_replan_ = 			ros::Time::now();
@@ -62,8 +61,6 @@ Supervisor::Supervisor()
 	human_pose_.x = 	0;
 	human_pose_.y = 	0;
 	human_pose_.theta = 	0;
-
-	first_path_received_ = true;
 
 	ros::service::waitForService("compute_plan");
 	printf("Connected to taskPlanner server\n");
@@ -125,7 +122,6 @@ void Supervisor::FSM()
 			printf("\n");
 			ROS_INFO("EXEC_PLAN");
 			printf("current_goal : %s (%f, %f, %f)\n", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
-			reset_after_goal_aborted_=false;
 			if(goal_received_)
 			{
 				goal_received_ = false;
@@ -137,9 +133,6 @@ void Supervisor::FSM()
 				if(!plan_.isDone())
 				{
 					// check current action
-					plan_.updateCurrentAction();
-					std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
-
 					// if PLANNED or NEEDED
 					// 	check precond
 					// 	if ok -> READY
@@ -152,6 +145,9 @@ void Supervisor::FSM()
 					// else if PROGRESS
 					// 	check postcondition
 					// 	if ok -> DONE
+
+					plan_.updateCurrentAction();
+					std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
 
 					switch((*curr_action).state)
 					{
@@ -169,7 +165,7 @@ void Supervisor::FSM()
 
 						case READY:
 							printf("READY\n");
-							// send to geometric planner 
+							// send to geometric planner
 							client_action_.sendGoal((*curr_action).action);
 							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
 							(*curr_action).state=PROGRESS;
@@ -179,16 +175,16 @@ void Supervisor::FSM()
 							printf("PROGRESS\n");
 							// check postconditions
 							// for now : if human at destination
-							// done in geoPlanner ?
 
 							if(client_action_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
 							{
 								printf("Client succeeded\n");
 								this->updateMarkerPose(0, 0, 0);
-								first_path_received_=true;
+								current_path_.poses.clear();
+								previous_path_.poses.clear();
 								(*curr_action).state = DONE;
 							}
-							else if(ros::Time::now() - last_replan_ > dur_replan_)
+							else if(goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > dur_replan_))
 							{
 								printf("=> Resend !\n");
 								client_action_.sendGoal((*curr_action).action);
@@ -239,27 +235,37 @@ void Supervisor::FSM()
 				srv.request.goal.header.frame_id = 	"map";
 				srv.request.tolerance = 		0.1;
 
+				// make plan
 				if(client_make_plan_.call(srv))
 				{
-					printf("BLOCK : srv.plan=%d previous=%d\n", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
-					if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
-					|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
+					if(srv.response.plan.poses.size()!=0) // successfully planned once
 					{
-						replan_success_nb_++;
-						printf("replan_success_nb = %d\n", replan_success_nb_);
-						if(replan_success_nb_ >= 2)
+						printf("BLOCK : srv.plan=%d previous=%d\n", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
+						// if close enough to previous path
+						if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
+						|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
 						{
-							printf("replan successfully !\n");
+							replan_success_nb_++;
+							printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
+							if(replan_success_nb_ >= 2)
+							{
+								printf("replan successfully !\n");
+								replan_success_nb_ = 0;
+								first_blocked_ = true;
+								(*curr_action).state = NEEDED;
+								state_global_ = EXEC_PLAN;
+							}
+						}
+						else
+						{
 							replan_success_nb_ = 0;
-							first_blocked_ = true;
-							(*curr_action).state = NEEDED;
-							state_global_ = EXEC_PLAN;
+							printf("still blocked ..\n");
 						}
 					}
 					else
 					{
+						printf("Failed to plan ...\n");
 						replan_success_nb_ = 0;
-						printf("still blocked ..\n");
 					}
 				}
 				else
@@ -297,181 +303,29 @@ bool Supervisor::checkPlanFailure()
 		printf("LOST");
 	printf("\n");
 
+
+	printf("check : current=%d previous=%d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
+
 	// Check goal aborted (failure computing a plan)
-	if(!reset_after_goal_aborted_ 
-			&& state==actionlib::SimpleClientGoalState::ABORTED)
+	if(state==actionlib::SimpleClientGoalState::ABORTED)
 	{
 		if(goal_aborted_count_ < 3)
 			goal_aborted_count_++;
 		else
 		{
 			goal_aborted_count_ = 0;
-			reset_after_goal_aborted_ = true;
-
 			return true;
 		}
 	}
+	else
+		goal_aborted_count_ = 0;
 
 	// Check if path changed too much
-	printf("current_size = %d previous_size = %d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	if(previous_path_.poses.size() != 0 && current_path_.poses.size() != 0)
 	{
 		if(abs((int)current_path_.poses.size()-(int)previous_path_.poses.size()) > 10
 		&& float(current_path_.poses.size())/float(previous_path_.poses.size()) > 1.5)
 			return true;
-
-
-
-		///////////////////////////////////////////////////
-		// CODE MORT POUR EVITER DE COMMENTER !!!!!!!!!! //
-		///////////////////////////////////////////////////
-		//						 //
-		//			 | 			 //
-		//			\|/			 //
-		//						 //
-		///////////////////////////////////////////////////
-		if(false)
-		{
-			printf("test failure\n");
-			nav_msgs::Path path1, path2; // plan1 is the longest
-			if(current_path_.poses.size() > previous_path_.poses.size())
-			{
-				path1 = current_path_;
-				path2 = previous_path_;
-			}
-			else
-			{
-				path1 = previous_path_;
-				path2 = current_path_;
-			}
-
-			/*geometry_msgs::PoseStamped pose;
-			  pose.pose.position.x=0;
-			  pose.pose.position.y=0;
-			  path2.poses.push_back(pose);
-			  pose.pose.position.x=1;
-			  pose.pose.position.y=1;
-			  path2.poses.push_back(pose);
-			  pose.pose.position.x=2;
-			  pose.pose.position.y=2;
-			  path2.poses.push_back(pose);
-			  pose.pose.position.x=3;
-			  pose.pose.position.y=3;
-			  path2.poses.push_back(pose);
-			  pose.pose.position.x=4;
-			  pose.pose.position.y=4;
-			  path2.poses.push_back(pose);
-			  pose.pose.position.x=5;
-			  pose.pose.position.y=5;
-			  path2.poses.push_back(pose);
-			  pose.pose.position.x=6;
-			  pose.pose.position.y=6;
-			  path2.poses.push_back(pose);
-			  pose.pose.position.x=7;
-			  pose.pose.position.y=7;
-			  path2.poses.push_back(pose);
-
-			  pose.pose.position.x=0;
-			  pose.pose.position.y=0;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=1;
-			  pose.pose.position.y=0;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=2.5;
-			  pose.pose.position.y=0;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=4;
-			  pose.pose.position.y=0;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=5;
-			  pose.pose.position.y=0;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=6;
-			  pose.pose.position.y=1;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=7;
-			  pose.pose.position.y=2;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=8;
-			  pose.pose.position.y=3;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=9;
-			  pose.pose.position.y=5;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=9;
-			  pose.pose.position.y=7;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=9;
-			  pose.pose.position.y=8.5;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=7;
-			  pose.pose.position.y=8.5;
-			  path1.poses.push_back(pose);
-			  pose.pose.position.x=5.5;
-			  pose.pose.position.y=8;
-			  path1.poses.push_back(pose);	
-			  pose.pose.position.x=7;
-			  pose.pose.position.y=7;
-			  path1.poses.push_back(pose);*/
-
-			float ratio = float(path1.poses.size())/float(path2.poses.size());
-
-			printf("n_path1=%d n_path2=%d ration=%f\n", (int)path1.poses.size(), (int)path2.poses.size(), ratio);
-
-			std::vector<int> corr_path2[path2.poses.size()];
-			for(int i=0; i<path1.poses.size(); i++)
-			{
-				int index = ceil(i/ratio);
-				index = index >= path2.poses.size() ? path2.poses.size()-1 : index;
-
-				corr_path2[index].push_back(i);
-			}
-
-			std::vector<geometry_msgs::PoseStamped> path1_reduced;
-			for(int i=0; i<path2.poses.size(); i++)
-			{
-				if(corr_path2[i].size()==1)
-					path1_reduced.push_back(path1.poses[corr_path2[i][0]]);
-				else
-				{
-					geometry_msgs::PoseStamped mean_pose;
-					for(int j=0; j<corr_path2[i].size(); j++)
-					{
-						//printf("plan2[%d] <=> plan1[%d]\n", i, corr_path2[i][j]);
-						mean_pose.pose.position.x += path1.poses[corr_path2[i][j]].pose.position.x;
-						mean_pose.pose.position.y += path1.poses[corr_path2[i][j]].pose.position.y;
-					}
-
-					mean_pose.pose.position.x /= corr_path2[i].size();
-					mean_pose.pose.position.y /= corr_path2[i].size();
-
-					path1_reduced.push_back(mean_pose);
-				}
-			}
-
-			/*printf("path1 reduced :\n");
-			  for(int i=0; i<path1_reduced.size(); i++)
-			  printf("pose[%d]= %f,%f\n", path1_reduced[i].pose.position.x, path1_reduced[i].pose.position.y);
-			  */
-
-
-			// Compute difference
-			float diff=0;
-			float dist;
-			for(int i=0; i<path2.poses.size(); i++)
-			{
-				dist = sqrt(pow(path2.poses[i].pose.position.x-path1_reduced[i].pose.position.x,2) 
-						+ pow(path2.poses[i].pose.position.y-path1_reduced[i].pose.position.y,2));
-
-				diff += dist;
-			}
-
-			diff /= path2.poses.size();
-			printf("diff=%f\n", diff);
-
-			if(diff > path_diff_threshold_)
-				return true;
-		}
 	}
 
 	return false;
@@ -492,7 +346,7 @@ void Supervisor::findAGoal()
 	ros::service::waitForService("choose_goal");
 	client_goal_.call(srv);
 
-	current_goal_.type = 	srv.response.goal.type;	
+	current_goal_.type = 	srv.response.goal.type;
 	current_goal_.x = 	srv.response.goal.x;
 	current_goal_.y = 	srv.response.goal.y;
 	current_goal_.theta = 	srv.response.goal.theta;
@@ -527,8 +381,10 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 {
 	ROS_INFO("New goal received!");
 
-	goal_received_=true;
-	first_path_received_ = true;
+	goal_received_ = true;
+	first_blocked_ = true;
+	current_path_.poses.clear();
+	previous_path_.poses.clear();
 
 	current_goal_.type=msg->type;
 	current_goal_.x=msg->x;
@@ -561,7 +417,7 @@ void Supervisor::operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg)
 
 bool Supervisor::setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res)
 {
-	state_global_=GET_GOAL;	
+	state_global_=GET_GOAL;
 	current_path_.poses.clear();
 	previous_path_.poses.clear();
 	choice_goal_decision_ = SPECIFIED;
@@ -572,48 +428,45 @@ bool Supervisor::setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetG
 void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 {
 	printf("pathCallback ! \n");
+	printf("before CB : path=%d current=%d previous=%d\n", (int)path->poses.size(), (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 
-	if(first_path_received_)
+	if(state_global_ != BLOCKED_BY_ROBOT)
 	{
-		printf("first !\n");
-		current_path_ = *path;
-		previous_path_.poses.clear();
-		first_path_received_ = false;
-	}
-	else
-	{
-		if(state_global_ != BLOCKED_BY_ROBOT)
+		if(current_path_.poses.size()==0 && previous_path_.poses.size()==0)
+		{
+			printf("first !\n");
+			current_path_ = *path;
+		}
+		else if(current_path_.poses.size()!=0)
 		{
 			printf("CUTTING path !\n");
 			// seek pose closest to current_pose
 			// only keep path from current_pose to the end
-			if(current_path_.poses.size()!=0)
+			float dist = sqrt(pow(current_path_.poses[0].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[0].pose.position.y-human_pose_.y,2));
+			float dist_min = dist;
+			int i_min = 0;
+			for(int i=1; i<current_path_.poses.size(); i++)
 			{
-				float dist = sqrt(pow(current_path_.poses[0].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[0].pose.position.y-human_pose_.y,2));
-				float dist_min = dist;
-				int i_min = 0;
-				for(int i=1; i<current_path_.poses.size(); i++)
+				dist = sqrt(pow(current_path_.poses[i].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[i].pose.position.y-human_pose_.y,2));
+				if(dist < dist_min)
 				{
-					dist = sqrt(pow(current_path_.poses[i].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[i].pose.position.y-human_pose_.y,2));
-					if(dist < dist_min)
-					{
-						dist_min = dist;
-						i_min = i;
-					}
+					dist_min = dist;
+					i_min = i;
 				}
-
-				previous_path_.poses.clear();
-				for(int i=i_min; i<current_path_.poses.size(); i++)
-					previous_path_.poses.push_back(current_path_.poses[i]);
 			}
-			else
-				previous_path_ = current_path_;
+
+			previous_path_.poses.clear();
+			for(int i=i_min; i<current_path_.poses.size(); i++)
+				previous_path_.poses.push_back(current_path_.poses[i]);
 
 			current_path_ = *path;
-
-			printf("CB : current=%d previous=%d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
+		}
+		else // currepnt_path == 0 && previous != 0
+		{
+			// do nothing, keep the previous as a possible path
 		}
 	}
+	printf("after CB : current=%d previous=%d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 }
 
 void Supervisor::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)

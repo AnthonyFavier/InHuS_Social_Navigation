@@ -50,7 +50,6 @@ private:
 	Plan plan_;
 	Pose2D human_pose_;
 
-	bool reset_after_goal_aborted_;
 	int goal_aborted_count_;
 	float path_diff_threshold_;
 	ros::Duration dur_replan_;
@@ -60,7 +59,6 @@ private:
 
 	nav_msgs::Path current_path_;
 	nav_msgs::Path previous_path_;
-	bool first_path_received_;
 
 	ros::Subscriber sub_human_pose_;
 	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
