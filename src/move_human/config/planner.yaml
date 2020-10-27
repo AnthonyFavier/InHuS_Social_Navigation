@@ -1,5 +1,5 @@
 controller_frequency: 20.0
-recovery_behaviour_enabled: false
+recovery_behavior_enabled: false
 clearing_rotation_allowed: false
 max_planning_retries: 0
 
