@@ -23,7 +23,8 @@ pose.add_interface('ros', topic="morse/human_pose")
 
 pr2 = BarePR2()
 pr2.properties(GroundRobot = True)
-pr2.translate(5.0, 2.0, 0.0)
+#pr2.translate(5.0, 2.0, 0.0)
+pr2.translate(5.8, 4.6, 0.0)
 
 keyboard = Keyboard()
 pr2.append(keyboard)
