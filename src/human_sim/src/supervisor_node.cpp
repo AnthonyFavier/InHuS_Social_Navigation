@@ -45,7 +45,8 @@ Supervisor::Supervisor()
 	marker_rviz_.color.b = 			0;
 	marker_rviz_.color.a = 			0;
 
-	service_set_get_goal_ =	nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
+	service_set_get_goal_ =			nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
+	service_get_choiceGoalDecision_ = 	nh_.advertiseService("get_choiceGoalDecision", &Supervisor::getChoiceGoalDecision, this);
 
 	state_global_ = GET_GOAL;
 
@@ -185,6 +186,15 @@ void Supervisor::FSM()
 								current_path_.poses.clear();
 								previous_path_.poses.clear();
 								(*curr_action).state = DONE;
+							}
+							if(client_action_.getState() == actionlib::SimpleClientGoalState::PREEMPTED)
+							{
+								printf("PREEMPTED\n");
+								this->updateMarkerPose(0, 0, 0);
+								current_path_.poses.clear();
+								previous_path_.poses.clear();
+								state_global_=GET_GOAL;
+
 							}
 							else if(goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > dur_replan_))
 							{
@@ -419,10 +429,18 @@ void Supervisor::operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg)
 
 bool Supervisor::setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res)
 {
+	printf("GET_GOAL_SET !!!\n");
 	state_global_=GET_GOAL;
 	current_path_.poses.clear();
 	previous_path_.poses.clear();
 	choice_goal_decision_ = SPECIFIED;
+
+	return true;
+}
+
+bool Supervisor::getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request &req, human_sim::GetChoiceGoalDecision::Response &res)
+{
+	res.decision = (int)choice_goal_decision_;
 
 	return true;
 }

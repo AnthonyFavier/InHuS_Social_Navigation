@@ -28,6 +28,7 @@ add_service_files(
   ChooseGoal.srv
   SetGetGoal.srv
   CancelGoalAndStop.srv
+  GetChoiceGoalDecision.srv
 )
 
 #add_action_files(DIRECTORY action 

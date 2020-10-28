@@ -15,6 +15,7 @@
 #include "human_sim/Goal.h"
 #include "human_sim/SetGetGoal.h"
 #include "human_sim/CancelGoalAndStop.h"
+#include "human_sim/GetChoiceGoalDecision.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "nav_msgs/Path.h"
@@ -84,6 +85,8 @@ private:
 	
 	ros::ServiceServer service_set_get_goal_;
 	bool setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res);
+	ros::ServiceServer service_get_choiceGoalDecision_;
+	bool getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request &req, human_sim::GetChoiceGoalDecision::Response &res);
 
 	visualization_msgs::Marker marker_rviz_;
 	ros::Publisher pub_marker_rviz_;

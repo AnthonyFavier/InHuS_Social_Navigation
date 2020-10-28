@@ -36,7 +36,7 @@ HumanModel::HumanModel()
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
-	pub_op_mode_ = 		nh_.advertise<std_msgs::Int32>("boss/operating_mode", 100);
+	pub_op_mode_ = 		nh_.advertise<std_msgs::Int32>("/boss/human/operating_mode", 100);
 	pub_goal_move_base_ =	nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
 
@@ -44,6 +44,9 @@ HumanModel::HumanModel()
 
 	client_set_get_goal_ = 		nh_.serviceClient<human_sim::SetGetGoal>("set_get_goal");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
+	client_get_choice_goal_decision_ = nh_.serviceClient<human_sim::GetChoiceGoalDecision>("get_choiceGoalDecision");
+
+	was_in_autonomous_ = false;
 
 	printf("I am human\n");
 
@@ -245,11 +248,10 @@ void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 		current_goal_.x = 	goal->x;
 		current_goal_.y = 	goal->y;
 		current_goal_.theta = 	goal->theta;
+
+		printf("CB current_goal = %f,%f\n", current_goal_.x, current_goal_.y);
+		printf("CB previous_goal = %f,%f\n", previous_goal_.x, previous_goal_.y);
 	}
-
-
-	printf("current_goal = %f,%f\n", current_goal_.x, current_goal_.y);
-	printf("previous_goal = %f,%f\n", previous_goal_.x, previous_goal_.y);
 }
 
 void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
@@ -311,6 +313,20 @@ void HumanModel::stopLookRobot()
 				printf("Stopped !\n");
 				human_sim::CancelGoalAndStop srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
+	
+				// Check if was in AUTONOMOUS
+				human_sim::GetChoiceGoalDecision srv;
+				if(client_get_choice_goal_decision_.call(srv))
+					was_in_autonomous_ = srv.response.decision == 0;
+				else
+					ROS_ERROR("Failed to call get choice goal decision service!");
+				
+				printf("response = %d\n", srv.response.decision);
+				if(was_in_autonomous_)
+					printf("YES\n");
+				else
+					printf("NO!\n");
+
 
 				std_msgs::Int32 msg;
 				msg.data=1;
@@ -383,8 +399,22 @@ void HumanModel::stopLookRobot()
 			printf("Choose new goal\n");
 			// resume current goal
 			pub_new_goal_.publish(current_goal_);
-			// put back in AUTONOMOUS if it was ?
-			sub_stop_look_=OVER;
+			// put back in AUTONOMOUS if it was 
+			if(was_in_autonomous_)
+			{
+				static ros::Time start = ros::Time::now();
+				if(ros::Time::now() - start > ros::Duration(1))
+				{
+					printf("AUTO SENT!\n");
+					std_msgs::Int32 msg;
+					msg.data=0;
+					pub_op_mode_.publish(msg);
+
+					sub_stop_look_=OVER;
+				}
+			}
+			else
+				sub_stop_look_=OVER;
 			break;
 
 		case OVER:

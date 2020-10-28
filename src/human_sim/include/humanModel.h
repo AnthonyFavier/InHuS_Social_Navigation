@@ -12,6 +12,7 @@
 #include "human_sim/ChooseGoal.h"
 #include "human_sim/SetGetGoal.h"
 #include "human_sim/CancelGoalAndStop.h"
+#include "human_sim/GetChoiceGoalDecision.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "move_base_msgs/MoveBaseActionGoal.h"
@@ -81,6 +82,8 @@ private:
 
 	ros::ServiceClient client_set_get_goal_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
+	ros::ServiceClient client_get_choice_goal_decision_;
+	bool was_in_autonomous_;
 
 	float ratio_perturbation_;
 
