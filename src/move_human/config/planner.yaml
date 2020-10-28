@@ -23,8 +23,8 @@ TebLocalPlannerROS:
  # Trajectory
   
   teb_autosize: true
-  dt_ref: 0.25
-  dt_hysteresis: 0.1
+  dt_ref: 0.20
+  dt_hysteresis: 0.01
   global_plan_overwrite_orientation: true
   max_global_plan_lookahead_dist: 2.0
   feasibility_check_no_poses: 5
@@ -34,9 +34,9 @@ TebLocalPlannerROS:
           
   max_vel_x: 2.0
   max_vel_x_backwards: 0.7
-  max_vel_theta: 3.0
-  acc_lim_x: 3.0
-  acc_lim_theta: 15.0
+  max_vel_theta: 2.0
+  acc_lim_x: 4.0
+  acc_lim_theta: 10.0
   min_turning_radius: 0.0
   footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
     type: "point"
