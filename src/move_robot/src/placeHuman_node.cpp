@@ -15,7 +15,8 @@ PlaceHumanMap::PlaceHumanMap()
 	human_pose_.theta = 	0;
 
 	size_rob_ = 4;
-	dist_threshold_ = 5/0.05;
+//	dist_threshold_ = 5/0.05;
+	dist_threshold_ = 15/0.05;
 	human_near_ = false;
 
 	map_initiated_ = false;

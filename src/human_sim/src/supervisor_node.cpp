@@ -7,6 +7,7 @@ Supervisor::Supervisor()
 , client_action_("move_base", true)
 , dur_replan_(0.5)
 , dur_replan_blocked_(0.7)
+, dur_check_pose_blocked_(0.1)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
@@ -231,59 +232,100 @@ void Supervisor::FSM()
 				last_replan_ = ros::Time::now();
 				first_blocked_=false;
 			}
-			else if(ros::Time::now() - last_replan_ > dur_replan_blocked_)
+			else
 			{
-				printf("try to replan\n");
-
-				plan_.updateCurrentAction();
-				std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
-
-				nav_msgs::GetPlan srv;
-				srv.request.start.pose.position.x = 	human_pose_.x;
-				srv.request.start.pose.position.y = 	human_pose_.y;
-				srv.request.start.header.frame_id = 	"map";
-				srv.request.goal.pose.position.x = 	(*curr_action).action.target_pose.pose.position.x;
-				srv.request.goal.pose.position.y = 	(*curr_action).action.target_pose.pose.position.y;
-				srv.request.goal.header.frame_id = 	"map";
-				srv.request.tolerance = 		0.1;
-
-				// make plan
-				if(client_make_plan_.call(srv))
+				switch(blocked_state_)
 				{
-					if(srv.response.plan.poses.size()!=0) // successfully planned once
-					{
-						printf("BLOCK : srv.plan=%d previous=%d\n", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
-						// if close enough to previous path
-						if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
-						|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
+					case ABORTED:
+					case LONGER:
+						if(ros::Time::now() - last_replan_ > dur_replan_blocked_)
 						{
-							replan_success_nb_++;
-							printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
-							if(replan_success_nb_ >= 2)
+							printf("try to replan\n");
+
+							plan_.updateCurrentAction();
+							std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
+
+							nav_msgs::GetPlan srv;
+							srv.request.start.pose.position.x = 	human_pose_.x;
+							srv.request.start.pose.position.y = 	human_pose_.y;
+							srv.request.start.header.frame_id = 	"map";
+							srv.request.goal.pose.position.x = 	(*curr_action).action.target_pose.pose.position.x;
+							srv.request.goal.pose.position.y = 	(*curr_action).action.target_pose.pose.position.y;
+							srv.request.goal.header.frame_id = 	"map";
+							srv.request.tolerance = 		0.1;
+
+							// make plan
+							if(client_make_plan_.call(srv))
 							{
-								printf("replan successfully !\n");
-								replan_success_nb_ = 0;
-								first_blocked_ = true;
-								(*curr_action).state = NEEDED;
+								if(srv.response.plan.poses.size()!=0) // successfully planned once
+								{
+									printf("BLOCK : srv.plan=%d previous=%d\n", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
+									// if close enough to previous path
+									if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
+									|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
+									{
+										replan_success_nb_++;
+										printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
+										if(replan_success_nb_ >= 2)
+										{
+											printf("replan successfully !\n");
+											replan_success_nb_ = 0;
+											first_blocked_ = true;
+											(*curr_action).state = NEEDED;
+											state_global_ = EXEC_PLAN;
+										}
+									}
+									else
+									{
+										replan_success_nb_ = 0;
+										printf("still blocked ..\n");
+									}
+								}
+								else
+								{
+									printf("Failed to plan ...\n");
+									replan_success_nb_ = 0;
+								}
+							}
+							else
+								ROS_ERROR("Failed to call service make_plan");
+
+							last_replan_ = ros::Time::now();
+						}
+						break;
+
+					case NOT_FEASIBLE:
+					{
+						// try to move, check if actually moving
+						// if moving switch to exec plan
+						// else keep trying to move as blocked
+
+						plan_.updateCurrentAction();
+						std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
+
+						static Pose2D last_human_pose = human_pose_;
+
+						if(ros::Time::now() - last_replan_ > dur_replan_)
+						{
+							printf("send goal\n");
+							client_action_.sendGoal((*curr_action).action);
+							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
+							last_replan_ = ros::Time::now();
+
+							if(abs(human_pose_.x - last_human_pose.x) > 0.03
+							&& abs(human_pose_.y - last_human_pose.y) > 0.03)
+							{
+								printf("We moved !\n");
 								state_global_ = EXEC_PLAN;
 							}
 						}
-						else
-						{
-							replan_success_nb_ = 0;
-							printf("still blocked ..\n");
-						}
+						break;
 					}
-					else
-					{
-						printf("Failed to plan ...\n");
-						replan_success_nb_ = 0;
-					}
-				}
-				else
-					ROS_ERROR("Failed to call service make_plan");
 
-				last_replan_ = ros::Time::now();
+					default:
+						blocked_state_ = ABORTED;
+						break;
+				}
 			}
 			break;
 
@@ -315,6 +357,9 @@ bool Supervisor::checkPlanFailure()
 		printf("LOST");
 	printf("\n");
 
+	static Pose2D last_human_pose = human_pose_;
+	static ros::Time last_check_human_pose = ros::Time::now();
+	static int same_human_pose_count = 0;
 
 	printf("check : current=%d previous=%d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 
@@ -325,7 +370,9 @@ bool Supervisor::checkPlanFailure()
 			goal_aborted_count_++;
 		else
 		{
+			printf("Checked ABORTED\n");
 			goal_aborted_count_ = 0;
+			blocked_state_ = ABORTED;
 			return true;
 		}
 	}
@@ -336,8 +383,41 @@ bool Supervisor::checkPlanFailure()
 	if(previous_path_.poses.size() != 0 && current_path_.poses.size() != 0)
 	{
 		if(abs((int)current_path_.poses.size()-(int)previous_path_.poses.size()) > 10
-		&& float(current_path_.poses.size())/float(previous_path_.poses.size()) > 1.5)
+				&& float(current_path_.poses.size())/float(previous_path_.poses.size()) > 1.5)
+		{
+			printf("Checked CHANGED TOO MUCH\n");
+			blocked_state_ = LONGER;
 			return true;
+		}
+	}
+
+	// Check if trajectory not feasible, thus if not moving for too long
+	if(ros::Time::now() - last_check_human_pose > dur_check_pose_blocked_)
+	{
+		// if current pose is close enough to previous one
+		if(abs(human_pose_.x - last_human_pose.x) < 0.03
+		&& abs(human_pose_.y - last_human_pose.y) < 0.03
+		&& abs(human_pose_.theta - last_human_pose.theta) < 0.02)
+		{
+			same_human_pose_count++;
+			printf("SAME %d\n", same_human_pose_count);
+		}
+		else
+			same_human_pose_count=0;
+
+		last_human_pose.x = 	human_pose_.x;
+		last_human_pose.y = 	human_pose_.y;
+		last_human_pose.theta = human_pose_.theta;
+
+		last_check_human_pose = ros::Time::now();
+
+		if(same_human_pose_count > 3)
+		{
+			printf("Checked NOT FEASIBLE\n");
+			same_human_pose_count = 0;
+			blocked_state_ = NOT_FEASIBLE;
+			return true;
+		}
 	}
 
 	return false;
@@ -448,10 +528,10 @@ bool Supervisor::getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request
 void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 {
 	printf("pathCallback ! \n");
-	printf("before CB : path=%d current=%d previous=%d\n", (int)path->poses.size(), (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 
 	if(state_global_ != BLOCKED_BY_ROBOT)
 	{
+		printf("before CB : path=%d current=%d previous=%d\n", (int)path->poses.size(), (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 		if(current_path_.poses.size()==0 && previous_path_.poses.size()==0)
 		{
 			printf("first !\n");
@@ -485,8 +565,9 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 		{
 			// do nothing, keep the previous as a possible path
 		}
+
+		printf("after CB : current=%d previous=%d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	}
-	printf("after CB : current=%d previous=%d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 }
 
 void Supervisor::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)

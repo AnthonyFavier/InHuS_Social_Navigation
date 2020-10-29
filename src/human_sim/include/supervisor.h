@@ -43,18 +43,21 @@ private:
 	StateGlobal state_global_;
 	enum ChoiceGoalDecision{AUTONOMOUS=0, SPECIFIED};
 	ChoiceGoalDecision choice_goal_decision_;
-
-	bool first_blocked_;
+	enum BlockedState{NOT_FEASIBLE, ABORTED, LONGER};
+	BlockedState blocked_state_;
 
 	bool goal_received_;
 	human_sim::Goal current_goal_;
 	Plan plan_;
 	Pose2D human_pose_;
 
+	bool first_blocked_;
+
 	int goal_aborted_count_;
 	float path_diff_threshold_;
 	ros::Duration dur_replan_;
 	ros::Duration dur_replan_blocked_;
+	ros::Duration dur_check_pose_blocked_;
 	ros::Time last_replan_;	
 	int replan_success_nb_;
 
