@@ -9,4 +9,4 @@ unset "args[${#args[@]}-1]"
 unset "args[${#args[@]}-1]"
 
 # start morse with given scenario and arguments
-morse run -g 1900x790 ${args[@]}
+morse run -g 1920x675 ${args[@]}
