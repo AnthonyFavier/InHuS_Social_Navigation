@@ -17,6 +17,9 @@ GlobalPlanner:
   neutral_cost: 66
   lethal_cost: 253
 
+  orientation_mode: 0
+  publish_potential: false
+
 ###############################################################
 
 TebLocalPlannerROS:
