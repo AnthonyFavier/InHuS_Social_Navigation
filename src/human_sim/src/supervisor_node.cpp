@@ -540,6 +540,9 @@ bool Supervisor::getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request
 void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 {
 	printf("pathCallback ! \n");
+	std_msgs::String msg;
+	msg.data = "SUPERVISOR " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path->poses.size()) + "\n";
+	pub_log_.publish(msg);
 
 	if(state_global_ != BLOCKED_BY_ROBOT)
 	{
