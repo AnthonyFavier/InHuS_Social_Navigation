@@ -265,7 +265,7 @@ void Supervisor::FSM()
 									if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
 									|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
 									{
-										if(replan_success_nb_ < 3)
+										if(replan_success_nb_ < 2)
 										{
 											replan_success_nb_++;
 											printf("One success ! replan_success_nb = %d\n", replan_success_nb_);

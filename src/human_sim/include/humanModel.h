@@ -44,6 +44,7 @@ private:
 	ros::NodeHandle nh_;
 
 	enum Behavior{NONE=0, RANDOM, STOP_LOOK, HARASS};
+
 	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, NEW_GOAL, OVER};
 	enum SubBehaviorHarass{INIT, HARASSING};
 	Behavior behavior_;
