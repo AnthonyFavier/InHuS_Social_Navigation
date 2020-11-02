@@ -26,7 +26,7 @@ TebLocalPlannerROS:
   dt_ref: 0.25
   dt_hysteresis: 0.1
   global_plan_overwrite_orientation: true
-  max_global_plan_lookahead_dist: 1.0
+  max_global_plan_lookahead_dist: 1.5
   feasibility_check_no_poses: 5
   global_plan_viapoint_sep: 0.1
      
