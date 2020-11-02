@@ -55,6 +55,7 @@ Supervisor::Supervisor()
 
 	first_blocked_ = true;
 	replan_success_nb_ = 0;
+	first_not_feasible_ = true;
 
 	goal_aborted_count_ = 		0;
 	path_diff_threshold_ = 		3;
@@ -264,9 +265,12 @@ void Supervisor::FSM()
 									if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
 									|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
 									{
-										replan_success_nb_++;
-										printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
-										if(replan_success_nb_ >= 2)
+										if(replan_success_nb_ < 3)
+										{
+											replan_success_nb_++;
+											printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
+										}
+										else
 										{
 											printf("replan successfully !\n");
 											replan_success_nb_ = 0;
@@ -305,6 +309,12 @@ void Supervisor::FSM()
 
 						static Pose2D last_human_pose = human_pose_;
 
+						if(first_not_feasible_)
+						{
+							last_human_pose = human_pose_;
+							first_not_feasible_=false;
+						}
+
 						if(ros::Time::now() - last_replan_ > dur_replan_)
 						{
 							printf("send goal\n");
@@ -316,6 +326,8 @@ void Supervisor::FSM()
 							&& abs(human_pose_.y - last_human_pose.y) > 0.03)
 							{
 								printf("We moved !\n");
+								first_blocked_ = true;
+								first_not_feasible_ = true;
 								state_global_ = EXEC_PLAN;
 							}
 						}

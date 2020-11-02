@@ -52,6 +52,7 @@ private:
 	Pose2D human_pose_;
 
 	bool first_blocked_;
+	bool first_not_feasible_;
 
 	int goal_aborted_count_;
 	float path_diff_threshold_;
