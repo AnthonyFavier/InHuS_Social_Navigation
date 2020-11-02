@@ -15,8 +15,8 @@ PlaceRobotMap::PlaceRobotMap()
 	human_pose_.theta = 	0;
 
 	size_rob_ = 6;
-//	dist_threshold_ = 3/0.05;
-	dist_threshold_ = 15/0.05;
+	dist_threshold_ = 5/0.05;
+//	dist_threshold_ = 15/0.05;
 	robot_near_ = false;
 
 	map_initiated_ = false;
