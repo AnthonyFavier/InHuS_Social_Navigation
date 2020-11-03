@@ -496,6 +496,14 @@ void HumanModel::behaviors()
 	}
 }
 
+void HumanModel::pubDist()
+{
+	float dist = sqrt(pow(model_robot_pose_.x-model_pose_.x,2) + pow(model_robot_pose_.y-model_pose_.y,2));
+	std_msgs::String msg;
+	msg.data = "HUMAN_MODEL DIST " + std::to_string(dist) + " " + std::to_string(ros::Time::now().toSec());
+	pub_log_.publish(msg);
+}
+
 ////////////////////////// MAIN ///////////////////////////
 
 int main(int argc, char** argv)
@@ -524,6 +532,9 @@ int main(int argc, char** argv)
 
 		// Add perturbation in human behaviors
 		human_model.behaviors();
+
+		// Publish human/robot distance to log
+		human_model.pubDist();
 
 		rate.sleep();
 		ros::spinOnce();

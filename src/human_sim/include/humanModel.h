@@ -39,6 +39,7 @@ public:
 	void stopLookRobot();
 	void harassRobot();
 	void behaviors();
+	void pubDist();
 
 private:
 	ros::NodeHandle nh_;

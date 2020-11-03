@@ -124,6 +124,8 @@ void Supervisor::FSM()
 		case EXEC_PLAN:
 			printf("\n");
 			ROS_INFO("EXEC_PLAN");
+			msg_.data = "SUPERVISOR STATE EXEC " + std::to_string(ros::Time::now().toSec());
+			pub_log_.publish(msg_);
 			printf("current_goal : %s (%f, %f, %f)\n", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
 			if(goal_received_)
 			{
@@ -225,6 +227,9 @@ void Supervisor::FSM()
 			break;
 
 		case BLOCKED_BY_ROBOT:
+			msg_.data = "SUPERVISOR STATE BLOCKED " + std::to_string(ros::Time::now().toSec());
+			pub_log_.publish(msg_);
+
 			if(first_blocked_)
 			{
 				ROS_INFO("BLOCKED_BY_ROBOT");
@@ -539,18 +544,19 @@ bool Supervisor::getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request
 
 void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 {
-	printf("pathCallback ! \n");
-	std_msgs::String msg;
-	msg.data = "SUPERVISOR " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path->poses.size()) + "\n";
-	pub_log_.publish(msg);
+	printf("pathCallback ! %d \n", (int)path->poses.size());
+	msg_.data = "SUPERVISOR " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path->poses.size());
+	pub_log_.publish(msg_);
 
 	if(state_global_ != BLOCKED_BY_ROBOT)
 	{
 		printf("before CB : path=%d current=%d previous=%d\n", (int)path->poses.size(), (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 		if(current_path_.poses.size()==0 && previous_path_.poses.size()==0)
 		{
-			printf("first !\n");
+			printf("======> first !\n");
 			current_path_ = *path;
+			msg_.data = "SUPERVISOR FIRST " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path->poses.size());
+			pub_log_.publish(msg_);
 		}
 		else if(current_path_.poses.size()!=0)
 		{

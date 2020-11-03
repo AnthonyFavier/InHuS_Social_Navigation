@@ -79,6 +79,8 @@ private:
 	ros::Publisher pub_teleop_;
 	ros::Publisher pub_goal_done_;
 	ros::Publisher pub_log_;
+	
+	std_msgs::String msg_;
 
 	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client_action_;
 
