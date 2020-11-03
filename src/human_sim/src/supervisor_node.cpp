@@ -81,7 +81,6 @@ Supervisor::Supervisor()
 
 void Supervisor::FSM()
 {
-
 	// modified only in : here
 	switch(state_global_)
 	{
@@ -200,7 +199,8 @@ void Supervisor::FSM()
 								state_global_=GET_GOAL;
 
 							}
-							else if(goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > dur_replan_))
+							else if(client_action_.getState() == actionlib::SimpleClientGoalState::LOST
+							|| goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > dur_replan_))
 							{
 								printf("=> Resend !\n");
 								client_action_.sendGoal((*curr_action).action);
@@ -235,6 +235,8 @@ void Supervisor::FSM()
 				ROS_INFO("BLOCKED_BY_ROBOT");
 				human_sim::CancelGoalAndStop srv;
 				client_cancel_goal_and_stop_.call(srv);
+				client_action_.stopTrackingGoal();
+
 				last_replan_ = ros::Time::now();
 				first_blocked_=false;
 			}
@@ -280,7 +282,6 @@ void Supervisor::FSM()
 											printf("replan successfully !\n");
 											replan_success_nb_ = 0;
 											first_blocked_ = true;
-											(*curr_action).state = NEEDED;
 											state_global_ = EXEC_PLAN;
 										}
 									}
@@ -389,6 +390,7 @@ bool Supervisor::checkPlanFailure()
 		{
 			printf("Checked ABORTED\n");
 			goal_aborted_count_ = 0;
+			current_path_.poses.clear();
 			blocked_state_ = ABORTED;
 			return true;
 		}
@@ -399,10 +401,11 @@ bool Supervisor::checkPlanFailure()
 	// Check if path changed too much
 	if(previous_path_.poses.size() != 0 && current_path_.poses.size() != 0)
 	{
-		if(abs((int)current_path_.poses.size()-(int)previous_path_.poses.size()) > 10
-				&& float(current_path_.poses.size())/float(previous_path_.poses.size()) > 1.5)
+		if(abs((int)current_path_.poses.size()-(int)previous_path_.poses.size()) > 20
+		&& float(current_path_.poses.size())/float(previous_path_.poses.size()) > 1.5)
 		{
 			printf("Checked CHANGED TOO MUCH\n");
+			current_path_.poses.clear();
 			blocked_state_ = LONGER;
 			return true;
 		}
@@ -558,6 +561,13 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 			msg_.data = "SUPERVISOR FIRST " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path->poses.size());
 			pub_log_.publish(msg_);
 		}
+
+		else if(current_path_.poses.size()==0 && previous_path_.poses.size()!=0)
+		{
+			printf("retreive new current path\n");
+			current_path_ = *path;
+		}
+
 		else if(current_path_.poses.size()!=0)
 		{
 			printf("CUTTING path !\n");
@@ -581,10 +591,6 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 				previous_path_.poses.push_back(current_path_.poses[i]);
 
 			current_path_ = *path;
-		}
-		else // currepnt_path == 0 && previous != 0
-		{
-			// do nothing, keep the previous as a possible path
 		}
 
 		printf("after CB : current=%d previous=%d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
