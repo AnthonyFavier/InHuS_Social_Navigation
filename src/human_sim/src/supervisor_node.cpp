@@ -199,13 +199,16 @@ void Supervisor::FSM()
 								state_global_=GET_GOAL;
 
 							}
-							else if(client_action_.getState() == actionlib::SimpleClientGoalState::LOST
-							|| goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > dur_replan_))
+							else if(sqrt(pow(human_pose_.x-(*curr_action).action.target_pose.pose.position.x,2) + pow(human_pose_.y-(*curr_action).action.target_pose.pose.position.y,2)) > 0.5)
 							{
-								printf("=> Resend !\n");
-								client_action_.sendGoal((*curr_action).action);
-								this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
-								last_replan_ = ros::Time::now();
+								if(client_action_.getState() == actionlib::SimpleClientGoalState::LOST
+								|| goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > dur_replan_))
+								{
+									printf("=> Resend !\n");
+									client_action_.sendGoal((*curr_action).action);
+									this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
+									last_replan_ = ros::Time::now();
+								}
 							}
 							break;
 					}
