@@ -53,12 +53,11 @@ Supervisor::Supervisor()
 
 	goal_received_ = false;
 
-	first_blocked_ = true;
-	replan_success_nb_ = 0;
-	first_not_feasible_ = true;
-
-	goal_aborted_count_ = 		0;
-	last_replan_ = 			ros::Time::now();
+	first_blocked_ = 	true;
+	first_not_feasible_ = 	true;
+	replan_success_nb_ = 	0;
+	goal_aborted_count_ = 	0;
+	last_replan_ = 		ros::Time::now();
 
 	human_pose_.x = 	0;
 	human_pose_.y = 	0;
@@ -232,119 +231,127 @@ void Supervisor::FSM()
 			msg_.data = "SUPERVISOR STATE BLOCKED " + std::to_string(ros::Time::now().toSec());
 			pub_log_.publish(msg_);
 
-			if(first_blocked_)
+			if(goal_received_)
 			{
-				ROS_INFO("BLOCKED_BY_ROBOT");
-				human_sim::CancelGoalAndStop srv;
-				client_cancel_goal_and_stop_.call(srv);
-				client_action_.stopTrackingGoal();
-
-				last_replan_ = ros::Time::now();
-				first_blocked_=false;
+				goal_received_ = false;
+				state_global_ = ASK_PLAN;
 			}
 			else
 			{
-				switch(blocked_state_)
+				if(first_blocked_)
 				{
-					case ABORTED:
-					case LONGER:
-						if(ros::Time::now() - last_replan_ > dur_replan_blocked_)
-						{
-							printf("try to replan\n");
+					ROS_INFO("BLOCKED_BY_ROBOT");
+					human_sim::CancelGoalAndStop srv;
+					client_cancel_goal_and_stop_.call(srv);
+					client_action_.stopTrackingGoal();
 
-							plan_.updateCurrentAction();
-							std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
-
-							nav_msgs::GetPlan srv;
-							srv.request.start.pose.position.x = 	human_pose_.x;
-							srv.request.start.pose.position.y = 	human_pose_.y;
-							srv.request.start.header.frame_id = 	"map";
-							srv.request.goal.pose.position.x = 	(*curr_action).action.target_pose.pose.position.x;
-							srv.request.goal.pose.position.y = 	(*curr_action).action.target_pose.pose.position.y;
-							srv.request.goal.header.frame_id = 	"map";
-							srv.request.tolerance = 		0.1;
-
-							// make plan
-							if(client_make_plan_.call(srv))
+					last_replan_ = ros::Time::now();
+					first_blocked_=false;
+				}
+				else
+				{
+					switch(blocked_state_)
+					{
+						case ABORTED:
+						case LONGER:
+							if(ros::Time::now() - last_replan_ > dur_replan_blocked_)
 							{
-								if(srv.response.plan.poses.size()!=0) // successfully planned once
+								printf("try to replan\n");
+
+								plan_.updateCurrentAction();
+								std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
+
+								nav_msgs::GetPlan srv;
+								srv.request.start.pose.position.x = 	human_pose_.x;
+								srv.request.start.pose.position.y = 	human_pose_.y;
+								srv.request.start.header.frame_id = 	"map";
+								srv.request.goal.pose.position.x = 	(*curr_action).action.target_pose.pose.position.x;
+								srv.request.goal.pose.position.y = 	(*curr_action).action.target_pose.pose.position.y;
+								srv.request.goal.header.frame_id = 	"map";
+								srv.request.tolerance = 		0.1;
+
+								// make plan
+								if(client_make_plan_.call(srv))
 								{
-									printf("BLOCK : srv.plan=%d previous=%d\n", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
-									// if close enough to previous path
-									if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
-									|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
+									if(srv.response.plan.poses.size()!=0) // successfully planned once
 									{
-										if(replan_success_nb_ < 2)
+										printf("BLOCK : srv.plan=%d previous=%d\n", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
+										// if close enough to previous path
+										if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
+										|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
 										{
-											replan_success_nb_++;
-											printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
+											if(replan_success_nb_ < 2)
+											{
+												replan_success_nb_++;
+												printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
+											}
+											else
+											{
+												printf("replan successfully !\n");
+												replan_success_nb_ = 0;
+												first_blocked_ = true;
+												state_global_ = EXEC_PLAN;
+											}
 										}
 										else
 										{
-											printf("replan successfully !\n");
 											replan_success_nb_ = 0;
-											first_blocked_ = true;
-											state_global_ = EXEC_PLAN;
+											printf("still blocked ..\n");
 										}
 									}
 									else
 									{
+										printf("Failed to plan ...\n");
 										replan_success_nb_ = 0;
-										printf("still blocked ..\n");
 									}
 								}
 								else
+									ROS_ERROR("Failed to call service make_plan");
+
+								last_replan_ = ros::Time::now();
+							}
+							break;
+
+						case NOT_FEASIBLE:
+						{
+							// try to move, check if actually moving
+							// if moving switch to exec plan
+							// else keep trying to move as blocked
+
+							plan_.updateCurrentAction();
+							std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
+
+							static Pose2D last_human_pose = human_pose_;
+
+							if(first_not_feasible_)
+							{
+								last_human_pose = human_pose_;
+								first_not_feasible_=false;
+							}
+
+							if(ros::Time::now() - last_replan_ > dur_replan_)
+							{
+								printf("send goal\n");
+								client_action_.sendGoal((*curr_action).action);
+								this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
+								last_replan_ = ros::Time::now();
+
+								if(abs(human_pose_.x - last_human_pose.x) > 0.03
+								&& abs(human_pose_.y - last_human_pose.y) > 0.03)
 								{
-									printf("Failed to plan ...\n");
-									replan_success_nb_ = 0;
+									printf("We moved !\n");
+									first_blocked_ = true;
+									first_not_feasible_ = true;
+									state_global_ = EXEC_PLAN;
 								}
 							}
-							else
-								ROS_ERROR("Failed to call service make_plan");
-
-							last_replan_ = ros::Time::now();
-						}
-						break;
-
-					case NOT_FEASIBLE:
-					{
-						// try to move, check if actually moving
-						// if moving switch to exec plan
-						// else keep trying to move as blocked
-
-						plan_.updateCurrentAction();
-						std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
-
-						static Pose2D last_human_pose = human_pose_;
-
-						if(first_not_feasible_)
-						{
-							last_human_pose = human_pose_;
-							first_not_feasible_=false;
+							break;
 						}
 
-						if(ros::Time::now() - last_replan_ > dur_replan_)
-						{
-							printf("send goal\n");
-							client_action_.sendGoal((*curr_action).action);
-							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
-							last_replan_ = ros::Time::now();
-
-							if(abs(human_pose_.x - last_human_pose.x) > 0.03
-							&& abs(human_pose_.y - last_human_pose.y) > 0.03)
-							{
-								printf("We moved !\n");
-								first_blocked_ = true;
-								first_not_feasible_ = true;
-								state_global_ = EXEC_PLAN;
-							}
-						}
-						break;
+						default:
+							blocked_state_ = ABORTED;
+							break;
 					}
-
-					default:
-						blocked_state_ = ABORTED;
-						break;
 				}
 			}
 			break;
@@ -499,6 +506,9 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 	first_blocked_ = true;
 	current_path_.poses.clear();
 	previous_path_.poses.clear();
+	replan_success_nb_ = 	0;
+	goal_aborted_count_ = 	0;
+	last_replan_ = 		ros::Time::now();
 
 	current_goal_.type=msg->type;
 	current_goal_.x=msg->x;
