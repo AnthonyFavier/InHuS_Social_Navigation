@@ -29,6 +29,9 @@ Supervisor::Supervisor()
 	pub_log_ =		nh_.advertise<std_msgs::String>("log", 100);
 	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
 
+	service_set_get_goal_ =			nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
+	service_get_choiceGoalDecision_ = 	nh_.advertiseService("get_choiceGoalDecision", &Supervisor::getChoiceGoalDecision, this);
+
 	marker_rviz_.header.frame_id = 		"map";
 	marker_rviz_.type = 			3;
 	marker_rviz_.pose.position.x = 		0;
@@ -46,9 +49,6 @@ Supervisor::Supervisor()
 	marker_rviz_.color.b = 			0;
 	marker_rviz_.color.a = 			0;
 
-	service_set_get_goal_ =			nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
-	service_get_choiceGoalDecision_ = 	nh_.advertiseService("get_choiceGoalDecision", &Supervisor::getChoiceGoalDecision, this);
-
 	state_global_ = GET_GOAL;
 
 	goal_received_ = false;
@@ -58,7 +58,6 @@ Supervisor::Supervisor()
 	first_not_feasible_ = true;
 
 	goal_aborted_count_ = 		0;
-	path_diff_threshold_ = 		3;
 	last_replan_ = 			ros::Time::now();
 
 	human_pose_.x = 	0;

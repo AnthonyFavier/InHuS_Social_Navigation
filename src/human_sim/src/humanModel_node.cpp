@@ -6,24 +6,14 @@ bool rcb=false;
 /////////////////////// HUMAN MODEL ///////////////////////
 
 HumanModel::HumanModel()
+: ratio_perturbation_(0)  //=0.2; => +/- 20% of value
+, chance_decide_new_goal_(0) //x%
+, delay_think_about_new_goal_(ros::Duration(2)) // x% chance every 2s
+, dist_near_robot_(2)
+, dist_in_front_(2)
+, delay_harass_replan_(ros::Duration(0.5))
 {
 	srand(time(NULL));
-
-	Pose2D zero;
-	zero.x = 	0;
-	zero.y = 	0;
-	zero.theta = 	0;
-	sim_pose_ = 	   zero;
-	sim_robot_pose_=    zero;
-	model_pose_ = 	   zero;
-	model_robot_pose_ = zero;
-
-	current_goal_.type = 	"Position";
-	current_goal_.x  =	0;
-	current_goal_.y = 	0;
-	current_goal_.theta = 	0;
-
-	previous_goal_=current_goal_;
 
 	sub_pose_ = 	 	nh_.subscribe("sim/human_pose", 100, &HumanModel::poseCallback, this);
 	sub_robot_pose_ =	nh_.subscribe("sim/robot_pose", 100, &HumanModel::robotPoseCallback, this);
@@ -46,34 +36,33 @@ HumanModel::HumanModel()
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
 	client_get_choice_goal_decision_ = nh_.serviceClient<human_sim::GetChoiceGoalDecision>("get_choiceGoalDecision");
 
-	was_in_autonomous_ = false;
-
 	printf("I am human\n");
 
+	Pose2D zero;
+	zero.x = 	0;
+	zero.y = 	0;
+	zero.theta = 	0;
+	sim_pose_ = 	   zero;
+	sim_robot_pose_=    zero;
+	model_pose_ = 	   zero;
+	model_robot_pose_ = zero;
 
-////////// PARAMETERS////////////////////////////////////////////////////////////////////////////
+	current_goal_.type = 	"Position";
+	current_goal_.x  =	0;
+	current_goal_.y = 	0;
+	current_goal_.theta = 	0;
 
-	// Perturbation ratio
-	//ratio_perturbation_ = 0.2; // +/- 20% of value
-	ratio_perturbation_ = 0;
+	previous_goal_=current_goal_;
 
-	// Chance to find a new random goal
-	chance_decide_new_goal_ = 0; //x%
-	delay_think_about_new_goal_ = ros::Duration(2); // x% chance every 2s
+	was_in_autonomous_ = false;
+
 	last_time_ = ros::Time::now();
+	last_harass_ = ros::Time::now();
 
 	// BEHAVIORS //
 	behavior_ = NONE;
 	sub_stop_look_ = WAIT_ROBOT;
 	sub_harass_ = INIT;
-
-	// Near Robot distance
-	dist_near_robot_ = 2;
-
-	// Harass
-	dist_in_front_ = 2;
-	delay_harass_replan_ = ros::Duration(0.5);
-	last_harass_ = ros::Time::now();
 
 	// INIT GOALS //
 	human_sim::Goal goal;

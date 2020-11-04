@@ -33,17 +33,23 @@ public:
 
 	void processSimData();
 	void publishModelData();
+	void behaviors();
+	void pubDist();
+
+
+private:
+
+////////// METHODS ////////// 
+//
 	bool chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res);
 	human_sim::Goal chooseGoal(bool random);
 	void newRandomGoalGeneration();
 	void stopLookRobot();
 	void harassRobot();
-	void behaviors();
-	void pubDist();
 
-private:
-	ros::NodeHandle nh_;
+////////// ATTRIBUTES ////////// 
 
+	// Behaviors //
 	enum Behavior{NONE=0, RANDOM, STOP_LOOK, HARASS};
 
 	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, NEW_GOAL, OVER};
@@ -52,12 +58,7 @@ private:
 	SubBehaviorStopLook sub_stop_look_;
 	SubBehaviorHarass sub_harass_;
 
-	Pose2D sim_pose_;
-	Pose2D sim_robot_pose_;
-
-	Pose2D model_pose_;
-	Pose2D model_robot_pose_;
-
+	// Subscribers //
 	ros::Subscriber sub_pose_;
 	void poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 	ros::Subscriber sub_robot_pose_;
@@ -71,6 +72,7 @@ private:
 	ros::Subscriber sub_new_goal_;
 	void newGoalCallback(const human_sim::Goal::ConstPtr& goal);
 
+	// Publishers //
 	ros::Publisher pub_new_goal_;
 	ros::Publisher pub_op_mode_;
 	ros::Publisher pub_human_pose_;
@@ -80,28 +82,44 @@ private:
 	ros::Publisher pub_goal_move_base_;
 	ros::Publisher pub_log_;
 
-	ros::ServiceServer service_;
-
+	// Service Clients //
 	ros::ServiceClient client_set_get_goal_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
 	ros::ServiceClient client_get_choice_goal_decision_;
-	bool was_in_autonomous_;
 
-	float ratio_perturbation_;
+	// Service Servers //
+	ros::ServiceServer service_;
+
+	//// Variables ////
+	ros::NodeHandle nh_;
+
+	Pose2D sim_pose_;
+	Pose2D sim_robot_pose_;
+
+	Pose2D model_pose_;
+	Pose2D model_robot_pose_;
 
 	human_sim::Goal current_goal_;
 	human_sim::Goal previous_goal_;
 
 	std::vector<GoalArea> known_goals_;
 
+	bool was_in_autonomous_;
+
+	// ratio perturbation
+	const float ratio_perturbation_;
+
+	// chance to find a new goal
+	const ros::Duration delay_think_about_new_goal_;
+	const int chance_decide_new_goal_;
 	ros::Time last_time_;
-	ros::Duration delay_think_about_new_goal_;
-	int chance_decide_new_goal_;
 
-	float dist_near_robot_;
+	// Near robot distance
+	const float dist_near_robot_;
 
-	float dist_in_front_;
-	ros::Duration delay_harass_replan_;
+	// Harass
+	const float dist_in_front_;
+	const ros::Duration delay_harass_replan_;
 	ros::Time last_harass_;
 };
 

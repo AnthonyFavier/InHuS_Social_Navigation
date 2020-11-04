@@ -31,14 +31,18 @@ public:
 
 	void FSM();
 
+private:
+
+////////// METHODS ////////// 
+
 	bool checkPlanFailure();
 	void findAGoal();
 	void askPlan();
 	void updateMarkerPose(float x, float y, float alpha);
 
-private:
-	ros::NodeHandle nh_;
+////////// ATTRIBUTES ////////// 
 
+	// States //
 	enum StateGlobal{GET_GOAL, ASK_PLAN, EXEC_PLAN, BLOCKED_BY_ROBOT}; // wait plan ?
 	StateGlobal state_global_;
 	enum ChoiceGoalDecision{AUTONOMOUS=0, SPECIFIED};
@@ -46,25 +50,7 @@ private:
 	enum BlockedState{NOT_FEASIBLE, ABORTED, LONGER};
 	BlockedState blocked_state_;
 
-	bool goal_received_;
-	human_sim::Goal current_goal_;
-	Plan plan_;
-	Pose2D human_pose_;
-
-	bool first_blocked_;
-	bool first_not_feasible_;
-
-	int goal_aborted_count_;
-	float path_diff_threshold_;
-	ros::Duration dur_replan_;
-	ros::Duration dur_replan_blocked_;
-	ros::Duration dur_check_pose_blocked_;
-	ros::Time last_replan_;	
-	int replan_success_nb_;
-
-	nav_msgs::Path current_path_;
-	nav_msgs::Path previous_path_;
-
+	// Subscribers //
 	ros::Subscriber sub_human_pose_;
 	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 	ros::Subscriber sub_new_goal_;
@@ -76,26 +62,51 @@ private:
 	ros::Subscriber sub_path_;
 	void pathCallback(const nav_msgs::Path::ConstPtr& path);
 
+	// Publishers //
 	ros::Publisher pub_teleop_;
 	ros::Publisher pub_goal_done_;
+	ros::Publisher pub_marker_rviz_;
 	ros::Publisher pub_log_;
 	
-	std_msgs::String msg_;
-
+	// Action client for move_base //
 	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client_action_;
 
+	// Service clients //
 	ros::ServiceClient client_plan_;
 	ros::ServiceClient client_goal_;
 	ros::ServiceClient client_make_plan_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
 	
+	// Service servers //
 	ros::ServiceServer service_set_get_goal_;
 	bool setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res);
 	ros::ServiceServer service_get_choiceGoalDecision_;
 	bool getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request &req, human_sim::GetChoiceGoalDecision::Response &res);
 
+	//// Variables ////
+	ros::NodeHandle nh_;
+
 	visualization_msgs::Marker marker_rviz_;
-	ros::Publisher pub_marker_rviz_;
+
+	std_msgs::String msg_; // to publish easly on log
+
+	bool goal_received_;
+	human_sim::Goal current_goal_;
+	Plan plan_;
+	Pose2D human_pose_;
+
+	bool first_blocked_;
+	bool first_not_feasible_;
+
+	int goal_aborted_count_;
+	const ros::Duration dur_replan_;
+	const ros::Duration dur_replan_blocked_;
+	const ros::Duration dur_check_pose_blocked_;
+	ros::Time last_replan_;	
+	int replan_success_nb_;
+
+	nav_msgs::Path current_path_;
+	nav_msgs::Path previous_path_;
 };
 
 #endif
