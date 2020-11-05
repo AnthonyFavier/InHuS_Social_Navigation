@@ -7,7 +7,7 @@ bool rcb=false;
 
 HumanModel::HumanModel()
 : ratio_perturbation_(0)  //=0.2; => +/- 20% of value
-, chance_decide_new_goal_(0) //x%
+, chance_decide_new_goal_(30) //x%
 , delay_think_about_new_goal_(ros::Duration(2)) // x% chance every 2s
 , dist_near_robot_(2)
 , dist_in_front_(2)
@@ -245,20 +245,35 @@ void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 
 void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 {
+	bool changed=false;
 	switch(msg->data)
 	{
 		case NONE:
+			printf("Behavior set : NONE\n");
+			changed=true;
+			break;
 		case RANDOM:
+			printf("Behavior set : RANDOM\n");
+			changed=true;
+			break;
 		case STOP_LOOK:
+			printf("Behavior set : STOP_LOOK\n");
+			changed=true;
+			break;
 		case HARASS:
-			printf("Behavior set !\n");
-			behavior_ = (Behavior)msg->data;
-			sub_stop_look_ = WAIT_ROBOT;
-			sub_harass_ = INIT;
+			printf("Behavior set : HARASS\n");
+			changed=true;
 			break;
 
 		default:
 			break;
+	}
+
+	if(changed)
+	{
+		behavior_ = (Behavior)msg->data;
+		sub_stop_look_ = WAIT_ROBOT;
+		sub_harass_ = INIT;
 	}
 }
 
@@ -267,6 +282,7 @@ void HumanModel::newRandomGoalGeneration()
 	if(ros::Time::now()-last_time_> delay_think_about_new_goal_)
 	{
 		int nb = rand()%100 + 1;
+		printf("Tirage %d/%d\n", nb, chance_decide_new_goal_);
 		if(nb < chance_decide_new_goal_)
 		{
 			printf("DECIDE NEW GOAL ! \n");
