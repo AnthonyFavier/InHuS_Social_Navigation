@@ -53,11 +53,7 @@ Supervisor::Supervisor()
 
 	goal_received_ = false;
 
-	first_blocked_ = 	true;
-	first_not_feasible_ = 	true;
-	replan_success_nb_ = 	0;
-	goal_aborted_count_ = 	0;
-	last_replan_ = 		ros::Time::now();
+	this->init();
 
 	human_pose_.x = 	0;
 	human_pose_.y = 	0;
@@ -75,6 +71,17 @@ Supervisor::Supervisor()
 	printf("Waiting for action server\n");
 	client_action_.waitForServer();
 	printf("Connected to action server\n");
+}
+
+void Supervisor::init()
+{
+	current_path_.poses.clear();
+	previous_path_.poses.clear();
+	first_not_feasible_ = 	true;
+	first_blocked_ = 	true;
+	replan_success_nb_ = 	0;
+	goal_aborted_count_ = 	0;
+	last_replan_ = 		ros::Time::now();
 }
 
 void Supervisor::FSM()
@@ -504,13 +511,7 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 
 	goal_received_ = 	true;
 
-	current_path_.poses.clear();
-	previous_path_.poses.clear();
-	first_blocked_ = 	true;
-	first_not_feasible_ = 	true;
-	replan_success_nb_ = 	0;
-	goal_aborted_count_ = 	0;
-	last_replan_ = 		ros::Time::now();
+	this->init();
 
 	current_goal_.type=msg->type;
 	current_goal_.x=msg->x;
@@ -547,13 +548,7 @@ bool Supervisor::setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetG
 	state_global_=GET_GOAL;
 	choice_goal_decision_ = SPECIFIED;
 
-	current_path_.poses.clear();
-	previous_path_.poses.clear();
-	first_not_feasible_ = 	true;
-	first_blocked_ = 	true;
-	replan_success_nb_ = 	0;
-	goal_aborted_count_ = 	0;
-	last_replan_ = 		ros::Time::now();
+	this->init();
 
 	return true;
 }

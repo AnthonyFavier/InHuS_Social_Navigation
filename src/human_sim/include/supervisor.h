@@ -39,6 +39,7 @@ private:
 	void findAGoal();
 	void askPlan();
 	void updateMarkerPose(float x, float y, float alpha);
+	void init();
 
 ////////// ATTRIBUTES ////////// 
 
