@@ -299,6 +299,7 @@ void HumanModel::stopLookRobot()
 				printf("current_goal = %f,%f\n", current_goal_.x, current_goal_.y);
 				printf("previous_goal = %f,%f\n", previous_goal_.x, previous_goal_.y);
 
+				// Stop goal and motion
 				printf("Stopped !\n");
 				human_sim::CancelGoalAndStop srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
@@ -309,20 +310,21 @@ void HumanModel::stopLookRobot()
 					was_in_autonomous_ = srv.response.decision == 0;
 				else
 					ROS_ERROR("Failed to call get choice goal decision service!");
-				
 				printf("response = %d\n", srv.response.decision);
 				if(was_in_autonomous_)
 					printf("YES\n");
 				else
 					printf("NO!\n");
 
-
+				// Passe en SPECIFIED
 				std_msgs::Int32 msg;
 				msg.data=1;
-				pub_op_mode_.publish(msg); // Passe en SPECIFIED, save if was in AUTO ?
+				pub_op_mode_.publish(msg);
 
+				// Set global FSM to GET_GOAL
 				human_sim::SetGetGoal srv_set;
 				client_set_get_goal_.call(srv_set);
+
 				sub_stop_look_=LOOK_AT_ROBOT;
 				break;
 			}

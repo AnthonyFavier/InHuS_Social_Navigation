@@ -502,10 +502,12 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 {
 	ROS_INFO("New goal received!");
 
-	goal_received_ = true;
-	first_blocked_ = true;
+	goal_received_ = 	true;
+
 	current_path_.poses.clear();
 	previous_path_.poses.clear();
+	first_blocked_ = 	true;
+	first_not_feasible_ = 	true;
 	replan_success_nb_ = 	0;
 	goal_aborted_count_ = 	0;
 	last_replan_ = 		ros::Time::now();
@@ -543,9 +545,15 @@ bool Supervisor::setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetG
 {
 	printf("GET_GOAL_SET !!!\n");
 	state_global_=GET_GOAL;
+	choice_goal_decision_ = SPECIFIED;
+
 	current_path_.poses.clear();
 	previous_path_.poses.clear();
-	choice_goal_decision_ = SPECIFIED;
+	first_not_feasible_ = 	true;
+	first_blocked_ = 	true;
+	replan_success_nb_ = 	0;
+	goal_aborted_count_ = 	0;
+	last_replan_ = 		ros::Time::now();
 
 	return true;
 }
