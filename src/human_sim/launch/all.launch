@@ -1,8 +1,6 @@
 <launch>
 
-	<include file="$(find move_human)/launch/map.launch"/>
-
-	<include file="$(find move_human)/launch/move_base.launch"/>
+	<include file="$(find move_human)/launch/all.launch"/>
 
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find move_human)/config/rviz.rviz"/>
 

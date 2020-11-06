@@ -1,0 +1,7 @@
+<launch>
+
+	<include file="$(find move_human)/launch/map.launch"/>
+	<include file="$(find move_human)/launch/move_base.launch"/>
+	<node name="place_robot_node" type="place_robot_node" pkg="move_human" ns="human"/>
+
+</launch>
