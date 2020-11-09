@@ -41,7 +41,7 @@ for line in f:
             list_dist_dist.append(dist)
 
         elif mylist[3] == 'FIRST':
-            path = int(mylist[5])
+            path = float(mylist[5])
             time = float(mylist[4])
 
             list_first_path.append(path)
@@ -58,7 +58,7 @@ for line in f:
 
         else:
             time = float(mylist[3])
-            path = int(mylist[4])
+            path = float(mylist[4])
 
             list_time.append(time)
             list_path.append(path)

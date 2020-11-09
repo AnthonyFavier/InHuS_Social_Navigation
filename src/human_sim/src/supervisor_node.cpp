@@ -560,10 +560,24 @@ bool Supervisor::getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request
 	return true;
 }
 
+float Supervisor::computePathLength(const nav_msgs::Path::ConstPtr& path)
+{
+	float length=0;
+
+	for(int i=0; i<path->poses.size()-1; i++)
+		length += sqrt( pow(path->poses[i+1].pose.position.x-path->poses[i].pose.position.x,2) + pow(path->poses[i+1].pose.position.y-path->poses[i].pose.position.y,2) );
+
+	return length;
+}
+
 void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 {
 	printf("pathCallback ! %d \n", (int)path->poses.size());
-	msg_.data = "SUPERVISOR " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path->poses.size());
+
+	float path_length = this->computePathLength(path);
+	printf("length %f\n", path_length);
+
+	msg_.data = "SUPERVISOR " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
 	pub_log_.publish(msg_);
 
 	if(state_global_ != BLOCKED_BY_ROBOT)
@@ -573,7 +587,7 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 		{
 			printf("======> first !\n");
 			current_path_ = *path;
-			msg_.data = "SUPERVISOR FIRST " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path->poses.size());
+			msg_.data = "SUPERVISOR FIRST " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
 			pub_log_.publish(msg_);
 		}
 
