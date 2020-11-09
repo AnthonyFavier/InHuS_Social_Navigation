@@ -1,0 +1,7 @@
+<launch>
+
+	<include file="$(find move_human)/launch/all.launch"/>
+
+	<include file="$(find human_sim)/launch/human_sim.launch"/>
+
+</launch>

@@ -1,6 +1,6 @@
 global_costmap:
   global_frame: map
-  robot_base_frame: base_robot
+  robot_base_frame: human_robot_base
   update_frequency: 4.0
   width: 40.0
   height: 40.0
