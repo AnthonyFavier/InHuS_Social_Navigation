@@ -6,7 +6,7 @@
 
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" ns="robot" output="screen">
 
-		<remap from="cmd_vel" to="/robot_cmd_vel"/>
+		<remap from="cmd_vel" to="/cmd_vel"/>
 		<remap from="/map" to="map"/>
 		<remap from="/map_updates" to="map_updates"/>
 

@@ -94,16 +94,19 @@ HumanModel::HumanModel()
 	area.goal.x=10.6; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
 	known_goals_.push_back(area);
 	//9//
+	area.goal.x=1.0; 	area.goal.y=15.8; 	area.goal.theta=-PI;	area.radius=0;
+	known_goals_.push_back(area);
+	//10//
 	area.goal.x=1.15; 	area.goal.y=6.52; 	area.goal.theta=-PI;	area.radius=0;
 	known_goals_.push_back(area);
 
-	//10//
+	//11//
 	area.goal.x=8.8; 	area.goal.y=0.8; 	area.goal.theta=0;	area.radius=1.3;
 	known_goals_.push_back(area);
-	//11//
+	//12//
 	area.goal.x=3.0; 	area.goal.y=15.3; 	area.goal.theta=0;	area.radius=2;
 	known_goals_.push_back(area);
-	//12//
+	//13//
 	area.goal.x=8.0; 	area.goal.y=15.5; 	area.goal.theta=0;	area.radius=2;
 	known_goals_.push_back(area);
 }
