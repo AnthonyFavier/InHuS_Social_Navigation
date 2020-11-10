@@ -8,6 +8,7 @@ Supervisor::Supervisor()
 , dur_replan_(0.5)
 , dur_replan_blocked_(0.7)
 , dur_check_pose_blocked_(0.1)
+, nb_replan_success_to_unblock_(2)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
@@ -287,12 +288,10 @@ void Supervisor::FSM()
 										if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
 										|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
 										{
-											if(replan_success_nb_ < 2)
-											{
-												replan_success_nb_++;
-												printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
-											}
-											else
+											replan_success_nb_++;
+											printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
+
+											if(replan_success_nb_ <= nb_replan_success_to_unblock_)
 											{
 												printf("replan successfully !\n");
 												replan_success_nb_ = 0;

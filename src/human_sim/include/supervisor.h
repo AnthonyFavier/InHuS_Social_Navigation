@@ -104,6 +104,7 @@ private:
 	const ros::Duration dur_replan_;
 	const ros::Duration dur_replan_blocked_;
 	const ros::Duration dur_check_pose_blocked_;
+	const int nb_replan_success_to_unblock_;
 	ros::Time last_replan_;	
 	int replan_success_nb_;
 
