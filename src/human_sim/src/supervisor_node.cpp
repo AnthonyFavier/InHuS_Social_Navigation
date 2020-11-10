@@ -295,7 +295,7 @@ void Supervisor::FSM()
 											replan_success_nb_++;
 											printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
 
-											if(replan_success_nb_ <= nb_replan_success_to_unblock_)
+											if(replan_success_nb_ >= nb_replan_success_to_unblock_)
 											{
 												printf("replan successfully !\n");
 												replan_success_nb_ = 0;
