@@ -40,7 +40,7 @@ private:
 	void askPlan();
 	void updateMarkerPose(float x, float y, float alpha);
 	void init();
-	float computePathLength(const nav_msgs::Path::ConstPtr& path);
+	float computePathLength(const nav_msgs::Path* path);
 
 ////////// ATTRIBUTES ////////// 
 

@@ -559,7 +559,7 @@ bool Supervisor::getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request
 	return true;
 }
 
-float Supervisor::computePathLength(const nav_msgs::Path::ConstPtr& path)
+float Supervisor::computePathLength(const nav_msgs::Path* path)
 {
 	float length=0;
 
@@ -573,7 +573,7 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 {
 	printf("pathCallback ! %d \n", (int)path->poses.size());
 
-	float path_length = this->computePathLength(path);
+	float path_length = this->computePathLength(path.get());
 	printf("length %f\n", path_length);
 
 	msg_.data = "SUPERVISOR " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
