@@ -24,7 +24,7 @@ list_state_exec_time = []
 list_state_blocked_d = []
 list_state_blocked_time = []
 
-value_state = -10
+value_state = -1
 
 for line in f:
     if 'str' in line:

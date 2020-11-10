@@ -284,9 +284,13 @@ void Supervisor::FSM()
 									if(srv.response.plan.poses.size()!=0) // successfully planned once
 									{
 										printf("BLOCK : srv.plan=%d previous=%d\n", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
+
 										// if close enough to previous path
-										if(abs((int)srv.response.plan.poses.size()-(int)previous_path_.poses.size()) < 10
-										|| float(srv.response.plan.poses.size()) < 1.5*float(previous_path_.poses.size()))
+										float response_path_length = this->computePathLength(&(srv.response.plan));
+										float previous_path_length = this->computePathLength(&previous_path_);
+
+										if(abs(response_path_length-previous_path_length) < 1 // if close enough in absolute
+										|| response_path_length < 1.5*previous_path_length)   // or if clone enough relatively
 										{
 											replan_success_nb_++;
 											printf("One success ! replan_success_nb = %d\n", replan_success_nb_);
@@ -416,8 +420,11 @@ bool Supervisor::checkPlanFailure()
 	// Check if path changed too much
 	if(previous_path_.poses.size() != 0 && current_path_.poses.size() != 0)
 	{
-		if(abs((int)current_path_.poses.size()-(int)previous_path_.poses.size()) > 20
-		&& float(current_path_.poses.size())/float(previous_path_.poses.size()) > 1.5)
+		float current_path_length = this->computePathLength(&current_path_);
+		float previous_path_length = this->computePathLength(&previous_path_);
+
+		if(abs(current_path_length-previous_path_length) > 1 // if difference big enough in absolute
+		&& current_path_length/previous_path_length > 1.5)   // and if difference big enough relatively 
 		{
 			printf("Checked CHANGED TOO MUCH\n");
 			current_path_.poses.clear();
