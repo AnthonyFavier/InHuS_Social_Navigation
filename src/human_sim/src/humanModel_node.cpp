@@ -65,7 +65,6 @@ HumanModel::HumanModel()
 	sub_harass_ = INIT;
 
 	// INIT GOALS //
-	human_sim::Goal goal;
 	GoalArea area;
 	area.goal.type="Position";
 	
