@@ -59,12 +59,12 @@ TebLocalPlannerROS:
      
   # Obstacles
     
-  min_obstacle_dist: 0.4
+  min_obstacle_dist: 0.3
   include_costmap_obstacles: true
-  obstacle_association_force_inclusion_factor: 0.0
-  obstacle_association_cutoff_factor: 1.0
-  costmap_obstacles_behind_robot_dist: 0.4
-  obstacle_poses_affected: 20
+  obstacle_association_force_inclusion_factor: 1.5
+  obstacle_association_cutoff_factor: 5.0
+  costmap_obstacles_behind_robot_dist: 0.5
+  obstacle_poses_affected: 1
   costmap_converter_plugin: ""
   costmap_converter_spin_thread: true
   costmap_converter_rate: 5

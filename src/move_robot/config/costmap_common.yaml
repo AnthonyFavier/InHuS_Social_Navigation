@@ -9,7 +9,8 @@ publish_voxel_map: true
 transform_tolerance: 0.5
 meter_scoring: true
 
-footprint: [[-0.3, -0.3], [-0.3, 0.3], [0.3, 0.3], [0.3, -0.3]]
+#footprint: [[-0.3, -0.3], [-0.3, 0.3], [0.3, 0.3], [0.3, -0.3]]
+footprint: [[-0.325, -0.325], [-0.325, 0.325], [0.325, 0.325], [0.46, 0.0], [0.325, -0.325]]
 footprint_padding: 0.0
 
 plugins:
