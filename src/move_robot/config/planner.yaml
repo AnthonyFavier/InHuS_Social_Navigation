@@ -59,7 +59,7 @@ TebLocalPlannerROS:
      
   # Obstacles
     
-  min_obstacle_dist: 0.3
+  min_obstacle_dist: 0.2
   include_costmap_obstacles: true
   obstacle_association_force_inclusion_factor: 1.5
   obstacle_association_cutoff_factor: 5.0
