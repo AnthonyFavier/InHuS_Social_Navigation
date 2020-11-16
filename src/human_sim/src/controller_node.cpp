@@ -13,7 +13,7 @@ geometry_msgs::Twist cmd_zero;
 
 void teleopCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-
+	pub_cmd_vel.publish(*msg);
 }
 
 void perturbatedCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)

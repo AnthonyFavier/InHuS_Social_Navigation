@@ -109,6 +109,8 @@ void Supervisor::FSM()
 						goal_received_ = false;
 						state_global_ = ASK_PLAN;
 					}
+					else
+						pub_teleop_.publish(geometry_msgs::Twist());
 					break;
 
 				default:
@@ -233,6 +235,7 @@ void Supervisor::FSM()
 					state_global_ = GET_GOAL;
 				}
 				plan_.updateState();
+				ROS_INFO("End of updateState plan");
 			}
 			break;
 
