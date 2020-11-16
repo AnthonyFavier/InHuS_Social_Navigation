@@ -80,4 +80,6 @@ add_executable(controller_node src/controller_node.cpp)
 add_dependencies(controller_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(controller_node ${catkin_LIBRARIES})
 
-
+add_executable(tester_node src/tester_node.cpp)
+add_dependencies(tester_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(tester_node ${catkin_LIBRARIES})
