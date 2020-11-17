@@ -285,7 +285,7 @@ void Supervisor::FSM()
 								// make plan
 								if(client_make_plan_.call(srv))
 								{
-									if(srv.response.plan.poses.size()!=0) // successfully planned once
+									if((int)srv.response.plan.poses.size()!=0) // successfully planned once
 									{
 										ROS_INFO("BLOCK : srv.plan=%d previous=%d\n", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
 
@@ -424,7 +424,7 @@ bool Supervisor::checkPlanFailure()
 		goal_aborted_count_ = 0;
 
 	// Check if path changed too much
-	if(previous_path_.poses.size() != 0 && current_path_.poses.size() != 0)
+	if((int)previous_path_.poses.size() != 0 && (int)current_path_.poses.size() != 0)
 	{
 		float current_path_length = this->computePathLength(&current_path_);
 		float previous_path_length = this->computePathLength(&previous_path_);
@@ -579,7 +579,6 @@ float Supervisor::computePathLength(const nav_msgs::Path* path)
 {
 	float length=0;
 
-	for(int i=0; i<path->poses.size()-1; i++)
 	int path_size = (int)path->poses.size();
 	for(int i=0; i<path_size-1; i++)
 		length += sqrt( pow(path->poses[i+1].pose.position.x-path->poses[i].pose.position.x,2) + pow(path->poses[i+1].pose.position.y-path->poses[i].pose.position.y,2) );
@@ -600,7 +599,7 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 	if(state_global_ != BLOCKED_BY_ROBOT)
 	{
 		ROS_INFO("before CB : path=%d current=%d previous=%d\n", (int)path->poses.size(), (int)current_path_.poses.size(), (int)previous_path_.poses.size());
-		if(current_path_.poses.size()==0 && previous_path_.poses.size()==0)
+		if((int)current_path_.poses.size()==0 && (int)previous_path_.poses.size()==0)
 		{
 			ROS_INFO("======> first !\n");
 			current_path_ = *path;
@@ -608,13 +607,13 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 			pub_log_.publish(msg_);
 		}
 
-		else if(current_path_.poses.size()==0 && previous_path_.poses.size()!=0)
+		else if((int)current_path_.poses.size()==0 && (int)previous_path_.poses.size()!=0)
 		{
 			ROS_INFO("retreive new current path\n");
 			current_path_ = *path;
 		}
 
-		else if(current_path_.poses.size()!=0)
+		else if((int)current_path_.poses.size()!=0)
 		{
 			ROS_INFO("CUTTING path !\n");
 			// seek pose closest to current_pose
@@ -622,7 +621,7 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 			float dist = sqrt(pow(current_path_.poses[0].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[0].pose.position.y-human_pose_.y,2));
 			float dist_min = dist;
 			int i_min = 0;
-			for(int i=1; i<current_path_.poses.size(); i++)
+			for(int i=1; i<(int)current_path_.poses.size(); i++)
 			{
 				dist = sqrt(pow(current_path_.poses[i].pose.position.x-human_pose_.x,2) + pow(current_path_.poses[i].pose.position.y-human_pose_.y,2));
 				if(dist < dist_min)
@@ -633,7 +632,7 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 			}
 
 			previous_path_.poses.clear();
-			for(int i=i_min; i<current_path_.poses.size(); i++)
+			for(int i=i_min; i<(int)current_path_.poses.size(); i++)
 				previous_path_.poses.push_back(current_path_.poses[i]);
 
 			current_path_ = *path;
