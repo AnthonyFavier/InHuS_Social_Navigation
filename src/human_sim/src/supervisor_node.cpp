@@ -401,13 +401,16 @@ bool Supervisor::checkPlanFailure()
 	static ros::Time last_check_human_pose = ros::Time::now();
 	static int same_human_pose_count = 0;
 
-	ROS_INFO("check : current=%d previous=%d\n", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
+	ROS_INFO("check : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 
 	// Check goal aborted (failure computing a plan)
 	if(state==actionlib::SimpleClientGoalState::ABORTED)
 	{
 		if(goal_aborted_count_ < 3)
+		{
 			goal_aborted_count_++;
+			ROS_INFO("Aborted detected %d", goal_aborted_count_);
+		}
 		else
 		{
 			ROS_INFO("Checked ABORTED\n");
@@ -448,7 +451,10 @@ bool Supervisor::checkPlanFailure()
 			ROS_INFO("SAME %d\n", same_human_pose_count);
 		}
 		else
+		{
 			same_human_pose_count=0;
+			ROS_INFO("SAME %d\n", same_human_pose_count);
+		}
 
 		last_human_pose.x = 	human_pose_.x;
 		last_human_pose.y = 	human_pose_.y;
@@ -574,6 +580,8 @@ float Supervisor::computePathLength(const nav_msgs::Path* path)
 	float length=0;
 
 	for(int i=0; i<path->poses.size()-1; i++)
+	int path_size = (int)path->poses.size();
+	for(int i=0; i<path_size-1; i++)
 		length += sqrt( pow(path->poses[i+1].pose.position.x-path->poses[i].pose.position.x,2) + pow(path->poses[i+1].pose.position.y-path->poses[i].pose.position.y,2) );
 
 	return length;
