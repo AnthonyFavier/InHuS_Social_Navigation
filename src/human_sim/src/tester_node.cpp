@@ -98,6 +98,33 @@ int main(int argc, char** argv)
 	area.goal.x=1.15; 	area.goal.y=6.52; 	area.goal.theta=-PI;	area.radius=0;
 	goals.push_back(area);
 
+	//9 bis // 11
+	area.goal.x=2.0; 	area.goal.y=15.8; 	area.goal.theta=-PI;	area.radius=0;
+	goals.push_back(area);	
+	//4 bis // 12
+	area.goal.x=7.50; 	area.goal.y=7.32; 	area.goal.theta=-PI/2;	area.radius=0;
+	goals.push_back(area);
+
+	// 13
+	area.goal.x=10.4; 	area.goal.y=2.60; 	area.goal.theta=PI/2;	area.radius=0;
+	goals.push_back(area);
+	// 14
+	area.goal.x=10.4; 	area.goal.y=3.60; 	area.goal.theta=PI/2;	area.radius=0;
+	goals.push_back(area);
+	// 15
+	area.goal.x=10.4; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
+	goals.push_back(area);
+
+	// 16
+	area.goal.x=0.8; 	area.goal.y=3.9; 	area.goal.theta=PI/2;	area.radius=0;
+	goals.push_back(area);	
+	// 17
+	area.goal.x=0.8; 	area.goal.y=4.9; 	area.goal.theta=PI/2;	area.radius=0;
+	goals.push_back(area);
+	// 18
+	area.goal.x=0.8; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
+	goals.push_back(area);
+
 	while(ros::ok())
 	{
 		cout << endl << endl << endl << endl << endl << endl << endl << endl << endl << endl;
@@ -134,10 +161,10 @@ int main(int argc, char** argv)
 			switch(choice)
 			{
 				case 1:
-					// R4 H1 => R1 H4 (R delayed)
+					// cross middle
 					if(choice_init == 1)
 					{
-						pose = getPose(goals[4].goal);
+						pose = getPose(goals[12].goal);
 						pub_goal_robot.publish(pose);
 						pub_goal_human.publish(goals[1].goal);
 					}
@@ -156,12 +183,12 @@ int main(int argc, char** argv)
 					}
 					break;
 				case 2:
-					// R8 H3 => R3 H8 (R delayed)
+					// corridor
 					if(choice_init == 1)
 					{
-						pose = getPose(goals[8].goal);
+						pose = getPose(goals[15].goal);
 						pub_goal_robot.publish(pose);
-						pub_goal_human.publish(goals[3].goal);
+						pub_goal_human.publish(goals[13].goal);
 					}
 					else
 					{
@@ -169,16 +196,16 @@ int main(int argc, char** argv)
 						float delay;
 						cin >> delay;
 
-						pub_goal_human.publish(goals[8].goal);
+						pub_goal_human.publish(goals[15].goal);
 
 						ros::Duration(delay).sleep();
 
-						pose = getPose(goals[3].goal);
+						pose = getPose(goals[14].goal);
 						pub_goal_robot.publish(pose);
 					}
 					break;
 				case 3:
-					// R8 H9 => R9 H8 (R delayed)
+					// cross
 					if(choice_init == 1)
 					{
 						pose = getPose(goals[8].goal);
@@ -195,18 +222,18 @@ int main(int argc, char** argv)
 
 						ros::Duration(delay).sleep();
 
-						pose = getPose(goals[9].goal);
+						pose = getPose(goals[11].goal);
 						pub_goal_robot.publish(pose);
 					}
 					break;
 
 				case 4:
-					// R9 H1 => R1 H9 (R delayed)
+					// narrow corridor
 					if(choice_init == 1)
 					{
-						pose = getPose(goals[9].goal);
+						pose = getPose(goals[18].goal);
 						pub_goal_robot.publish(pose);
-						pub_goal_human.publish(goals[1].goal);
+						pub_goal_human.publish(goals[16].goal);
 					}
 					else
 					{
@@ -214,11 +241,11 @@ int main(int argc, char** argv)
 						float delay;
 						cin >> delay;
 
-						pub_goal_human.publish(goals[9].goal);
+						pub_goal_human.publish(goals[18].goal);
 
 						ros::Duration(delay).sleep();
 
-						pose = getPose(goals[1].goal);
+						pose = getPose(goals[17].goal);
 						pub_goal_robot.publish(pose);
 					}
 					break;
