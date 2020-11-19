@@ -63,8 +63,6 @@ private:
 	void operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg);
 	ros::Subscriber sub_path_;
 	void pathCallback(const nav_msgs::Path::ConstPtr& path);
-	ros::Subscriber sub_blocked_;
-	void blockedTestCB(const std_msgs::Int32::ConstPtr& msg);
 
 	// Publishers //
 	ros::Publisher pub_teleop_;
@@ -72,7 +70,6 @@ private:
 	ros::Publisher pub_marker_rviz_;
 	ros::Publisher pub_log_;
 	
-
 	// Action client for move_base //
 	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client_action_;
 

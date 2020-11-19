@@ -25,8 +25,6 @@ Supervisor::Supervisor()
 	sub_operating_mode_ =	nh_.subscribe("/boss/human/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
 	sub_path_ =		nh_.subscribe("move_base/GlobalPlanner/plan", 100, &Supervisor::pathCallback, this);
 
-	sub_blocked_ = nh_.subscribe("/test_blocked_force", 1, &Supervisor::blockedTestCB, this);
-
 	pub_teleop_ = 		nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
 	pub_goal_done_ = 	nh_.advertise<human_sim::Goal>("goal_done", 100);
 	pub_log_ =		nh_.advertise<std_msgs::String>("log", 100);
@@ -74,25 +72,6 @@ Supervisor::Supervisor()
 	ROS_INFO("Waiting for action server\n");
 	client_action_.waitForServer();
 	ROS_INFO("Connected to action server\n");
-}
-
-void Supervisor::blockedTestCB(const std_msgs::Int32::ConstPtr& msg)
-{
-	static nav_msgs::Path back =previous_path_;
-	if(msg->data == 0)
-	{
-		state_global_ = BLOCKED_BY_ROBOT;
-		blocked_state_ = LONGER;
-		previous_path_.poses.clear();
-	}
-	else
-	{
-		ROS_INFO("KK!");
-		previous_path_=back;
-		replan_success_nb_ = 0;
-		first_blocked_ = true;
-		state_global_ = EXEC_PLAN;
-	}
 }
 
 void Supervisor::init()
