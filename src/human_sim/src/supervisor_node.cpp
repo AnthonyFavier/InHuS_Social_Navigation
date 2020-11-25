@@ -9,6 +9,12 @@ Supervisor::Supervisor()
 , dur_replan_blocked_(0.7)
 , dur_check_pose_blocked_(0.1)
 , nb_replan_success_to_unblock_(1)
+, absolute_path_length_diff_threshold_(1)
+, ratio_path_length_diff_(1.5)
+, dist_threshold_not_feasible_(0.05)
+, theta_threshold_not_feasible_(0.02)
+, nb_same_human_pose_not_feasible_threshold_(3)
+, dist_stop_replan_(0.5)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
@@ -204,7 +210,7 @@ void Supervisor::FSM()
 								state_global_=GET_GOAL;
 
 							}
-							else if(sqrt(pow(human_pose_.x-(*curr_action).action.target_pose.pose.position.x,2) + pow(human_pose_.y-(*curr_action).action.target_pose.pose.position.y,2)) > 0.5)
+							else if(sqrt(pow(human_pose_.x-(*curr_action).action.target_pose.pose.position.x,2) + pow(human_pose_.y-(*curr_action).action.target_pose.pose.position.y,2)) > dist_stop_replan_)
 							{
 								ROS_INFO("Test for resend");
 								if(client_action_.getState() == actionlib::SimpleClientGoalState::LOST
@@ -293,8 +299,8 @@ void Supervisor::FSM()
 										float response_path_length = this->computePathLength(&(srv.response.plan));
 										float previous_path_length = this->computePathLength(&previous_path_);
 
-										if(abs(response_path_length-previous_path_length) < 1 // if close enough in absolute
-										|| response_path_length < 1.5*previous_path_length)   // or if clone enough relatively
+										if(abs(response_path_length-previous_path_length)<absolute_path_length_diff_threshold_	// if close enough in absolute
+										|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if clone enough relatively
 										{
 											replan_success_nb_++;
 											ROS_INFO("One success ! replan_success_nb = %d\n", replan_success_nb_);
@@ -350,8 +356,9 @@ void Supervisor::FSM()
 								this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
 								last_replan_ = ros::Time::now();
 
-								if(abs(human_pose_.x - last_human_pose.x) > 0.03
-								&& abs(human_pose_.y - last_human_pose.y) > 0.03)
+								if(abs(human_pose_.x-last_human_pose.x) > dist_threshold_not_feasible_
+								|| abs(human_pose_.y-last_human_pose.y) > dist_threshold_not_feasible_
+								|| abs(human_pose_.theta-last_human_pose.theta) > theta_threshold_not_feasible_)
 								{
 									ROS_INFO("We moved !\n");
 									first_blocked_ = true;
@@ -429,8 +436,8 @@ bool Supervisor::checkPlanFailure()
 		float current_path_length = this->computePathLength(&current_path_);
 		float previous_path_length = this->computePathLength(&previous_path_);
 
-		if(abs(current_path_length-previous_path_length) > 1 // if difference big enough in absolute
-		&& current_path_length/previous_path_length > 1.5)   // and if difference big enough relatively 
+		if(abs(current_path_length-previous_path_length) > absolute_path_length_diff_threshold_ 	// if difference big enough in absolute
+		&& current_path_length > ratio_path_length_diff_*previous_path_length)   			// and if difference big enough relatively 
 		{
 			ROS_INFO("Checked CHANGED TOO MUCH\n");
 			current_path_.poses.clear();
@@ -443,9 +450,9 @@ bool Supervisor::checkPlanFailure()
 	if(ros::Time::now() - last_check_human_pose > dur_check_pose_blocked_)
 	{
 		// if current pose is close enough to previous one
-		if(abs(human_pose_.x - last_human_pose.x) < 0.03
-		&& abs(human_pose_.y - last_human_pose.y) < 0.03
-		&& abs(human_pose_.theta - last_human_pose.theta) < 0.02)
+		if(abs(human_pose_.x - last_human_pose.x) < dist_threshold_not_feasible_
+		&& abs(human_pose_.y - last_human_pose.y) < dist_threshold_not_feasible_
+		&& abs(human_pose_.theta - last_human_pose.theta) < theta_threshold_not_feasible_)
 		{
 			same_human_pose_count++;
 			ROS_INFO("SAME %d\n", same_human_pose_count);
@@ -462,7 +469,7 @@ bool Supervisor::checkPlanFailure()
 
 		last_check_human_pose = ros::Time::now();
 
-		if(same_human_pose_count > 3)
+		if(same_human_pose_count > nb_same_human_pose_not_feasible_threshold_)
 		{
 			ROS_INFO("Checked NOT FEASIBLE\n");
 			same_human_pose_count = 0;

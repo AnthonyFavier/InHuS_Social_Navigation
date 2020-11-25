@@ -90,7 +90,7 @@ private:
 
 	visualization_msgs::Marker marker_rviz_;
 
-	std_msgs::String msg_; // to publish easly on log
+	std_msgs::String msg_; // to publish easily on log
 
 	bool goal_received_;
 	human_sim::Goal current_goal_;
@@ -107,6 +107,12 @@ private:
 	const int nb_replan_success_to_unblock_;
 	ros::Time last_replan_;	
 	int replan_success_nb_;
+	const float absolute_path_length_diff_threshold_;
+	const float ratio_path_length_diff_;
+	const float dist_threshold_not_feasible_;
+	const float theta_threshold_not_feasible_;
+	const int nb_same_human_pose_not_feasible_threshold_;
+	const float dist_stop_replan_;
 
 	nav_msgs::Path current_path_;
 	nav_msgs::Path previous_path_;
