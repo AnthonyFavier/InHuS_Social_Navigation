@@ -31,11 +31,6 @@ add_service_files(
   GetChoiceGoalDecision.srv
 )
 
-#add_action_files(DIRECTORY action 
-#  FILES 
-#  HAction.action
-#)
-
 generate_messages(
   DEPENDENCIES 
   actionlib_msgs
