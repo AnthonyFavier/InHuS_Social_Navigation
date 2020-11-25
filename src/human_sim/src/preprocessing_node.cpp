@@ -6,6 +6,11 @@
 #include <math.h>
 #include <tf/transform_broadcaster.h>
 
+// Convert geometry_msgs::PoseStamped messages from MORSE
+// to geometry_msgs::Pose2D messages 
+
+// Publish tf human and robot frame in map frame
+
 ros::Publisher pub_sim_human_pose;
 geometry_msgs::Pose2D h_pose;
 double h_roll, h_pitch, h_yaw;
