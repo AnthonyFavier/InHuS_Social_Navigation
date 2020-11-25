@@ -3,6 +3,8 @@
 ///////////////////// PLACE ROBOT MAP //////////////////////
 
 PlaceRobotMap::PlaceRobotMap()
+: size_rob_(0.5)
+, dist_threshold_(4)
 {
 	robot_pose_.x = 	0;
 	robot_pose_.y = 	0;
@@ -11,15 +13,56 @@ PlaceRobotMap::PlaceRobotMap()
 	human_pose_.x = 	0;
 	human_pose_.y = 	0;
 	human_pose_.theta = 	0;
-	human_pose_init_ = 	false;
 
-	size_rob_ = 6;
-	dist_threshold_ = 4/0.05;
+	human_pose_init_ = 	false;
 	robot_near_ = false;
 
+	// Build empty_PointCloud2
+	sensor_msgs::PointCloud cloud;
+	cloud.header.frame_id = "human_robot_base";
+	cloud.header.stamp = ros::Time::now();
+	sensor_msgs::convertPointCloudToPointCloud2(cloud, empty_PointCloud2_);
+
+	// Build robot_pose_PoinCloud2_
+	cloud.header.frame_id = "human_robot_base";
+	cloud.header.stamp = ros::Time::now();
+	geometry_msgs::Point32 point;
+	point.z = 0.0;
+	point.x = -size_rob_/2;
+	point.y = -size_rob_/2;
+	cloud.points.push_back(point);	
+	point.x = -size_rob_/2;
+	point.y = 0.01;
+	cloud.points.push_back(point);
+	point.x = -size_rob_/2;
+	point.y = size_rob_/2;
+	cloud.points.push_back(point);
+	point.x = 0;
+	point.y = size_rob_/2;
+	cloud.points.push_back(point);
+	point.x = size_rob_/2;
+	point.y = size_rob_/2;
+	cloud.points.push_back(point);
+	point.x = size_rob_/2;
+	point.y = 0;
+	cloud.points.push_back(point);
+	point.x = size_rob_/2;
+	point.y = -size_rob_/2;
+	cloud.points.push_back(point);
+	point.x = 0;
+	point.y = -size_rob_/2;
+	cloud.points.push_back(point);
+	/*sensor_msgs::ChannelFloat32 channel;
+	  channel.name = "intensity";
+	  channel.values.push_back(100.0);
+	  cloud.channels.push_back(channel);*/
+	sensor_msgs::convertPointCloudToPointCloud2(cloud, robot_pose_PointCloud2_);
+
+	// Subscriber
 	robot_pose_sub_ = 	nh_.subscribe("human_model/robot_pose", 100, &PlaceRobotMap::robotPoseCallback, this);
 	human_pose_sub_ = 	nh_.subscribe("human_model/human_pose", 100, &PlaceRobotMap::humanPoseCallback, this);
 
+	// Publisher
 	robot_pose_pub_ =	nh_.advertise<sensor_msgs::PointCloud2>("robot_pose_PointCloud2", 10);
 }
 
@@ -27,8 +70,8 @@ void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_p
 {
 	if(human_pose_init_)
 	{
-		robot_pose_.x = 	(r_pose->x+2)/0.05; // resol map
-		robot_pose_.y = 	(r_pose->y+8)/0.05;
+		robot_pose_.x = 	r_pose->x+2;
+		robot_pose_.y = 	r_pose->y+8;
 		robot_pose_.theta = 	r_pose->theta;
 
 		if(sqrt(pow(human_pose_.x-robot_pose_.x,2) + pow(human_pose_.y-robot_pose_.y,2)) < dist_threshold_)
@@ -36,48 +79,8 @@ void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_p
 			robot_near_ = true;
 
 			// publish with obst
-			sensor_msgs::PointCloud cloud;
-
-			cloud.header.frame_id = "human_robot_base";
-			cloud.header.stamp = ros::Time::now();
-
-			geometry_msgs::Point32 point;
-			point.z = 0.0;
-
-			point.x = -0.25;
-			point.y = -0.25;
-			cloud.points.push_back(point);	
-			point.x = -0.25;
-			point.y = 0.01;
-			cloud.points.push_back(point);
-			point.x = -0.25;
-			point.y = 0.25;
-			cloud.points.push_back(point);
-			point.x = 0;
-			point.y = 0.25;
-			cloud.points.push_back(point);
-			point.x = 0.25;
-			point.y = 0.25;
-			cloud.points.push_back(point);
-			point.x = 0.25;
-			point.y = 0;
-			cloud.points.push_back(point);
-			point.x = 0.25;
-			point.y = -0.25;
-			cloud.points.push_back(point);
-			point.x = 0;
-			point.y = -0.25;
-			cloud.points.push_back(point);
-
-			/*sensor_msgs::ChannelFloat32 channel;
-			  channel.name = "intensity";
-			  channel.values.push_back(100.0);
-			  cloud.channels.push_back(channel);*/
-
-			sensor_msgs::PointCloud2 cloud2;
-			sensor_msgs::convertPointCloudToPointCloud2(cloud, cloud2);
-
-			robot_pose_pub_.publish(cloud2);
+			robot_pose_PointCloud2_.header.stamp = ros::Time::now();
+			robot_pose_pub_.publish(robot_pose_PointCloud2_);
 
 		}
 		else if(robot_near_)
@@ -85,25 +88,16 @@ void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_p
 			robot_near_ = false;
 
 			// publish empty
-			sensor_msgs::PointCloud cloud;
-
-			cloud.header.frame_id = "human_robot_base";
-			cloud.header.stamp = ros::Time::now();
-
-			sensor_msgs::PointCloud2 cloud2;
-			sensor_msgs::convertPointCloudToPointCloud2(cloud, cloud2);
-
-			robot_pose_pub_.publish(cloud2);
+			empty_PointCloud2_.header.stamp = ros::Time::now();
+			robot_pose_pub_.publish(empty_PointCloud2_);
 		}
 	}
-
-
 }
 
 void PlaceRobotMap::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_pose)
 {
-	human_pose_.x = 	(h_pose->x+2)/0.05; // resol map
-	human_pose_.y = 	(h_pose->y+8)/0.05;
+	human_pose_.x = 	h_pose->x+2;
+	human_pose_.y = 	h_pose->y+8;
 	human_pose_.theta = 	h_pose->theta;
 	human_pose_init_ = 	true;
 }

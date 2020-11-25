@@ -26,10 +26,12 @@ private:
 	Pose2D human_pose_;
 	bool human_pose_init_;
 
+	sensor_msgs::PointCloud2 robot_pose_PointCloud2_;
+	sensor_msgs::PointCloud2 empty_PointCloud2_;
 	ros::Publisher robot_pose_pub_;
 
-	int size_rob_;
-	float dist_threshold_;
+	const float size_rob_;
+	const float dist_threshold_;
 	bool robot_near_;
 };
 
