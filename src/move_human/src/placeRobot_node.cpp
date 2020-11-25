@@ -4,7 +4,7 @@
 
 PlaceRobotMap::PlaceRobotMap()
 : size_rob_(0.5)
-, dist_threshold_(4)
+, dist_threshold_(5)
 {
 	robot_pose_.x = 	0;
 	robot_pose_.y = 	0;
