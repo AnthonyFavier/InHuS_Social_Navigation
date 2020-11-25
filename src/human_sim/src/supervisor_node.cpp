@@ -8,7 +8,7 @@ Supervisor::Supervisor()
 , dur_replan_(0.5)
 , dur_replan_blocked_(0.7)
 , dur_check_pose_blocked_(0.1)
-, nb_replan_success_to_unblock_(2)
+, nb_replan_success_to_unblock_(1)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED

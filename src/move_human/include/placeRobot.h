@@ -2,16 +2,17 @@
 #define DEF_PLACE_ROBOT_MAP
 
 #include "ros/ros.h"
-#include "map_msgs/OccupancyGridUpdate.h"
-#include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/Pose2D.h"
 #include "type.h"
+
+#include "sensor_msgs/PointCloud.h"
+#include "sensor_msgs/PointCloud2.h"
+#include "sensor_msgs/point_cloud_conversion.h"
 
 class PlaceRobotMap
 {
 public:
 	PlaceRobotMap();
-	void computeAndPublish();
 
 private:
 	ros::NodeHandle nh_;
@@ -23,13 +24,9 @@ private:
 	ros::Subscriber human_pose_sub_;
 	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_pose);
 	Pose2D human_pose_;
+	bool human_pose_init_;
 
-	ros::Subscriber map_sub_;
-	void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& map);
-	nav_msgs::OccupancyGrid map_;
-	bool map_initiated_;
-
-	ros::Publisher map_pub_;
+	ros::Publisher robot_pose_pub_;
 
 	int size_rob_;
 	float dist_threshold_;

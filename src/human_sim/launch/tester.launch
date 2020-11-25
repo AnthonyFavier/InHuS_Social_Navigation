@@ -1,5 +1,5 @@
 <launch>
 
-	<node name="tester_node" type="tester_node" pkg="human_sim" output="screen" launch-prefix="xterm -geometry '80x25+980+0' -e"/>
+	<node name="tester_node" type="tester_node" pkg="human_sim" ns="human" output="screen" launch-prefix="xterm -geometry '80x25+980+0' -e"/>
 
 </launch>
