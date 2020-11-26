@@ -37,7 +37,7 @@ HumanModel::HumanModel()
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
 	client_get_choice_goal_decision_ = nh_.serviceClient<human_sim::GetChoiceGoalDecision>("get_choiceGoalDecision");
 
-	ROS_INFO("I am human\n");
+	ROS_INFO("I am human");
 
 	Pose2D zero;
 	zero.x = 	0;
@@ -145,7 +145,7 @@ void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 
 void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 {
-	ROS_INFO("received !!\n");
+	ROS_INFO("received !!");
 	previous_goal_ = current_goal_;
 }
 
@@ -180,8 +180,8 @@ human_sim::Goal HumanModel::chooseGoal(bool random)
 		i = index_list;
 	}
 
-	ROS_INFO("i=%d\n", i);
-	ROS_INFO("x=%f, y=%f, theta=%f, radius=%f\n", known_goals_[i].goal.x,known_goals_[i].goal.y,known_goals_[i].goal.theta,known_goals_[i].radius);
+	ROS_INFO("i=%d", i);
+	ROS_INFO("x=%f, y=%f, theta=%f, radius=%f", known_goals_[i].goal.x,known_goals_[i].goal.y,known_goals_[i].goal.theta,known_goals_[i].radius);
 
 	// if it's an area, pick a goal in it
 	if(known_goals_[i].radius!=0)
@@ -189,7 +189,7 @@ human_sim::Goal HumanModel::chooseGoal(bool random)
 		float alpha = (rand()%(2*314))/100 - PI;
 		float r = (rand()%(int(known_goals_[i].radius*100)))/100.0;
 
-		ROS_INFO("alpha=%f, r=%f\n", alpha, r);
+		ROS_INFO("alpha=%f, r=%f", alpha, r);
 
 		goal.type = "Position";
 		goal.x = known_goals_[i].goal.x + r * cos(alpha);
@@ -201,8 +201,8 @@ human_sim::Goal HumanModel::chooseGoal(bool random)
 
 	current_goal_=goal;
 
-	ROS_INFO("goal choosen !\n");
-	ROS_INFO("%s (%f, %f, %f)\n", goal.type.c_str(), goal.x, goal.y, goal.theta);
+	ROS_INFO("goal choosen !");
+	ROS_INFO("%s (%f, %f, %f)", goal.type.c_str(), goal.x, goal.y, goal.theta);
 
 	return goal;
 }
@@ -241,8 +241,8 @@ void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 		current_goal_.y = 	goal->y;
 		current_goal_.theta = 	goal->theta;
 
-		ROS_INFO("CB current_goal = %f,%f\n", current_goal_.x, current_goal_.y);
-		ROS_INFO("CB previous_goal = %f,%f\n", previous_goal_.x, previous_goal_.y);
+		ROS_INFO("CB current_goal = %f,%f", current_goal_.x, current_goal_.y);
+		ROS_INFO("CB previous_goal = %f,%f", previous_goal_.x, previous_goal_.y);
 	}
 }
 
@@ -251,20 +251,20 @@ void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 	bool changed=false;
 	switch(msg->data)
 	{
-		case NONE:
-			ROS_INFO("Behavior set : NONE\n");
+		case NONE: //0
+			ROS_INFO("Behavior set : NONE");
 			changed=true;
 			break;
-		case RANDOM:
-			ROS_INFO("Behavior set : RANDOM\n");
+		case RANDOM: //1
+			ROS_INFO("Behavior set : RANDOM");
 			changed=true;
 			break;
-		case STOP_LOOK:
-			ROS_INFO("Behavior set : STOP_LOOK\n");
+		case STOP_LOOK: //2
+			ROS_INFO("Behavior set : STOP_LOOK");
 			changed=true;
 			break;
-		case HARASS:
-			ROS_INFO("Behavior set : HARASS\n");
+		case HARASS: //3
+			ROS_INFO("Behavior set : HARASS");
 			changed=true;
 			break;
 
@@ -285,19 +285,19 @@ void HumanModel::newRandomGoalGeneration()
 	if(ros::Time::now()-last_time_> delay_think_about_new_goal_)
 	{
 		int nb = rand()%100 + 1;
-		ROS_INFO("Tirage %d/%d\n", nb, chance_decide_new_goal_);
+		ROS_INFO("Tirage %d/%d", nb, chance_decide_new_goal_);
 		if(nb < chance_decide_new_goal_)
 		{
-			ROS_INFO("DECIDE NEW GOAL ! \n");
+			ROS_INFO("DECIDE NEW GOAL ! ");
 			human_sim::Goal previous_goal = current_goal_;
 			human_sim::Goal new_goal = this->chooseGoal(true);
 			if(new_goal.x != previous_goal.x || new_goal.y != previous_goal.y)
 			{
 				pub_new_goal_.publish(new_goal);
-				ROS_INFO("published\n");
+				ROS_INFO("published");
 			}
 			else
-				ROS_INFO("ALREADY GOING!\n");
+				ROS_INFO("ALREADY GOING!");
 		}
 		last_time_=ros::Time::now();
 	}
@@ -308,18 +308,18 @@ void HumanModel::stopLookRobot()
 	switch(sub_stop_look_)
 	{
 		case WAIT_ROBOT:
-			ROS_INFO("threshold=%f dist=%f\n", dist_near_robot_, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
+			ROS_INFO("threshold=%f dist=%f", dist_near_robot_, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
 			if(sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2))<dist_near_robot_)
 				sub_stop_look_=STOP;
 			break;
 
 		case STOP:
 			{
-				ROS_INFO("current_goal = %f,%f\n", current_goal_.x, current_goal_.y);
-				ROS_INFO("previous_goal = %f,%f\n", previous_goal_.x, previous_goal_.y);
+				ROS_INFO("current_goal = %f,%f", current_goal_.x, current_goal_.y);
+				ROS_INFO("previous_goal = %f,%f", previous_goal_.x, previous_goal_.y);
 
 				// Stop goal and motion
-				ROS_INFO("Stopped !\n");
+				ROS_INFO("Stopped !");
 				human_sim::CancelGoalAndStop srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
 	
@@ -329,11 +329,11 @@ void HumanModel::stopLookRobot()
 					was_in_autonomous_ = srv.response.decision == 0;
 				else
 					ROS_ERROR("Failed to call get choice goal decision service!");
-				ROS_INFO("response = %d\n", srv.response.decision);
+				ROS_INFO("response = %d", srv.response.decision);
 				if(was_in_autonomous_)
-					ROS_INFO("YES\n");
+					ROS_INFO("YES");
 				else
-					ROS_INFO("NO!\n");
+					ROS_INFO("NO!");
 
 				// Passe en SPECIFIED
 				std_msgs::Int32 msg;
@@ -385,7 +385,7 @@ void HumanModel::stopLookRobot()
 					}
 				}
 
-				ROS_INFO("alpha=%f\n", alpha);//*180/PI);
+				ROS_INFO("alpha=%f", alpha);//*180/PI);
 
 				geometry_msgs::Twist cmd;
 				if(abs(alpha-model_pose_.theta)>0.1)
@@ -401,14 +401,14 @@ void HumanModel::stopLookRobot()
 
 				if(ros::Time::now() - time_stopped_ > duration_stopped_)
 				{
-					ROS_INFO("NEW GOALLLLL\n");
+					ROS_INFO("NEW GOALLLLL");
 					sub_stop_look_=NEW_GOAL;
 				}
 				break;
 			}
 
 		case NEW_GOAL:
-			ROS_INFO("Choose new goal\n");
+			ROS_INFO("Choose new goal");
 			// resume current goal
 			pub_new_goal_.publish(current_goal_);
 			// put back in AUTONOMOUS if it was 
@@ -417,7 +417,7 @@ void HumanModel::stopLookRobot()
 				static ros::Time start = ros::Time::now();
 				if(ros::Time::now() - start > ros::Duration(1))
 				{
-					ROS_INFO("AUTO SENT!\n");
+					ROS_INFO("AUTO SENT!");
 					std_msgs::Int32 msg;
 					msg.data=0;
 					pub_op_mode_.publish(msg);
@@ -532,7 +532,7 @@ int main(int argc, char** argv)
 		rate.sleep();
 	}
 
-	ROS_INFO("LETS_GO\n");
+	ROS_INFO("LETS_GO");
 
 	while(ros::ok())
 	{
