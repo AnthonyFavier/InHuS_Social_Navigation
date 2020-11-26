@@ -288,14 +288,16 @@ void Supervisor::FSM()
 								// make plan
 								if(client_make_plan_.call(srv))
 								{
+									ROS_INFO("BLOCK : srv.plan=%d previous=%d", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
 									if((int)srv.response.plan.poses.size()!=0) // successfully planned once
 									{
-										ROS_INFO("BLOCK : srv.plan=%d previous=%d", (int)srv.response.plan.poses.size(), (int)previous_path_.poses.size());
 
 										float response_path_length = this->computePathLength(&(srv.response.plan));
 										float previous_path_length = this->computePathLength(&previous_path_);
 
-										if(abs(response_path_length-previous_path_length)<absolute_path_length_diff_threshold_	// if close enough in absolute
+										// If new path is 'good'
+										if(previous_path_length == 0								// if no path was found before
+										|| abs(response_path_length-previous_path_length)<absolute_path_length_diff_threshold_	// if close enough in absolute
 										|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if clone enough relatively
 										{
 											replan_success_nb_++;
@@ -409,12 +411,9 @@ bool Supervisor::checkPlanFailure()
 	// Check goal aborted (failure computing a plan)
 	if(state==actionlib::SimpleClientGoalState::ABORTED)
 	{
-		if(goal_aborted_count_ < 3)
-		{
-			goal_aborted_count_++;
-			ROS_INFO("Aborted detected %d", goal_aborted_count_);
-		}
-		else
+		goal_aborted_count_++;
+		ROS_INFO("Aborted detected %d", goal_aborted_count_);
+		if(goal_aborted_count_ < 2)
 		{
 			ROS_INFO("Checked ABORTED");
 			goal_aborted_count_ = 0;
@@ -445,6 +444,7 @@ bool Supervisor::checkPlanFailure()
 	// Check if trajectory not feasible, thus if not moving for too long
 	if(ros::Time::now() - last_check_human_pose > dur_check_pose_blocked_)
 	{
+		ROS_INFO("check not feasible");
 		// if current pose is close enough to previous one
 		if(abs(human_pose_.x - last_human_pose.x) < dist_threshold_not_feasible_
 		&& abs(human_pose_.y - last_human_pose.y) < dist_threshold_not_feasible_
@@ -454,10 +454,7 @@ bool Supervisor::checkPlanFailure()
 			ROS_INFO("SAME %d", same_human_pose_count);
 		}
 		else
-		{
 			same_human_pose_count=0;
-			ROS_INFO("SAME %d", same_human_pose_count);
-		}
 
 		last_human_pose.x = 	human_pose_.x;
 		last_human_pose.y = 	human_pose_.y;
@@ -591,10 +588,8 @@ float Supervisor::computePathLength(const nav_msgs::Path* path)
 
 void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 {
-	ROS_INFO("pathCallback ! %d ", (int)path->poses.size());
-
 	float path_length = this->computePathLength(path.get());
-	ROS_INFO("length %f", path_length);
+	ROS_INFO("pathCallback %d ! length %f ", (int)path->poses.size(), path_length);
 
 	msg_.data = "SUPERVISOR " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
 	pub_log_.publish(msg_);
