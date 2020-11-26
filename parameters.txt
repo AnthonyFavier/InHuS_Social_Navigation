@@ -10,6 +10,7 @@
 
 			= STOP_LOOK
 				- dist_near_robot : start looking at robot stopping its goal
+				- duration_stopped : duration look at robot before go back to goal
 
 			= HARASS
 				- dist_in_front : distance in front of robot as goal => harass
