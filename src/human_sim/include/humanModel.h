@@ -51,11 +51,12 @@ private:
 
 	// Behaviors //
 	enum Behavior{NONE=0, RANDOM, STOP_LOOK, HARASS};
-
-	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, NEW_GOAL, OVER};
-	enum SubBehaviorHarass{INIT, HARASSING};
 	Behavior behavior_;
+
+	// Sub state behaviors //
+	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, NEW_GOAL, OVER};
 	SubBehaviorStopLook sub_stop_look_;
+	enum SubBehaviorHarass{INIT, HARASSING};
 	SubBehaviorHarass sub_harass_;
 
 	// Subscribers //

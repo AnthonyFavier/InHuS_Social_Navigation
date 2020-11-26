@@ -131,16 +131,19 @@ void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 
 void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-	geometry_msgs::Twist perturbated_cmd;
+	if(behavior_ != STOP_LOOK || sub_stop_look_ != LOOK_AT_ROBOT)
+	{
+		geometry_msgs::Twist perturbated_cmd;
 
-	perturbated_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
-	perturbated_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
-	perturbated_cmd.linear.z = 0;
-	perturbated_cmd.angular.x = 0;
-	perturbated_cmd.angular.y = 0;
-	perturbated_cmd.angular.z = msg->angular.z; // no angular perturbation
+		perturbated_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
+		perturbated_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
+		perturbated_cmd.linear.z = 0;
+		perturbated_cmd.angular.x = 0;
+		perturbated_cmd.angular.y = 0;
+		perturbated_cmd.angular.z = msg->angular.z; // no angular perturbation
 
-	pub_perturbated_cmd_.publish(perturbated_cmd);
+		pub_perturbated_cmd_.publish(perturbated_cmd);
+	}
 }
 
 void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)

@@ -69,6 +69,7 @@ private:
 	ros::Publisher pub_goal_done_;
 	ros::Publisher pub_marker_rviz_;
 	ros::Publisher pub_log_;
+	ros::Publisher pub_cmd_geo_;
 	
 	// Action client for move_base //
 	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client_action_;

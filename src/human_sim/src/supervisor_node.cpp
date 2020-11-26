@@ -35,6 +35,7 @@ Supervisor::Supervisor()
 	pub_goal_done_ = 	nh_.advertise<human_sim::Goal>("goal_done", 100);
 	pub_log_ =		nh_.advertise<std_msgs::String>("log", 100);
 	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
+	pub_cmd_geo_ = 		nh_.advertise<geometry_msgs::Twist>("cmd_geo", 100);
 
 	service_set_get_goal_ =			nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
 	service_get_choiceGoalDecision_ = 	nh_.advertiseService("get_choiceGoalDecision", &Supervisor::getChoiceGoalDecision, this);
@@ -116,7 +117,7 @@ void Supervisor::FSM()
 						state_global_ = ASK_PLAN;
 					}
 					else
-						pub_teleop_.publish(geometry_msgs::Twist());
+						pub_cmd_geo_.publish(geometry_msgs::Twist());
 					break;
 
 				default:
