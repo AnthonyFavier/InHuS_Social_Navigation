@@ -54,7 +54,7 @@ private:
 	Behavior behavior_;
 
 	// Sub state behaviors //
-	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, NEW_GOAL, OVER};
+	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, RESUME_GOAL, OVER};
 	SubBehaviorStopLook sub_stop_look_;
 	enum SubBehaviorHarass{INIT, HARASSING};
 	SubBehaviorHarass sub_harass_;
@@ -108,6 +108,8 @@ private:
 	std::vector<GoalArea> known_goals_;
 
 	bool was_in_autonomous_;
+	bool executing_plan_;
+	bool new_goal_sent_;
 
 	// ratio perturbation
 	const float ratio_perturbation_;

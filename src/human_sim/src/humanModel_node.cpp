@@ -44,10 +44,10 @@ HumanModel::HumanModel()
 	zero.x = 	0;
 	zero.y = 	0;
 	zero.theta = 	0;
-	sim_pose_ = 	   zero;
-	sim_robot_pose_=    zero;
-	model_pose_ = 	   zero;
-	model_robot_pose_ = zero;
+	sim_pose_ =		zero;
+	sim_robot_pose_=    	zero;
+	model_pose_ = 	   	zero;
+	model_robot_pose_ =	zero;
 
 	current_goal_.type = 	"Position";
 	current_goal_.x  =	0;
@@ -56,10 +56,13 @@ HumanModel::HumanModel()
 
 	previous_goal_=current_goal_;
 
-	was_in_autonomous_ = false;
+	was_in_autonomous_ = 	false;
+	executing_plan_ = 	false;
+	new_goal_sent_ =		true;
 
-	last_time_ = ros::Time::now();
-	last_harass_ = ros::Time::now();
+	last_time_ = 	ros::Time::now();
+	last_harass_ = 	ros::Time::now();
+	time_stopped_=	ros::Time::now();
 
 	// BEHAVIORS //
 	behavior_ = NONE;
@@ -69,7 +72,7 @@ HumanModel::HumanModel()
 	// INIT GOALS //
 	GoalArea area;
 	area.goal.type="Position";
-	
+
 	//1//
 	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
 	known_goals_.push_back(area);
@@ -154,6 +157,7 @@ void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 {
 	ROS_INFO("received !!");
 	previous_goal_ = current_goal_;
+	executing_plan_ = false;
 }
 
 bool HumanModel::chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res)
@@ -236,9 +240,9 @@ void HumanModel::publishModelData()
 
 void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 {
-	if(goal->x != current_goal_.x 
-	|| goal->y != current_goal_.y 
-	|| goal->theta != current_goal_.theta)
+	if(new_goal_sent_)
+		new_goal_sent_ = false;
+	else
 	{
 		previous_goal_.x = 	current_goal_.x;
 		previous_goal_.y = 	current_goal_.y;
@@ -251,6 +255,8 @@ void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 		ROS_INFO("CB current_goal = %f,%f", current_goal_.x, current_goal_.y);
 		ROS_INFO("CB previous_goal = %f,%f", previous_goal_.x, previous_goal_.y);
 	}
+
+	executing_plan_ = true;
 }
 
 void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
@@ -301,6 +307,7 @@ void HumanModel::newRandomGoalGeneration()
 			if(new_goal.x != previous_goal.x || new_goal.y != previous_goal.y)
 			{
 				pub_new_goal_.publish(new_goal);
+				new_goal_sent_ = true;
 				ROS_INFO("published");
 			}
 			else
@@ -315,10 +322,13 @@ void HumanModel::stopLookRobot()
 	switch(sub_stop_look_)
 	{
 		case WAIT_ROBOT:
-			ROS_INFO("threshold=%f dist=%f", dist_near_robot_, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
-			if(sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2))<dist_near_robot_)
-				sub_stop_look_=STOP;
-			break;
+			{
+				float dist = sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2));
+				ROS_INFO("threshold=%f dist=%f", dist_near_robot_, dist);
+				if(dist<dist_near_robot_)
+					sub_stop_look_=STOP;
+				break;
+			}
 
 		case STOP:
 			{
@@ -329,7 +339,7 @@ void HumanModel::stopLookRobot()
 				ROS_INFO("Stopped !");
 				human_sim::CancelGoalAndStop srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
-	
+
 				// Check if was in AUTONOMOUS
 				human_sim::GetChoiceGoalDecision srv;
 				if(client_get_choice_goal_decision_.call(srv))
@@ -392,8 +402,6 @@ void HumanModel::stopLookRobot()
 					}
 				}
 
-				ROS_INFO("alpha=%f", alpha);//*180/PI);
-
 				geometry_msgs::Twist cmd;
 				if(abs(alpha-model_pose_.theta)>0.1)
 				{
@@ -407,37 +415,53 @@ void HumanModel::stopLookRobot()
 				pub_perturbated_cmd_.publish(cmd);
 
 				if(ros::Time::now() - time_stopped_ > duration_stopped_)
-				{
-					ROS_INFO("NEW GOALLLLL");
-					sub_stop_look_=NEW_GOAL;
-				}
+					sub_stop_look_=RESUME_GOAL;
 				break;
 			}
 
-		case NEW_GOAL:
-			ROS_INFO("Choose new goal");
-			// resume current goal
-			pub_new_goal_.publish(current_goal_);
-			// put back in AUTONOMOUS if it was 
-			if(was_in_autonomous_)
+		case RESUME_GOAL:
+			ROS_INFO("Resume Goal");
+			if(executing_plan_)
 			{
-				static ros::Time start = ros::Time::now();
-				if(ros::Time::now() - start > ros::Duration(1))
+				// resume current goal
+				pub_new_goal_.publish(current_goal_);
+				new_goal_sent_ = true;
+				ROS_INFO("sent");
+				// put back in AUTONOMOUS if it was 
+				if(was_in_autonomous_)
 				{
-					ROS_INFO("AUTO SENT!");
-					std_msgs::Int32 msg;
-					msg.data=0;
-					pub_op_mode_.publish(msg);
+					static ros::Time start = ros::Time::now();
+					if(ros::Time::now() - start > ros::Duration(1))
+					{
+						ROS_INFO("AUTO SENT!");
+						std_msgs::Int32 msg;
+						msg.data=0;
+						pub_op_mode_.publish(msg);
 
-					sub_stop_look_=OVER;
+						sub_stop_look_=OVER;
+					}
 				}
+				else
+					sub_stop_look_=OVER;
 			}
 			else
+			{
+				ROS_INFO("No previous goal");
 				sub_stop_look_=OVER;
+			}
 			break;
 
 		case OVER:
-			break;
+			{
+				// Wait for robot to get far enough to reset
+				float dist = sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2));
+				if(dist>dist_near_robot_)
+				{
+					ROS_INFO("Reset STOP_LOOK");
+					sub_stop_look_=WAIT_ROBOT;
+				}
+				break;
+			}
 
 		default:
 			sub_stop_look_=WAIT_ROBOT;
