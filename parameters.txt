@@ -5,8 +5,8 @@
 		= behaviors:
 			= RANDOM
 				- chance_decide_new_goal
-				- delay_think_about_new_goal
-				(chance_decide_new_goal% chance every delay_think_about_new_goal)
+				- freq_think_about_new_goal
+				(chance_decide_new_goal% chance every 1/freq_think_about_new_goal s)
 
 			= STOP_LOOK
 				- dist_near_robot : start looking at robot stopping its goal
@@ -17,8 +17,8 @@
 				- delay harass replan 
 
 	= supervisor :
-		- dur_replan : frequency to replan global path
-		- dur_replan_blocked : frequency try to replan global path when blocked
+		- freq_replan : frequency to replan global path
+		- freq_replan_blocked : frequency try to replan global path when blocked
 		- dur_check_pose_blocked : if spend this duration not moving while executing plan => concider blocked (local planner)
 		- nb_replan_success_to_unblock : when blocked number of concecutive times required successfully getting a "good global path" to unblock
 			= "good global path" (or)

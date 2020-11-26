@@ -5,8 +5,8 @@
 Supervisor::Supervisor()
 : plan_()
 , client_action_("move_base", true)
-, dur_replan_(0.5)
-, dur_replan_blocked_(0.7)
+, freq_replan_(2)
+, freq_replan_blocked_(2)
 , dur_check_pose_blocked_(0.1)
 , nb_replan_success_to_unblock_(1)
 , absolute_path_length_diff_threshold_(1)
@@ -216,7 +216,7 @@ void Supervisor::FSM()
 							{
 								ROS_INFO("Test for resend");
 								if(client_action_.getState() == actionlib::SimpleClientGoalState::LOST
-								|| goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > dur_replan_))
+								|| goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > freq_replan_.expectedCycleTime()))
 								{
 									ROS_INFO("=> Resend !");
 									client_action_.sendGoal((*curr_action).action);
@@ -270,7 +270,7 @@ void Supervisor::FSM()
 					{
 						case ABORTED:
 						case LONGER:
-							if(ros::Time::now() - last_replan_ > dur_replan_blocked_)
+							if(ros::Time::now() - last_replan_ > freq_replan_blocked_.expectedCycleTime())
 							{
 								ROS_INFO("try to replan");
 
@@ -348,7 +348,7 @@ void Supervisor::FSM()
 								first_not_feasible_=false;
 							}
 
-							if(ros::Time::now() - last_replan_ > dur_replan_)
+							if(ros::Time::now() - last_replan_ > freq_replan_.expectedCycleTime())
 							{
 								ROS_INFO("send goal");
 								client_action_.sendGoal((*curr_action).action);
