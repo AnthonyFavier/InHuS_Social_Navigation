@@ -72,6 +72,8 @@ private:
 	void setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg);
 	ros::Subscriber sub_new_goal_;
 	void newGoalCallback(const human_sim::Goal::ConstPtr& goal);
+	ros::Subscriber sub_stop_cmd_;
+	void stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd);
 
 	// Publishers //
 	ros::Publisher pub_new_goal_;
@@ -111,7 +113,7 @@ private:
 	const float ratio_perturbation_;
 
 	// chance to find a new goal
-	const ros::Duration delay_think_about_new_goal_;
+	const ros::Rate freq_think_about_new_goal_;
 	const int chance_decide_new_goal_;
 	ros::Time last_time_;
 
@@ -122,7 +124,7 @@ private:
 
 	// Harass
 	const float dist_in_front_;
-	const ros::Duration delay_harass_replan_;
+	const ros::Rate freq_harass_replan_;
 	ros::Time last_harass_;
 };
 

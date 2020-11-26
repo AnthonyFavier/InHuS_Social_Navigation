@@ -8,11 +8,11 @@ bool rcb=false;
 HumanModel::HumanModel()
 : ratio_perturbation_(0)  //=0.2; => +/- 20% of value
 , chance_decide_new_goal_(30) //x%
-, delay_think_about_new_goal_(ros::Duration(2)) // x% chance every 2s
+, freq_think_about_new_goal_(0.5) // x% chance every 2s - 0.5Hz
 , dist_near_robot_(2)
 , duration_stopped_(2)
 , dist_in_front_(2)
-, delay_harass_replan_(ros::Duration(0.5))
+, freq_harass_replan_(2)
 {
 	srand(time(NULL));
 
@@ -22,6 +22,7 @@ HumanModel::HumanModel()
 	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanModel::goalDoneCallback, this);
 	sub_set_behavior_ = 	nh_.subscribe("/boss/human/set_behavior", 100, &HumanModel::setBehaviorCallback, this);
 	sub_new_goal_ =		nh_.subscribe("/boss/human/new_goal", 100, &HumanModel::newGoalCallback, this);
+	sub_stop_cmd_ = 	nh_.subscribe("stop_cmd", 100, &HumanModel::stopCmdCallback, this);
 
 	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("/boss/human/new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
@@ -131,19 +132,22 @@ void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 
 void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-	if(behavior_ != STOP_LOOK || sub_stop_look_ != LOOK_AT_ROBOT)
-	{
-		geometry_msgs::Twist perturbated_cmd;
+	geometry_msgs::Twist perturbated_cmd;
 
-		perturbated_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
-		perturbated_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
-		perturbated_cmd.linear.z = 0;
-		perturbated_cmd.angular.x = 0;
-		perturbated_cmd.angular.y = 0;
-		perturbated_cmd.angular.z = msg->angular.z; // no angular perturbation
+	perturbated_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
+	perturbated_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
+	perturbated_cmd.linear.z = 0;
+	perturbated_cmd.angular.x = 0;
+	perturbated_cmd.angular.y = 0;
+	perturbated_cmd.angular.z = msg->angular.z; // no angular perturbation
 
-		pub_perturbated_cmd_.publish(perturbated_cmd);
-	}
+	pub_perturbated_cmd_.publish(perturbated_cmd);
+}
+
+void HumanModel::stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd)
+{
+	if((behavior_ != HARASS) && (behavior_ != STOP_LOOK || sub_stop_look_ != LOOK_AT_ROBOT))
+		pub_perturbated_cmd_.publish(*cmd);
 }
 
 void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
@@ -285,7 +289,7 @@ void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 
 void HumanModel::newRandomGoalGeneration()
 {
-	if(ros::Time::now()-last_time_> delay_think_about_new_goal_)
+	if(ros::Time::now()-last_time_> freq_think_about_new_goal_.expectedCycleTime())
 	{
 		int nb = rand()%100 + 1;
 		ROS_INFO("Tirage %d/%d", nb, chance_decide_new_goal_);
@@ -456,7 +460,7 @@ void HumanModel::harassRobot()
 				break;
 			}
 		case HARASSING:
-			if(ros::Time::now() > last_harass_ + delay_harass_replan_)
+			if(ros::Time::now() > last_harass_ + freq_harass_replan_.expectedCycleTime())
 			{
 				Pose2D in_front;
 				in_front.x = model_robot_pose_.x + cos(model_robot_pose_.theta)*dist_in_front_;
