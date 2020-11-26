@@ -10,6 +10,7 @@ HumanModel::HumanModel()
 , chance_decide_new_goal_(30) //x%
 , delay_think_about_new_goal_(ros::Duration(2)) // x% chance every 2s
 , dist_near_robot_(2)
+, duration_stopped_(2)
 , dist_in_front_(2)
 , delay_harass_replan_(ros::Duration(0.5))
 {
@@ -343,6 +344,9 @@ void HumanModel::stopLookRobot()
 				human_sim::SetGetGoal srv_set;
 				client_set_get_goal_.call(srv_set);
 
+				// Get time
+				time_stopped_ = ros::Time::now();
+
 				sub_stop_look_=LOOK_AT_ROBOT;
 				break;
 			}
@@ -395,8 +399,7 @@ void HumanModel::stopLookRobot()
 				}
 				pub_perturbated_cmd_.publish(cmd);
 
-				ROS_INFO("threshold=%f dist=%f\n", dist_near_robot_*1.1, sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2)));
-				if(sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2))>dist_near_robot_*1.1)
+				if(ros::Time::now() - time_stopped_ > duration_stopped_)
 				{
 					ROS_INFO("NEW GOALLLLL\n");
 					sub_stop_look_=NEW_GOAL;
