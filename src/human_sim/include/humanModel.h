@@ -116,6 +116,8 @@ private:
 
 	// Near robot distance
 	const float dist_near_robot_;
+	ros::Time time_stopped_;
+	const ros::Duration duration_stopped_;
 
 	// Harass
 	const float dist_in_front_;
