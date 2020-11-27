@@ -6,16 +6,34 @@ bool rcb=false;
 /////////////////////// HUMAN MODEL ///////////////////////
 
 HumanModel::HumanModel()
-: ratio_perturbation_(0)  //=0.2; => +/- 20% of value
-, chance_decide_new_goal_(30) //x%
-, freq_think_about_new_goal_(0.5) // x% chance every 2s - 0.5Hz
-, dist_near_robot_(2)
-, duration_stopped_(2)
-, dist_in_front_(2)
-, freq_harass_replan_(2)
+: b_stop_look_stop_dur_(1)
+, b_harass_replan_freq_(1)
+, b_random_try_freq_(1) 
 {
 	srand(time(NULL));
 
+	// Ros Params
+	ros::NodeHandle private_nh("~");
+	std::string str;
+	float f_nb;
+	private_nh.param(std::string("ratio_perturbation_cmd"), ratio_perturbation_cmd_, float(0.0));
+	private_nh.param(std::string("b_random_chance_choose"), b_random_chance_choose_, int(30));
+	private_nh.param(std::string("b_random_try_freq"), f_nb, float(0.5)); b_random_try_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("b_stop_look_dist_near_robot"), b_stop_look_dist_near_robot_, float(2.0));
+	private_nh.param(std::string("b_stop_look_stop_dur"), f_nb, float(2.0)); b_stop_look_stop_dur_ = ros::Duration(f_nb);
+	private_nh.param(std::string("b_harass_dist_in_front"), b_harass_dist_in_front_, float(2.0));
+	private_nh.param(std::string("b_harass_replan_freq"), f_nb, float(2.0)); b_harass_replan_freq_ = ros::Rate(f_nb);
+	
+	ROS_INFO("Params:");
+	ROS_INFO("ratio_perturbation_cmd=%f", ratio_perturbation_cmd_);
+	ROS_INFO("b_random_try_freq=%f", b_random_try_freq_.expectedCycleTime().toSec());
+	ROS_INFO("b_random_chance_choose=%d", b_random_chance_choose_);
+	ROS_INFO("b_stop_look_dist_near_robot=%f", b_stop_look_dist_near_robot_);
+	ROS_INFO("b_stop_look_stop_dur=%f", b_stop_look_stop_dur_.toSec());
+	ROS_INFO("b_harass_dist_in_front=%f", b_harass_dist_in_front_);
+	ROS_INFO("b_harass_replan_freq=%f", b_harass_replan_freq_.expectedCycleTime().toSec());
+
+	// Subscribers
 	sub_pose_ = 	 	nh_.subscribe("sim/human_pose", 100, &HumanModel::poseCallback, this);
 	sub_robot_pose_ =	nh_.subscribe("sim/robot_pose", 100, &HumanModel::robotPoseCallback, this);
 	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
@@ -24,6 +42,7 @@ HumanModel::HumanModel()
 	sub_new_goal_ =		nh_.subscribe("/boss/human/new_goal", 100, &HumanModel::newGoalCallback, this);
 	sub_stop_cmd_ = 	nh_.subscribe("stop_cmd", 100, &HumanModel::stopCmdCallback, this);
 
+	// Publishers
 	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("/boss/human/new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
@@ -32,14 +51,17 @@ HumanModel::HumanModel()
 	pub_goal_move_base_ =	nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
 
+	// Service servers
 	service_ = 		nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 
+	// Service clients
 	client_set_get_goal_ = 		nh_.serviceClient<human_sim::SetGetGoal>("set_get_goal");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
 	client_get_choice_goal_decision_ = nh_.serviceClient<human_sim::GetChoiceGoalDecision>("get_choiceGoalDecision");
 
 	ROS_INFO("I am human");
 
+	// Init
 	Pose2D zero;
 	zero.x = 	0;
 	zero.y = 	0;
@@ -137,8 +159,8 @@ void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 	geometry_msgs::Twist perturbated_cmd;
 
-	perturbated_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
-	perturbated_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_*((float)(rand()%300-100)/100.0));
+	perturbated_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
+	perturbated_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
 	perturbated_cmd.linear.z = 0;
 	perturbated_cmd.angular.x = 0;
 	perturbated_cmd.angular.y = 0;
@@ -252,8 +274,8 @@ void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 		current_goal_.y = 	goal->y;
 		current_goal_.theta = 	goal->theta;
 
-		ROS_INFO("CB current_goal = %f,%f", current_goal_.x, current_goal_.y);
-		ROS_INFO("CB previous_goal = %f,%f", previous_goal_.x, previous_goal_.y);
+		ROS_INFO("CB current_goal = %.2f,%.2f", current_goal_.x, current_goal_.y);
+		ROS_INFO("CB previous_goal = %.2f,%.2f", previous_goal_.x, previous_goal_.y);
 	}
 
 	executing_plan_ = true;
@@ -295,11 +317,11 @@ void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 
 void HumanModel::newRandomGoalGeneration()
 {
-	if(ros::Time::now()-last_time_> freq_think_about_new_goal_.expectedCycleTime())
+	if(ros::Time::now()-last_time_> b_random_try_freq_.expectedCycleTime())
 	{
 		int nb = rand()%100 + 1;
-		ROS_INFO("Tirage %d/%d", nb, chance_decide_new_goal_);
-		if(nb < chance_decide_new_goal_)
+		ROS_INFO("Tirage %d/%d", nb, b_random_chance_choose_);
+		if(nb < b_random_chance_choose_)
 		{
 			ROS_INFO("DECIDE NEW GOAL ! ");
 			human_sim::Goal previous_goal = current_goal_;
@@ -324,8 +346,8 @@ void HumanModel::stopLookRobot()
 		case WAIT_ROBOT:
 			{
 				float dist = sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2));
-				ROS_INFO("threshold=%f dist=%f", dist_near_robot_, dist);
-				if(dist<dist_near_robot_)
+				ROS_INFO("threshold=%f dist=%f", b_stop_look_dist_near_robot_, dist);
+				if(dist<b_stop_look_dist_near_robot_)
 					sub_stop_look_=STOP;
 				break;
 			}
@@ -414,7 +436,7 @@ void HumanModel::stopLookRobot()
 				}
 				pub_perturbated_cmd_.publish(cmd);
 
-				if(ros::Time::now() - time_stopped_ > duration_stopped_)
+				if(ros::Time::now() - time_stopped_ > b_stop_look_stop_dur_)
 					sub_stop_look_=RESUME_GOAL;
 				break;
 			}
@@ -455,7 +477,7 @@ void HumanModel::stopLookRobot()
 			{
 				// Wait for robot to get far enough to reset
 				float dist = sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2));
-				if(dist>dist_near_robot_)
+				if(dist>b_stop_look_dist_near_robot_)
 				{
 					ROS_INFO("Reset STOP_LOOK");
 					sub_stop_look_=WAIT_ROBOT;
@@ -484,11 +506,11 @@ void HumanModel::harassRobot()
 				break;
 			}
 		case HARASSING:
-			if(ros::Time::now() > last_harass_ + freq_harass_replan_.expectedCycleTime())
+			if(ros::Time::now() > last_harass_ + b_harass_replan_freq_.expectedCycleTime())
 			{
 				Pose2D in_front;
-				in_front.x = model_robot_pose_.x + cos(model_robot_pose_.theta)*dist_in_front_;
-				in_front.y = model_robot_pose_.y + sin(model_robot_pose_.theta)*dist_in_front_;
+				in_front.x = model_robot_pose_.x + cos(model_robot_pose_.theta)*b_harass_dist_in_front_;
+				in_front.y = model_robot_pose_.y + sin(model_robot_pose_.theta)*b_harass_dist_in_front_;
 				in_front.theta = model_robot_pose_.theta;
 
 				move_base_msgs::MoveBaseActionGoal goal;

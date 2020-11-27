@@ -3,9 +3,17 @@
 ///////////////////// PLACE ROBOT MAP //////////////////////
 
 PlaceRobotMap::PlaceRobotMap()
-: size_rob_(0.5)
-, dist_threshold_(5)
 {
+	// Ros Params
+	ros::NodeHandle private_nh("~");
+	private_nh.param(std::string("size_rob"), size_rob_, float(0.5));
+	private_nh.param(std::string("dist_threshold"), dist_threshold_, float(5.0));
+
+	ROS_INFO("Params:");
+	ROS_INFO("size_rob=%f", size_rob_);
+	ROS_INFO("dist_threshold=%f", dist_threshold_);
+
+	// Init
 	robot_pose_.x = 	0;
 	robot_pose_.y = 	0;
 	robot_pose_.theta = 	0;

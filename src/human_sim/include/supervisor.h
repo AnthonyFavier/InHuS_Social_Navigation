@@ -102,18 +102,18 @@ private:
 	bool first_not_feasible_;
 
 	int goal_aborted_count_;
-	const ros::Rate freq_replan_;
-	const ros::Rate freq_replan_blocked_;
-	const ros::Duration dur_check_pose_blocked_;
-	const int nb_replan_success_to_unblock_;
+	ros::Rate replan_freq_;
+	ros::Rate blocked_ask_path_freq_;
+	ros::Rate not_feasible_freq_check_pose_;
+	int blocked_nb_ask_success_unblock_;
 	ros::Time last_replan_;	
 	int replan_success_nb_;
-	const float absolute_path_length_diff_threshold_;
-	const float ratio_path_length_diff_;
-	const float dist_threshold_not_feasible_;
-	const float theta_threshold_not_feasible_;
-	const int nb_same_human_pose_not_feasible_threshold_;
-	const float dist_stop_replan_;
+	float absolute_path_length_diff_;
+	float ratio_path_length_diff_;
+	float not_feasible_dist_threshold_unblock_;
+	float not_feasible_theta_threshold_unblock_;
+	int not_feasible_nb_same_pose_block_;
+	float replan_dist_stop_;
 
 	nav_msgs::Path current_path_;
 	nav_msgs::Path previous_path_;

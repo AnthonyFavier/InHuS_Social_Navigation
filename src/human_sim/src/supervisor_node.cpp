@@ -5,41 +5,65 @@
 Supervisor::Supervisor()
 : plan_()
 , client_action_("move_base", true)
-, freq_replan_(2)
-, freq_replan_blocked_(2)
-, dur_check_pose_blocked_(0.1)
-, nb_replan_success_to_unblock_(1)
-, absolute_path_length_diff_threshold_(1)
-, ratio_path_length_diff_(1.5)
-, dist_threshold_not_feasible_(0.05)
-, theta_threshold_not_feasible_(0.02)
-, nb_same_human_pose_not_feasible_threshold_(3)
-, dist_stop_replan_(0.5)
+, replan_freq_(1)
+, blocked_ask_path_freq_(1)
+, not_feasible_freq_check_pose_(1)
 {
 	///////////////////////////////////
 	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
 	///////////////////////////////////
+	
+	// Ros Params
+	ros::NodeHandle private_nh("~");
+	float f_nb;
+	private_nh.param(std::string("replan_freq"), f_nb, float(2.0)); replan_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("replan_dist_stop"), replan_dist_stop_, float(0.5));
+	private_nh.param(std::string("not_feasible_freq_check_pose"), f_nb, float(10.0)); not_feasible_freq_check_pose_ = ros::Rate(f_nb);
+	private_nh.param(std::string("not_feasible_nb_same_pose_block"), not_feasible_nb_same_pose_block_, int(3));
+	private_nh.param(std::string("not_feasible_dist_threshold_unblock"), not_feasible_dist_threshold_unblock_, float(0.05));
+	private_nh.param(std::string("not_feasible_theta_threshold_unblock"), not_feasible_theta_threshold_unblock_, float(0.02));
+	private_nh.param(std::string("blocked_ask_path_freq"), f_nb, float(2.0)); blocked_ask_path_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("blocked_nb_ask_success_unblock"), blocked_nb_ask_success_unblock_, int(1));
+	private_nh.param(std::string("absolute_path_length_diff"), absolute_path_length_diff_, float(1.0));
+	private_nh.param(std::string("ratio_path_length_diff"), ratio_path_length_diff_, float(1.5));
 
+	ROS_INFO("Params:");
+	ROS_INFO("replan_freq=%f", replan_freq_.expectedCycleTime().toSec());
+	ROS_INFO("replan_dist_stop=%f", replan_dist_stop_);
+	ROS_INFO("not_feasible_freq_check_pose=%f", not_feasible_freq_check_pose_.expectedCycleTime().toSec());
+	ROS_INFO("not_feasible_nb_same_pose_block=%d", not_feasible_nb_same_pose_block_);
+	ROS_INFO("not_feasible_dist_threshold_unblock=%f", not_feasible_dist_threshold_unblock_);
+	ROS_INFO("not_feasible_theta_threshold_unblock=%f", not_feasible_theta_threshold_unblock_);
+	ROS_INFO("blocked_ask_path_freq=%f", blocked_ask_path_freq_.expectedCycleTime().toSec());
+	ROS_INFO("blocked_nb_ask_success_unblock=%d", blocked_nb_ask_success_unblock_);
+	ROS_INFO("absolute_path_length_diff=%f", absolute_path_length_diff_);
+	ROS_INFO("ratio_path_length_diff=%f", ratio_path_length_diff_);
+
+	// Service clients
 	client_plan_ = 			nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
 	client_goal_ = 			nh_.serviceClient<human_sim::ChooseGoal>("choose_goal");
 	client_make_plan_ =		nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
 	client_cancel_goal_and_stop_= 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
 
+	// Subscribers
 	sub_human_pose_ = 	nh_.subscribe("human_model/human_pose", 100, &Supervisor::humanPoseCallback, this);
 	sub_new_goal_  = 	nh_.subscribe("/boss/human/new_goal", 100, &Supervisor::newGoalCallback, this);
 	sub_teleop_boss_ =	nh_.subscribe("/boss/human/teleoperation", 100, &Supervisor::teleopBossCallback, this);
 	sub_operating_mode_ =	nh_.subscribe("/boss/human/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
 	sub_path_ =		nh_.subscribe("move_base/GlobalPlanner/plan", 100, &Supervisor::pathCallback, this);
 
+	// Publishers
 	pub_teleop_ = 		nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
 	pub_goal_done_ = 	nh_.advertise<human_sim::Goal>("goal_done", 100);
 	pub_log_ =		nh_.advertise<std_msgs::String>("log", 100);
 	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
 	pub_stop_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("stop_cmd", 100);
 
+	// Service servers
 	service_set_get_goal_ =			nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
 	service_get_choiceGoalDecision_ = 	nh_.advertiseService("get_choiceGoalDecision", &Supervisor::getChoiceGoalDecision, this);
 
+	// Init
 	marker_rviz_.header.frame_id = 		"map";
 	marker_rviz_.type = 			3;
 	marker_rviz_.pose.position.x = 		0;
@@ -212,11 +236,11 @@ void Supervisor::FSM()
 
 							}
 							// If not too close, try to replan
-							else if(sqrt(pow(human_pose_.x-(*curr_action).action.target_pose.pose.position.x,2) + pow(human_pose_.y-(*curr_action).action.target_pose.pose.position.y,2)) > dist_stop_replan_)
+							else if(sqrt(pow(human_pose_.x-(*curr_action).action.target_pose.pose.position.x,2) + pow(human_pose_.y-(*curr_action).action.target_pose.pose.position.y,2)) > replan_dist_stop_)
 							{
 								ROS_INFO("Test for resend");
 								if(client_action_.getState() == actionlib::SimpleClientGoalState::LOST
-								|| goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > freq_replan_.expectedCycleTime()))
+								|| goal_aborted_count_==0 && (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
 								{
 									ROS_INFO("=> Resend !");
 									client_action_.sendGoal((*curr_action).action);
@@ -270,7 +294,7 @@ void Supervisor::FSM()
 					{
 						case ABORTED:
 						case LONGER:
-							if(ros::Time::now() - last_replan_ > freq_replan_blocked_.expectedCycleTime())
+							if(ros::Time::now() - last_replan_ > blocked_ask_path_freq_.expectedCycleTime())
 							{
 								ROS_INFO("try to replan");
 
@@ -298,13 +322,13 @@ void Supervisor::FSM()
 
 										// If new path is 'good'
 										if(previous_path_length == 0								// if no path was found before
-										|| abs(response_path_length-previous_path_length)<absolute_path_length_diff_threshold_	// if close enough in absolute
+										|| abs(response_path_length-previous_path_length)<absolute_path_length_diff_	// if close enough in absolute
 										|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if clone enough relatively
 										{
 											replan_success_nb_++;
 											ROS_INFO("One success ! replan_success_nb = %d", replan_success_nb_);
 
-											if(replan_success_nb_ >= nb_replan_success_to_unblock_)
+											if(replan_success_nb_ >= blocked_nb_ask_success_unblock_)
 											{
 												ROS_INFO("replan successfully !");
 												replan_success_nb_ = 0;
@@ -348,16 +372,16 @@ void Supervisor::FSM()
 								first_not_feasible_=false;
 							}
 
-							if(ros::Time::now() - last_replan_ > freq_replan_.expectedCycleTime())
+							if(ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime())
 							{
 								ROS_INFO("send goal");
 								client_action_.sendGoal((*curr_action).action);
 								this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
 								last_replan_ = ros::Time::now();
 
-								if(abs(human_pose_.x-last_human_pose.x) > dist_threshold_not_feasible_
-								|| abs(human_pose_.y-last_human_pose.y) > dist_threshold_not_feasible_
-								|| abs(human_pose_.theta-last_human_pose.theta) > theta_threshold_not_feasible_)
+								if(abs(human_pose_.x-last_human_pose.x) > not_feasible_dist_threshold_unblock_
+								|| abs(human_pose_.y-last_human_pose.y) > not_feasible_dist_threshold_unblock_
+								|| abs(human_pose_.theta-last_human_pose.theta) > not_feasible_theta_threshold_unblock_)
 								{
 									ROS_INFO("We moved !");
 									first_blocked_ = true;
@@ -432,7 +456,7 @@ bool Supervisor::checkPlanFailure()
 		float current_path_length = this->computePathLength(&current_path_);
 		float previous_path_length = this->computePathLength(&previous_path_);
 
-		if(abs(current_path_length-previous_path_length) > absolute_path_length_diff_threshold_ 	// if difference big enough in absolute
+		if(abs(current_path_length-previous_path_length) > absolute_path_length_diff_ 	// if difference big enough in absolute
 		&& current_path_length > ratio_path_length_diff_*previous_path_length)   			// and if difference big enough relatively 
 		{
 			ROS_INFO("Checked CHANGED TOO MUCH");
@@ -443,13 +467,13 @@ bool Supervisor::checkPlanFailure()
 	}
 
 	// Check if trajectory not feasible, thus if not moving for too long
-	if(ros::Time::now() - last_check_human_pose > dur_check_pose_blocked_)
+	if(ros::Time::now() - last_check_human_pose > not_feasible_freq_check_pose_.expectedCycleTime())
 	{
 		ROS_INFO("check not feasible");
 		// if current pose is close enough to previous one
-		if(abs(human_pose_.x - last_human_pose.x) < dist_threshold_not_feasible_
-		&& abs(human_pose_.y - last_human_pose.y) < dist_threshold_not_feasible_
-		&& abs(human_pose_.theta - last_human_pose.theta) < theta_threshold_not_feasible_)
+		if(abs(human_pose_.x - last_human_pose.x) < not_feasible_dist_threshold_unblock_
+		&& abs(human_pose_.y - last_human_pose.y) < not_feasible_dist_threshold_unblock_
+		&& abs(human_pose_.theta - last_human_pose.theta) < not_feasible_theta_threshold_unblock_)
 		{
 			same_human_pose_count++;
 			ROS_INFO("SAME %d", same_human_pose_count);
@@ -463,7 +487,7 @@ bool Supervisor::checkPlanFailure()
 
 		last_check_human_pose = ros::Time::now();
 
-		if(same_human_pose_count > nb_same_human_pose_not_feasible_threshold_)
+		if(same_human_pose_count > not_feasible_nb_same_pose_block_)
 		{
 			ROS_INFO("Checked NOT FEASIBLE");
 			same_human_pose_count = 0;

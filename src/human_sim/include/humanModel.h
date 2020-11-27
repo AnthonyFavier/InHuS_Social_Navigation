@@ -112,21 +112,21 @@ private:
 	bool new_goal_sent_;
 
 	// ratio perturbation
-	const float ratio_perturbation_;
+	float ratio_perturbation_cmd_;
 
 	// chance to find a new goal
-	const ros::Rate freq_think_about_new_goal_;
-	const int chance_decide_new_goal_;
+	ros::Rate b_random_try_freq_;
+	int b_random_chance_choose_;
 	ros::Time last_time_;
 
 	// Near robot distance
-	const float dist_near_robot_;
+	float b_stop_look_dist_near_robot_;
 	ros::Time time_stopped_;
-	const ros::Duration duration_stopped_;
+	ros::Duration b_stop_look_stop_dur_;
 
 	// Harass
-	const float dist_in_front_;
-	const ros::Rate freq_harass_replan_;
+	float b_harass_dist_in_front_;
+	ros::Rate b_harass_replan_freq_;
 	ros::Time last_harass_;
 };
 

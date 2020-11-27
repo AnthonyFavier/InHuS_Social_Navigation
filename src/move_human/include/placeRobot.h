@@ -30,8 +30,8 @@ private:
 	sensor_msgs::PointCloud2 empty_PointCloud2_;
 	ros::Publisher robot_pose_pub_;
 
-	const float size_rob_;
-	const float dist_threshold_;
+	float size_rob_;
+	float dist_threshold_;
 	bool robot_near_;
 };
 

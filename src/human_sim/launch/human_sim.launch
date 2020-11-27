@@ -3,7 +3,7 @@
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find human_sim)/config.rviz"/>
 
 	<node name="human_model_node" type="human_model_node" pkg="human_sim" ns="human" output="screen" launch-prefix="xterm -geometry '80x25+1470+0' -e"/>
-	<node name="task_planner_node" type="task_planner_node" pkg="human_sim" ns="human"/> <!--output="screen" launch-prefix="xterm -geometry '80x25+980+0' -e"/-->
+	<node name="task_planner_node" type="task_planner_node" pkg="human_sim" ns="human"/> 
 	<node name="supervisor_node" type="supervisor_node" pkg="human_sim" ns="human" output="screen" launch-prefix="xterm -geometry '156x25+0+0' -e"/>
 	<node name="preprocessing_h_node" type="preprocessing_h_node" pkg="human_sim" ns="human"/>
 	<node name="log_manager_node" type="log_manager_node" pkg="human_sim" ns="human"/>
