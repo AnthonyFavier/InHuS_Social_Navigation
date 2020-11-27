@@ -15,9 +15,9 @@ void Plan::addAction(Action action)
 
 void Plan::show()
 {
-	printf("Plan: size=%d\n", (int)action_series_.size());
+	ROS_INFO("Plan: size=%d\n", (int)action_series_.size());
 	for(int i=0; i<action_series_.size(); i++)
-		printf("\tpose= (%f, %f) state=%d\n", action_series_[i].action.target_pose.pose.position.x, action_series_[i].action.target_pose.pose.position.y, action_series_[i].state);
+		ROS_INFO("\tpose= (%.2f, %.2f) state=%d\n", action_series_[i].action.target_pose.pose.position.x, action_series_[i].action.target_pose.pose.position.y, action_series_[i].state);
 }
 
 void Plan::clear()

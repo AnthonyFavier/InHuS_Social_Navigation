@@ -438,7 +438,7 @@ bool Supervisor::checkPlanFailure()
 	{
 		goal_aborted_count_++;
 		ROS_INFO("Aborted detected %d", goal_aborted_count_);
-		if(goal_aborted_count_ < 2)
+		if(goal_aborted_count_ >= 1)
 		{
 			ROS_INFO("Checked ABORTED");
 			goal_aborted_count_ = 0;
