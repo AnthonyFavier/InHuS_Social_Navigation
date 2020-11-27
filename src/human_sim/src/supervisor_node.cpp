@@ -236,7 +236,7 @@ void Supervisor::FSM()
 
 							}
 							// If not too close, try to replan
-							else if(sqrt(pow(human_pose_.x-(*curr_action).action.target_pose.pose.position.x,2) + pow(human_pose_.y-(*curr_action).action.target_pose.pose.position.y,2)) > replan_dist_stop_)
+							else if(computePathLength(&current_path_) > replan_dist_stop_)
 							{
 								ROS_INFO("Test for resend");
 								if(client_action_.getState() == actionlib::SimpleClientGoalState::LOST
