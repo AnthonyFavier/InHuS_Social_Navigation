@@ -40,6 +40,7 @@ private:
 	void askPlan();
 	void updateMarkerPose(float x, float y, float alpha);
 	void init();
+	void initCheckFailure();
 	float computePathLength(const nav_msgs::Path* path);
 
 ////////// ATTRIBUTES ////////// 
@@ -114,6 +115,10 @@ private:
 	float not_feasible_theta_threshold_unblock_;
 	int not_feasible_nb_same_pose_block_;
 	float replan_dist_stop_;
+
+	int same_human_pose_count_;
+	Pose2D last_human_pose_;
+	ros::Time last_check_human_pose_;
 
 	nav_msgs::Path current_path_;
 	nav_msgs::Path previous_path_;

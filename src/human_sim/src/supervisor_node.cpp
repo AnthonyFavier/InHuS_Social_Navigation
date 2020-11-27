@@ -114,6 +114,14 @@ void Supervisor::init()
 	replan_success_nb_ = 	0;
 	goal_aborted_count_ = 	0;
 	last_replan_ = 		ros::Time::now();
+	this->initCheckFailure();
+}
+
+void Supervisor::initCheckFailure()
+{
+	same_human_pose_count_ = 0;
+	last_human_pose_ = human_pose_;
+	last_check_human_pose_ = ros::Time::now();
 }
 
 void Supervisor::FSM()
@@ -122,7 +130,7 @@ void Supervisor::FSM()
 	switch(state_global_)
 	{
 		case GET_GOAL:
-			ROS_INFO("GET_GOAL");
+			ROS_INFO("\t => GET_GOAL <=");
 			switch(choice_goal_decision_)
 			{
 				case AUTONOMOUS:
@@ -151,14 +159,14 @@ void Supervisor::FSM()
 			break;
 
 		case ASK_PLAN:
-			ROS_INFO("ASK_PLAN");
+			ROS_INFO("\t => ASK_PLAN <=");
 			this->askPlan();
 			plan_.show();
 			state_global_ = EXEC_PLAN;
 			break;
 
 		case EXEC_PLAN:
-			ROS_INFO("EXEC_PLAN");
+			ROS_INFO("\t => EXEC_PLAN <=");
 			msg_.data = "SUPERVISOR STATE EXEC " + std::to_string(ros::Time::now().toSec());
 			pub_log_.publish(msg_);
 			ROS_INFO("current_goal : %s (%f, %f, %f)", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
@@ -210,6 +218,7 @@ void Supervisor::FSM()
 							previous_path_.poses.clear();
 							client_action_.sendGoal((*curr_action).action);
 							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
+							this->initCheckFailure();
 							(*curr_action).state=PROGRESS;
 							break;
 
@@ -248,11 +257,12 @@ void Supervisor::FSM()
 									last_replan_ = ros::Time::now();
 								}
 							}
+
+
+							if(this->checkPlanFailure())
+								state_global_ = BLOCKED_BY_ROBOT;
 							break;
 					}
-
-					if(this->checkPlanFailure())
-						state_global_ = BLOCKED_BY_ROBOT;
 				}
 				else
 				{
@@ -280,7 +290,7 @@ void Supervisor::FSM()
 			{
 				if(first_blocked_)
 				{
-					ROS_INFO("BLOCKED_BY_ROBOT");
+					ROS_INFO("\t => BLOCKED_BY_ROBOT <=");
 					human_sim::CancelGoalAndStop srv;
 					client_cancel_goal_and_stop_.call(srv);
 					client_action_.stopTrackingGoal();
@@ -408,30 +418,24 @@ void Supervisor::FSM()
 
 bool Supervisor::checkPlanFailure()
 {
-	ROS_INFO("CLIENT STATE : ");
+	ROS_INFO("CheckPlanFailure");
 	actionlib::SimpleClientGoalState state = client_action_.getState();
 	if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
-		ROS_INFO("SUCCEEDED");
+		ROS_INFO("CLIENT STATE : SUCCEEDED");
 	else if(state == actionlib::SimpleClientGoalState::PENDING)
-		ROS_INFO("PENDING");
+		ROS_INFO("CLIENT STATE : PENDING");
 	else if(state == actionlib::SimpleClientGoalState::ACTIVE)
-		ROS_INFO("ACTIVE");
+		ROS_INFO("CLIENT STATE : ACTIVE");
 	else if(state == actionlib::SimpleClientGoalState::RECALLED)
-		ROS_INFO("RECALLED");
+		ROS_INFO("CLIENT STATE : RECALLED");
 	else if(state == actionlib::SimpleClientGoalState::REJECTED)
-		ROS_INFO("REJECTED");
+		ROS_INFO("CLIENT STATE : REJECTED");
 	else if(state == actionlib::SimpleClientGoalState::PREEMPTED)
-		ROS_INFO("PREEMPTED");
+		ROS_INFO("CLIENT STATE : PREEMPTED");
 	else if(state == actionlib::SimpleClientGoalState::ABORTED)
-		ROS_INFO("ABORTED");
+		ROS_INFO("CLIENT STATE : ABORTED");
 	else if(state == actionlib::SimpleClientGoalState::LOST)
-		ROS_INFO("LOST");
-
-	static Pose2D last_human_pose = human_pose_;
-	static ros::Time last_check_human_pose = ros::Time::now();
-	static int same_human_pose_count = 0;
-
-	ROS_INFO("check : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
+		ROS_INFO("CLIENT STATE : LOST");
 
 	// Check goal aborted (failure computing a plan)
 	if(state==actionlib::SimpleClientGoalState::ABORTED)
@@ -451,6 +455,7 @@ bool Supervisor::checkPlanFailure()
 		goal_aborted_count_ = 0;
 
 	// Check if path changed too much
+	ROS_INFO("check : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	if((int)previous_path_.poses.size() != 0 && (int)current_path_.poses.size() != 0)
 	{
 		float current_path_length = this->computePathLength(&current_path_);
@@ -467,30 +472,30 @@ bool Supervisor::checkPlanFailure()
 	}
 
 	// Check if trajectory not feasible, thus if not moving for too long
-	if(ros::Time::now() - last_check_human_pose > not_feasible_freq_check_pose_.expectedCycleTime())
+	if(ros::Time::now() - last_check_human_pose_ > not_feasible_freq_check_pose_.expectedCycleTime())
 	{
 		ROS_INFO("check not feasible");
 		// if current pose is close enough to previous one
-		if(abs(human_pose_.x - last_human_pose.x) < not_feasible_dist_threshold_unblock_
-		&& abs(human_pose_.y - last_human_pose.y) < not_feasible_dist_threshold_unblock_
-		&& abs(human_pose_.theta - last_human_pose.theta) < not_feasible_theta_threshold_unblock_)
+		if(abs(human_pose_.x - last_human_pose_.x) < not_feasible_dist_threshold_unblock_
+		&& abs(human_pose_.y - last_human_pose_.y) < not_feasible_dist_threshold_unblock_
+		&& abs(human_pose_.theta - last_human_pose_.theta) < not_feasible_theta_threshold_unblock_)
 		{
-			same_human_pose_count++;
-			ROS_INFO("SAME %d", same_human_pose_count);
+			same_human_pose_count_++;
+			ROS_INFO("SAME %d", same_human_pose_count_);
 		}
 		else
-			same_human_pose_count=0;
+			same_human_pose_count_=0;
 
-		last_human_pose.x = 	human_pose_.x;
-		last_human_pose.y = 	human_pose_.y;
-		last_human_pose.theta = human_pose_.theta;
+		last_human_pose_.x = 	human_pose_.x;
+		last_human_pose_.y = 	human_pose_.y;
+		last_human_pose_.theta = human_pose_.theta;
 
-		last_check_human_pose = ros::Time::now();
+		last_check_human_pose_ = ros::Time::now();
 
-		if(same_human_pose_count > not_feasible_nb_same_pose_block_)
+		if(same_human_pose_count_ >= not_feasible_nb_same_pose_block_)
 		{
 			ROS_INFO("Checked NOT FEASIBLE");
-			same_human_pose_count = 0;
+			same_human_pose_count_ = 0;
 			blocked_state_ = NOT_FEASIBLE;
 			return true;
 		}
