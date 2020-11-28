@@ -9,6 +9,6 @@
 	<node name="log_manager_node" type="log_manager_node" pkg="human_sim" ns="human"/>
 	<node name="controller_node" type="controller_node" pkg="human_sim" ns="human"/>
 	
-	<include file="$(find human_sim)/launch/tester.launch"/>
+	<include file="$(find human_sim)/launch/boss.launch"/>
 
 </launch>
