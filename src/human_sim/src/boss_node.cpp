@@ -3,6 +3,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include "move_base_msgs/MoveBaseGoal.h"
 #include "geometry_msgs/PoseStamped.h"
+#include <std_msgs/Int32.h>
 #include <vector>
 
 #include <iostream>
@@ -102,14 +103,15 @@ int main(int argc, char** argv)
 	string topic_robot = "/move_base_simple/goal";
 	while(ros::ok() && (cout 	<< "1- Simple move_base" << endl 
 					<< "2- HATEB" << endl 
-					<< "which ? ")
+					<< "Choice ? ")
 	&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
 		cleanInput();
-	cout << "choice=" << choice << endl;
 	if(choice == 1)
 		topic_robot = "/robot" + topic_robot;
-	ros::Publisher pub_goal_human = nh.advertise<human_sim::Goal>("/boss/human/new_goal", 1);
 	ros::Publisher pub_goal_robot = nh.advertise<geometry_msgs::PoseStamped>(topic_robot, 1);
+	ros::Publisher pub_goal_human = 	nh.advertise<human_sim::Goal>("/boss/human/new_goal", 1);
+	ros::Publisher pub_operating_mode = 	nh.advertise<std_msgs::Int32>("/boss/human/operating_mode", 1);
+	ros::Publisher pub_set_behavior = 	nh.advertise<std_msgs::Int32>("/boss/human/set_behavior", 1);
 
 	//0// to have easier index
 	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
@@ -176,16 +178,18 @@ int main(int argc, char** argv)
 	while(ros::ok())
 	{
 		for(int i=0; i<10; i++){cout << endl;}
-		while(ros::ok() && (cout	<< "1- Human" << endl 
-						<< "2- Robot" << endl 
+		while(ros::ok() && (cout	<< "1- Human goal" << endl 
+						<< "2- Robot goal" << endl 
 						<< "3- Scenario" << endl 
+						<< "4- Operating mode" << endl
+						<< "5- Set Behavior" << endl
 						<< "Choice ? ")
-		&& (!(cin >> choice) || !(choice>=1 && choice<=3)))
+		&& (!(cin >> choice) || !(choice>=1 && choice<=5)))
 			cleanInput();
 
 		switch(choice)
 		{
-			/* HUMAN */
+			/* HUMAN GOAL */
 			case 1:
 				while(ros::ok() && (cout <<  endl << "Which goal [1-10] ? ")
 				&& (!(cin >> choice) || !(choice>=1 && choice<=10)))
@@ -195,7 +199,7 @@ int main(int argc, char** argv)
 					pub_goal_human.publish(goals[choice].goal);
 				break;
 
-			/* ROBOT */
+			/* ROBOT GOAL */
 			case 2:
 				while(ros::ok() && (cout <<  endl << "Which goal [1-10] ? ")
 				&& (!(cin >> choice) || !(choice>=1 && choice<=10)))
@@ -267,6 +271,9 @@ int main(int argc, char** argv)
 						else
 							{r_goal = 17; h_goal = 18;}
 						break;
+
+					default:
+						break;
 				}
 
 				// Publish goals
@@ -288,6 +295,65 @@ int main(int argc, char** argv)
 				}
 				break;
 			}
+
+			/* OPERATING MODE */
+			case 4:
+			{
+				while(ros::ok() && (cout <<  endl 	<< "1- AUTONOMOUS" << endl
+									<< "2- SPECIFIED" << endl
+									<< "Choice ? ")
+				&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
+					cleanInput();
+	
+				std_msgs::Int32 operating_mode;
+
+				switch(choice)
+				{
+					case 1:
+						operating_mode.data = 0;
+						break;
+					case 2:
+						operating_mode.data = 1;
+						break;
+				}
+				pub_operating_mode.publish(operating_mode);
+				break;
+			}
+
+			/* SET BEHAVIOR */
+			case 5:
+			{
+				while(ros::ok() && (cout <<  endl 	<< "1- NONE" << endl
+									<< "2- RANDOM" << endl
+									<< "3- STOP_LOOK" << endl
+									<< "4- HARASS" << endl
+									<< "Choice ? ")
+				&& (!(cin >> choice) || !(choice>=1 && choice<=4)))
+					cleanInput();
+
+				std_msgs::Int32 set_behavior;
+
+				switch(choice)
+				{
+					case 1:
+						set_behavior.data = 0;
+						break;
+					case 2:
+						set_behavior.data = 1;
+						break;
+					case 3:
+						set_behavior.data = 2;
+						break;
+					case 4:
+						set_behavior.data = 3;
+						break;
+				}
+				pub_set_behavior.publish(set_behavior);
+				break;
+			}
+
+			default:
+				break;
 		}
 	}
 }
