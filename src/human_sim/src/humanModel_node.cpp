@@ -47,17 +47,12 @@ HumanModel::HumanModel()
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
-	pub_op_mode_ = 		nh_.advertise<std_msgs::Int32>("/boss/human/operating_mode", 100);
 	pub_goal_move_base_ =	nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
-
-	// Service servers
-	service_ = 		nh_.advertiseService("choose_goal", &HumanModel::chooseGoalSrv, this);
 
 	// Service clients
 	client_set_get_goal_ = 		nh_.serviceClient<human_sim::SetGetGoal>("set_get_goal");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
-	client_get_choice_goal_decision_ = nh_.serviceClient<human_sim::GetChoiceGoalDecision>("get_choiceGoalDecision");
 
 	ROS_INFO("I am human");
 
@@ -78,7 +73,6 @@ HumanModel::HumanModel()
 
 	previous_goal_=current_goal_;
 
-	was_in_autonomous_ = 	false;
 	executing_plan_ = 	false;
 
 	last_time_ = 	ros::Time::now();
@@ -181,17 +175,6 @@ void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 	executing_plan_ = false;
 }
 
-bool HumanModel::chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res)
-{
-	human_sim::Goal goal = this->chooseGoal(false);
-
-	res.goal.type = 	goal.type;
-	res.goal.x = 		goal.x;
-	res.goal.y = 		goal.y;
-	res.goal.theta = 	goal.theta;
-
-}
-
 human_sim::Goal HumanModel::chooseGoal(bool random)
 {
 	human_sim::Goal goal;
@@ -273,7 +256,6 @@ void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 	ROS_INFO("CB previous_goal = %.2f,%.2f", previous_goal_.x, previous_goal_.y);
 
 	executing_plan_ = true;
-
 	pub_new_goal_.publish(*goal);
 }
 
@@ -285,16 +267,20 @@ void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 		case NONE: //0
 			ROS_INFO("Behavior set : NONE");
 			changed=true;
+			break;	
+		case NON_STOP: //1
+			ROS_INFO("Behavior set : NON_STOP");
+			changed=true;
 			break;
-		case RANDOM: //1
+		case RANDOM: //2
 			ROS_INFO("Behavior set : RANDOM");
 			changed=true;
 			break;
-		case STOP_LOOK: //2
+		case STOP_LOOK: //3
 			ROS_INFO("Behavior set : STOP_LOOK");
 			changed=true;
 			break;
-		case HARASS: //3
+		case HARASS: //4
 			ROS_INFO("Behavior set : HARASS");
 			changed=true;
 			break;
@@ -308,6 +294,19 @@ void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 		behavior_ = (Behavior)msg->data;
 		sub_stop_look_ = WAIT_ROBOT;
 		sub_harass_ = INIT;
+	}
+}
+
+void HumanModel::nonStop()
+{
+	ROS_INFO("NON_STOP");
+	if(!executing_plan_)
+	{
+		ROS_INFO("CHOOSED");
+		human_sim::Goal goal = chooseGoal(false);
+	
+		executing_plan_ = true;
+		pub_new_goal_.publish(goal);
 	}
 }
 
@@ -356,23 +355,6 @@ void HumanModel::stopLookRobot()
 				ROS_INFO("Stopped !");
 				human_sim::CancelGoalAndStop srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
-
-				// Check if was in AUTONOMOUS
-				human_sim::GetChoiceGoalDecision srv;
-				if(client_get_choice_goal_decision_.call(srv))
-					was_in_autonomous_ = srv.response.decision == 0;
-				else
-					ROS_ERROR("Failed to call get choice goal decision service!");
-				ROS_INFO("response = %d", srv.response.decision);
-				if(was_in_autonomous_)
-					ROS_INFO("YES");
-				else
-					ROS_INFO("NO!");
-
-				// Passe en SPECIFIED
-				std_msgs::Int32 msg;
-				msg.data=1;
-				pub_op_mode_.publish(msg);
 
 				// Set global FSM to GET_GOAL
 				human_sim::SetGetGoal srv_set;
@@ -443,22 +425,7 @@ void HumanModel::stopLookRobot()
 				// resume current goal
 				pub_new_goal_.publish(current_goal_);
 				ROS_INFO("sent");
-				// put back in AUTONOMOUS if it was 
-				if(was_in_autonomous_)
-				{
-					static ros::Time start = ros::Time::now();
-					if(ros::Time::now() - start > ros::Duration(1))
-					{
-						ROS_INFO("AUTO SENT!");
-						std_msgs::Int32 msg;
-						msg.data=0;
-						pub_op_mode_.publish(msg);
-
-						sub_stop_look_=OVER;
-					}
-				}
-				else
-					sub_stop_look_=OVER;
+				sub_stop_look_=OVER;
 			}
 			else
 			{
@@ -535,6 +502,10 @@ void HumanModel::behaviors()
 	switch(behavior_)
 	{
 		case NONE:
+			break;
+
+		case NON_STOP:
+			this->nonStop();
 			break;
 
 		case RANDOM:

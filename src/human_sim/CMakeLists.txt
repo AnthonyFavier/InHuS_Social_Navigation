@@ -25,10 +25,8 @@ add_message_files(
 add_service_files(
   FILES
   ComputePlan.srv
-  ChooseGoal.srv
   SetGetGoal.srv
   CancelGoalAndStop.srv
-  GetChoiceGoalDecision.srv
 )
 
 generate_messages(

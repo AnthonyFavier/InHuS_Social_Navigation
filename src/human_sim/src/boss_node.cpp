@@ -110,7 +110,6 @@ int main(int argc, char** argv)
 		topic_robot = "/robot" + topic_robot;
 	ros::Publisher pub_goal_robot = nh.advertise<geometry_msgs::PoseStamped>(topic_robot, 1);
 	ros::Publisher pub_goal_human = 	nh.advertise<human_sim::Goal>("/boss/human/new_goal", 1);
-	ros::Publisher pub_operating_mode = 	nh.advertise<std_msgs::Int32>("/boss/human/operating_mode", 1);
 	ros::Publisher pub_set_behavior = 	nh.advertise<std_msgs::Int32>("/boss/human/set_behavior", 1);
 
 	//0// to have easier index
@@ -181,10 +180,9 @@ int main(int argc, char** argv)
 		while(ros::ok() && (cout	<< "1- Human goal" << endl 
 						<< "2- Robot goal" << endl 
 						<< "3- Scenario" << endl 
-						<< "4- Operating mode" << endl
-						<< "5- Set Behavior" << endl
+						<< "4- Set Behavior" << endl
 						<< "Choice ? ")
-		&& (!(cin >> choice) || !(choice>=1 && choice<=5)))
+		&& (!(cin >> choice) || !(choice>=1 && choice<=4)))
 			cleanInput();
 
 		switch(choice)
@@ -296,39 +294,16 @@ int main(int argc, char** argv)
 				break;
 			}
 
-			/* OPERATING MODE */
+			/* SET BEHAVIOR */
 			case 4:
 			{
-				while(ros::ok() && (cout <<  endl 	<< "1- AUTONOMOUS" << endl
-									<< "2- SPECIFIED" << endl
-									<< "Choice ? ")
-				&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
-					cleanInput();
-	
-				std_msgs::Int32 operating_mode;
-
-				switch(choice)
-				{
-					case 1:
-						operating_mode.data = 0;
-						break;
-					case 2:
-						operating_mode.data = 1;
-						break;
-				}
-				pub_operating_mode.publish(operating_mode);
-				break;
-			}
-
-			/* SET BEHAVIOR */
-			case 5:
-			{
 				while(ros::ok() && (cout <<  endl 	<< "1- NONE" << endl
-									<< "2- RANDOM" << endl
-									<< "3- STOP_LOOK" << endl
-									<< "4- HARASS" << endl
+									<< "2- NON_STOP" << endl
+									<< "3- RANDOM" << endl
+									<< "4- STOP_LOOK" << endl
+									<< "5- HARASS" << endl
 									<< "Choice ? ")
-				&& (!(cin >> choice) || !(choice>=1 && choice<=4)))
+				&& (!(cin >> choice) || !(choice>=1 && choice<=5)))
 					cleanInput();
 
 				std_msgs::Int32 set_behavior;

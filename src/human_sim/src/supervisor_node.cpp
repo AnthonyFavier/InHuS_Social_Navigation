@@ -9,10 +9,6 @@ Supervisor::Supervisor()
 , blocked_ask_path_freq_(1)
 , not_feasible_freq_check_pose_(1)
 {
-	///////////////////////////////////
-	choice_goal_decision_ = SPECIFIED; // AUTONOMOUS or SPECIFIED
-	///////////////////////////////////
-	
 	// Ros Params
 	ros::NodeHandle private_nh("~");
 	float f_nb;
@@ -41,14 +37,12 @@ Supervisor::Supervisor()
 
 	// Service clients
 	client_plan_ = 			nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
-	client_goal_ = 			nh_.serviceClient<human_sim::ChooseGoal>("choose_goal");
 	client_make_plan_ =		nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
 	client_cancel_goal_and_stop_= 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
 
 	// Subscribers
 	sub_human_pose_ = 	nh_.subscribe("human_model/human_pose", 100, &Supervisor::humanPoseCallback, this);
 	sub_new_goal_  = 	nh_.subscribe("new_goal", 100, &Supervisor::newGoalCallback, this);
-	sub_operating_mode_ =	nh_.subscribe("/boss/human/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
 	sub_path_ =		nh_.subscribe("move_base/GlobalPlanner/plan", 100, &Supervisor::pathCallback, this);
 
 	// Publishers
@@ -59,7 +53,6 @@ Supervisor::Supervisor()
 
 	// Service servers
 	service_set_get_goal_ =			nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
-	service_get_choiceGoalDecision_ = 	nh_.advertiseService("get_choiceGoalDecision", &Supervisor::getChoiceGoalDecision, this);
 
 	// Init
 	marker_rviz_.header.frame_id = 		"map";
@@ -91,9 +84,6 @@ Supervisor::Supervisor()
 
 	ros::service::waitForService("compute_plan");
 	ROS_INFO("Connected to taskPlanner server");
-
-	ros::service::waitForService("choose_goal");
-	ROS_INFO("Connected to choose_goal server");
 
 	ros::service::waitForService("move_base/GlobalPlanner/make_plan");
 	ROS_INFO("Connected to make_plan server");
@@ -129,31 +119,14 @@ void Supervisor::FSM()
 	{
 		case GET_GOAL:
 			ROS_INFO("\t => GET_GOAL <=");
-			switch(choice_goal_decision_)
+			// Wait for goal from HumanModel
+			if(goal_received_)
 			{
-				case AUTONOMOUS:
-					// Find itself a goal
-					ROS_INFO("AUTONOMOUS");
-					this->findAGoal();
-					state_global_ = ASK_PLAN;
-					break;
-
-				case SPECIFIED:
-					// Wait for the boss
-					ROS_INFO("SPECIFIED");
-					if(goal_received_)
-					{
-						goal_received_ = false;
-						state_global_ = ASK_PLAN;
-					}
-					else
-						pub_stop_cmd_.publish(geometry_msgs::Twist());
-					break;
-
-				default:
-					choice_goal_decision_ = SPECIFIED;
-					break;
+				goal_received_ = false;
+				state_global_ = ASK_PLAN;
 			}
+			else
+				pub_stop_cmd_.publish(geometry_msgs::Twist());
 			break;
 
 		case ASK_PLAN:
@@ -511,18 +484,6 @@ void Supervisor::updateMarkerPose(float x, float y, float alpha)
 	pub_marker_rviz_.publish(marker_rviz_);
 }
 
-void Supervisor::findAGoal()
-{
-	human_sim::ChooseGoal srv;
-	ros::service::waitForService("choose_goal");
-	client_goal_.call(srv);
-
-	current_goal_.type = 	srv.response.goal.type;
-	current_goal_.x = 	srv.response.goal.x;
-	current_goal_.y = 	srv.response.goal.y;
-	current_goal_.theta = 	srv.response.goal.theta;
-}
-
 void Supervisor::askPlan()
 {
 	plan_.clear();
@@ -562,38 +523,12 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 	current_goal_.theta=msg->theta;
 }
 
-void Supervisor::operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg)
-{
-	switch(msg->data)
-	{
-		case AUTONOMOUS: // 0
-			choice_goal_decision_=AUTONOMOUS;
-			break;
-
-		case SPECIFIED:  // 1
-			choice_goal_decision_=SPECIFIED;
-			break;
-
-		default:
-			choice_goal_decision_=AUTONOMOUS;
-			break;
-	}
-}
-
 bool Supervisor::setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res)
 {
 	ROS_INFO("GET_GOAL_SET !!!");
 	state_global_=GET_GOAL;
-	choice_goal_decision_ = SPECIFIED;
 
 	this->init();
-
-	return true;
-}
-
-bool Supervisor::getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request &req, human_sim::GetChoiceGoalDecision::Response &res)
-{
-	res.decision = (int)choice_goal_decision_;
 
 	return true;
 }

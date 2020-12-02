@@ -9,10 +9,8 @@
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
 #include "human_sim/Goal.h"
-#include "human_sim/ChooseGoal.h"
 #include "human_sim/SetGetGoal.h"
 #include "human_sim/CancelGoalAndStop.h"
-#include "human_sim/GetChoiceGoalDecision.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "move_base_msgs/MoveBaseActionGoal.h"
@@ -40,9 +38,9 @@ public:
 private:
 
 ////////// METHODS ////////// 
-//
-	bool chooseGoalSrv(human_sim::ChooseGoal::Request& req, human_sim::ChooseGoal::Response& res);
+
 	human_sim::Goal chooseGoal(bool random);
+	void nonStop();
 	void newRandomGoalGeneration();
 	void stopLookRobot();
 	void harassRobot();
@@ -50,7 +48,7 @@ private:
 ////////// ATTRIBUTES ////////// 
 
 	// Behaviors //
-	enum Behavior{NONE=0, RANDOM, STOP_LOOK, HARASS};
+	enum Behavior{NONE=0, NON_STOP, RANDOM, STOP_LOOK, HARASS};
 	Behavior behavior_;
 
 	// Sub state behaviors //
@@ -77,7 +75,6 @@ private:
 
 	// Publishers //
 	ros::Publisher pub_new_goal_;
-	ros::Publisher pub_op_mode_;
 	ros::Publisher pub_human_pose_;
 	ros::Publisher pub_robot_pose_;
 	ros::Publisher pub_perturbated_cmd_;
@@ -88,10 +85,6 @@ private:
 	// Service Clients //
 	ros::ServiceClient client_set_get_goal_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
-	ros::ServiceClient client_get_choice_goal_decision_;
-
-	// Service Servers //
-	ros::ServiceServer service_;
 
 	//// Variables ////
 	ros::NodeHandle nh_;
@@ -107,7 +100,6 @@ private:
 
 	std::vector<GoalArea> known_goals_;
 
-	bool was_in_autonomous_;
 	bool executing_plan_;
 
 	// ratio perturbation

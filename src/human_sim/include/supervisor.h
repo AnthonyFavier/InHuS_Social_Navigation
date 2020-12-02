@@ -11,11 +11,9 @@
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/Pose2D.h"
 #include "human_sim/ComputePlan.h"
-#include "human_sim/ChooseGoal.h"
 #include "human_sim/Goal.h"
 #include "human_sim/SetGetGoal.h"
 #include "human_sim/CancelGoalAndStop.h"
-#include "human_sim/GetChoiceGoalDecision.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "nav_msgs/Path.h"
@@ -36,7 +34,6 @@ private:
 ////////// METHODS ////////// 
 
 	bool checkPlanFailure();
-	void findAGoal();
 	void askPlan();
 	void updateMarkerPose(float x, float y, float alpha);
 	void init();
@@ -48,8 +45,6 @@ private:
 	// States //
 	enum StateGlobal{GET_GOAL, ASK_PLAN, EXEC_PLAN, BLOCKED_BY_ROBOT}; // wait plan ?
 	StateGlobal state_global_;
-	enum ChoiceGoalDecision{AUTONOMOUS=0, SPECIFIED};
-	ChoiceGoalDecision choice_goal_decision_;
 	enum BlockedState{NOT_FEASIBLE, ABORTED, LONGER};
 	BlockedState blocked_state_;
 
@@ -58,8 +53,6 @@ private:
 	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 	ros::Subscriber sub_new_goal_;
 	void newGoalCallback(const human_sim::Goal::ConstPtr& msg);
-	ros::Subscriber sub_operating_mode_;
-	void operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg);
 	ros::Subscriber sub_path_;
 	void pathCallback(const nav_msgs::Path::ConstPtr& path);
 
@@ -74,15 +67,12 @@ private:
 
 	// Service clients //
 	ros::ServiceClient client_plan_;
-	ros::ServiceClient client_goal_;
 	ros::ServiceClient client_make_plan_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
 	
 	// Service servers //
 	ros::ServiceServer service_set_get_goal_;
 	bool setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res);
-	ros::ServiceServer service_get_choiceGoalDecision_;
-	bool getChoiceGoalDecision(human_sim::GetChoiceGoalDecision::Request &req, human_sim::GetChoiceGoalDecision::Response &res);
 
 	//// Variables ////
 	ros::NodeHandle nh_;
