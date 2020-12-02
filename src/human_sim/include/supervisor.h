@@ -58,15 +58,12 @@ private:
 	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 	ros::Subscriber sub_new_goal_;
 	void newGoalCallback(const human_sim::Goal::ConstPtr& msg);
-	ros::Subscriber sub_teleop_boss_;
-	void teleopBossCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_operating_mode_;
 	void operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg);
 	ros::Subscriber sub_path_;
 	void pathCallback(const nav_msgs::Path::ConstPtr& path);
 
 	// Publishers //
-	ros::Publisher pub_teleop_;
 	ros::Publisher pub_goal_done_;
 	ros::Publisher pub_marker_rviz_;
 	ros::Publisher pub_log_;

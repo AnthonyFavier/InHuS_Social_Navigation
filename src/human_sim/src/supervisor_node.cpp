@@ -48,12 +48,10 @@ Supervisor::Supervisor()
 	// Subscribers
 	sub_human_pose_ = 	nh_.subscribe("human_model/human_pose", 100, &Supervisor::humanPoseCallback, this);
 	sub_new_goal_  = 	nh_.subscribe("/boss/human/new_goal", 100, &Supervisor::newGoalCallback, this);
-	sub_teleop_boss_ =	nh_.subscribe("/boss/human/teleoperation", 100, &Supervisor::teleopBossCallback, this);
 	sub_operating_mode_ =	nh_.subscribe("/boss/human/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
 	sub_path_ =		nh_.subscribe("move_base/GlobalPlanner/plan", 100, &Supervisor::pathCallback, this);
 
 	// Publishers
-	pub_teleop_ = 		nh_.advertise<geometry_msgs::Twist>("controller/teleop_cmd", 100);
 	pub_goal_done_ = 	nh_.advertise<human_sim::Goal>("goal_done", 100);
 	pub_log_ =		nh_.advertise<std_msgs::String>("log", 100);
 	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
@@ -562,11 +560,6 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 	current_goal_.x=msg->x;
 	current_goal_.y=msg->y;
 	current_goal_.theta=msg->theta;
-}
-
-void Supervisor::teleopBossCallback(const geometry_msgs::Twist::ConstPtr& msg)
-{
-	pub_teleop_.publish(*msg);
 }
 
 void Supervisor::operatingModeBossCallback(const std_msgs::Int32::ConstPtr& msg)
