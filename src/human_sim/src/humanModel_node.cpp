@@ -43,7 +43,7 @@ HumanModel::HumanModel()
 	sub_stop_cmd_ = 	nh_.subscribe("stop_cmd", 100, &HumanModel::stopCmdCallback, this);
 
 	// Publishers
-	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("/boss/human/new_goal", 100);
+	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("human_model/robot_pose", 100);
 	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("controller/perturbated_cmd", 100);
@@ -80,7 +80,6 @@ HumanModel::HumanModel()
 
 	was_in_autonomous_ = 	false;
 	executing_plan_ = 	false;
-	new_goal_sent_ =		true;
 
 	last_time_ = 	ros::Time::now();
 	last_harass_ = 	ros::Time::now();
@@ -262,23 +261,20 @@ void HumanModel::publishModelData()
 
 void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 {
-	if(new_goal_sent_)
-		new_goal_sent_ = false;
-	else
-	{
-		previous_goal_.x = 	current_goal_.x;
-		previous_goal_.y = 	current_goal_.y;
-		previous_goal_.theta = 	current_goal_.theta;
+	previous_goal_.x = 	current_goal_.x;
+	previous_goal_.y = 	current_goal_.y;
+	previous_goal_.theta = 	current_goal_.theta;
 
-		current_goal_.x = 	goal->x;
-		current_goal_.y = 	goal->y;
-		current_goal_.theta = 	goal->theta;
+	current_goal_.x = 	goal->x;
+	current_goal_.y = 	goal->y;
+	current_goal_.theta = 	goal->theta;
 
-		ROS_INFO("CB current_goal = %.2f,%.2f", current_goal_.x, current_goal_.y);
-		ROS_INFO("CB previous_goal = %.2f,%.2f", previous_goal_.x, previous_goal_.y);
-	}
+	ROS_INFO("CB current_goal = %.2f,%.2f", current_goal_.x, current_goal_.y);
+	ROS_INFO("CB previous_goal = %.2f,%.2f", previous_goal_.x, previous_goal_.y);
 
 	executing_plan_ = true;
+
+	pub_new_goal_.publish(*goal);
 }
 
 void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
@@ -329,7 +325,6 @@ void HumanModel::newRandomGoalGeneration()
 			if(new_goal.x != previous_goal.x || new_goal.y != previous_goal.y)
 			{
 				pub_new_goal_.publish(new_goal);
-				new_goal_sent_ = true;
 				ROS_INFO("published");
 			}
 			else
@@ -447,7 +442,6 @@ void HumanModel::stopLookRobot()
 			{
 				// resume current goal
 				pub_new_goal_.publish(current_goal_);
-				new_goal_sent_ = true;
 				ROS_INFO("sent");
 				// put back in AUTONOMOUS if it was 
 				if(was_in_autonomous_)

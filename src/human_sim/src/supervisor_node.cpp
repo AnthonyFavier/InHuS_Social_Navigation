@@ -47,7 +47,7 @@ Supervisor::Supervisor()
 
 	// Subscribers
 	sub_human_pose_ = 	nh_.subscribe("human_model/human_pose", 100, &Supervisor::humanPoseCallback, this);
-	sub_new_goal_  = 	nh_.subscribe("/boss/human/new_goal", 100, &Supervisor::newGoalCallback, this);
+	sub_new_goal_  = 	nh_.subscribe("new_goal", 100, &Supervisor::newGoalCallback, this);
 	sub_operating_mode_ =	nh_.subscribe("/boss/human/operating_mode", 100, &Supervisor::operatingModeBossCallback, this);
 	sub_path_ =		nh_.subscribe("move_base/GlobalPlanner/plan", 100, &Supervisor::pathCallback, this);
 

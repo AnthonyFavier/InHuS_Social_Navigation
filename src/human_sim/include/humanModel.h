@@ -109,7 +109,6 @@ private:
 
 	bool was_in_autonomous_;
 	bool executing_plan_;
-	bool new_goal_sent_;
 
 	// ratio perturbation
 	float ratio_perturbation_cmd_;
