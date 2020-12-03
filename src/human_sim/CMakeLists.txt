@@ -61,9 +61,13 @@ add_executable(task_planner_node src/taskPlanner_node.cpp src/task.cpp)
 add_dependencies(task_planner_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(task_planner_node ${catkin_LIBRARIES})
 
-add_executable(preprocessing_h_node src/preprocessing_node.cpp)
-add_dependencies(preprocessing_h_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(preprocessing_h_node ${catkin_LIBRARIES})
+add_executable(input_node src/input_interface_node.cpp)
+add_dependencies(input_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(input_node ${catkin_LIBRARIES})
+
+add_executable(output_node src/output_interface_node.cpp)
+add_dependencies(output_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(output_node ${catkin_LIBRARIES})
 
 add_executable(log_manager_node src/logManager_node.cpp)
 add_dependencies(log_manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

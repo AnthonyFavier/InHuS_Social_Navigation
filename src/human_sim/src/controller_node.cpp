@@ -41,9 +41,9 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 
 	ros::Subscriber sub_teleop = 		nh.subscribe("/boss/human/teleoperation", 100, teleopCmdCallback);
-	ros::Subscriber sub_perturbated_cmd = 	nh.subscribe("controller/perturbated_cmd", 100, perturbatedCmdCallback);
+	ros::Subscriber sub_perturbated_cmd = 	nh.subscribe("perturbated_cmd", 100, perturbatedCmdCallback);
 
-	pub_cmd_vel = 		nh.advertise<geometry_msgs::Twist>("/human_cmd_vel", 100);
+	pub_cmd_vel = 		nh.advertise<geometry_msgs::Twist>("interface/out/final_cmd", 100);
 	pub_cancel_goal =	nh.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 
 	ros::ServiceServer service_cancel_goal_and_stop = nh.advertiseService("cancel_goal_and_stop", cancelGoalAndStop);

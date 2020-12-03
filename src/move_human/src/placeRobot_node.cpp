@@ -67,8 +67,8 @@ PlaceRobotMap::PlaceRobotMap()
 	sensor_msgs::convertPointCloudToPointCloud2(cloud, robot_pose_PointCloud2_);
 
 	// Subscriber
-	robot_pose_sub_ = 	nh_.subscribe("human_model/robot_pose", 100, &PlaceRobotMap::robotPoseCallback, this);
-	human_pose_sub_ = 	nh_.subscribe("human_model/human_pose", 100, &PlaceRobotMap::humanPoseCallback, this);
+	robot_pose_sub_ = 	nh_.subscribe("known/robot_pose", 100, &PlaceRobotMap::robotPoseCallback, this);
+	human_pose_sub_ = 	nh_.subscribe("known/human_pose", 100, &PlaceRobotMap::humanPoseCallback, this);
 
 	// Publisher
 	robot_pose_pub_ =	nh_.advertise<sensor_msgs::PointCloud2>("robot_pose_PointCloud2", 10);

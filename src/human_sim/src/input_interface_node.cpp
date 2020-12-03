@@ -7,7 +7,7 @@
 #include <tf/transform_broadcaster.h>
 
 // Convert geometry_msgs::PoseStamped messages from MORSE
-// to geometry_msgs::Pose2D messages 
+// to geometry_msgs::Pose2D messages
 
 // Publish tf human and robot frame in map frame
 
@@ -45,16 +45,16 @@ void robotPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "preprocessing");
+	ros::init(argc, argv, "input_interface");
 	ros::NodeHandle nh;
 
 	ros::Rate rate(30);
 
 	ros::Subscriber sub_human_pose = nh.subscribe("/morse/human_pose", 100, humanPoseCallback);
-	pub_sim_human_pose = nh.advertise<geometry_msgs::Pose2D>("sim/human_pose", 100);
+	pub_sim_human_pose = nh.advertise<geometry_msgs::Pose2D>("in/human_pose", 100);
 
 	ros::Subscriber sub_robot_pose = nh.subscribe("/morse/robot_pose", 100, robotPoseCallback);
-	pub_sim_robot_pose = nh.advertise<geometry_msgs::Pose2D>("sim/robot_pose", 100);
+	pub_sim_robot_pose = nh.advertise<geometry_msgs::Pose2D>("in/robot_pose", 100);
 
 	tf::TransformBroadcaster br;
 	tf::Quaternion q;

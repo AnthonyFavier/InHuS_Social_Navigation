@@ -41,7 +41,7 @@ Supervisor::Supervisor()
 	client_cancel_goal_and_stop_= 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
 
 	// Subscribers
-	sub_human_pose_ = 	nh_.subscribe("human_model/human_pose", 100, &Supervisor::humanPoseCallback, this);
+	sub_human_pose_ = 	nh_.subscribe("known/human_pose", 100, &Supervisor::humanPoseCallback, this);
 	sub_new_goal_  = 	nh_.subscribe("new_goal", 100, &Supervisor::newGoalCallback, this);
 	sub_path_ =		nh_.subscribe("move_base/GlobalPlanner/plan", 100, &Supervisor::pathCallback, this);
 

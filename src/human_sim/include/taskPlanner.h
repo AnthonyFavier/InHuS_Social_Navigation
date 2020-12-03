@@ -21,10 +21,6 @@ private:
 	ros::ServiceServer service_;
 
 	ros::Publisher pub_log_;
-
-	Pose2D human_pose_;
-
-	ros::Subscriber sub_human_pose_;
 };
 
 #endif
