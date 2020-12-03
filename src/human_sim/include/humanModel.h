@@ -77,7 +77,7 @@ private:
 	ros::Publisher pub_new_goal_;
 	ros::Publisher pub_human_pose_;
 	ros::Publisher pub_robot_pose_;
-	ros::Publisher pub_perturbated_cmd_;
+	ros::Publisher pub_perturbed_cmd_;
 	ros::Publisher pub_cancel_goal_;
 	ros::Publisher pub_goal_move_base_;
 	ros::Publisher pub_log_;

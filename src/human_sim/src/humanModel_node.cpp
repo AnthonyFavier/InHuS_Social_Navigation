@@ -46,7 +46,7 @@ HumanModel::HumanModel()
 	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("new_goal", 100);
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("known/human_pose", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("known/robot_pose", 100);
-	pub_perturbated_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("perturbated_cmd", 100);
+	pub_perturbed_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("perturbed_cmd", 100);
 	pub_goal_move_base_ =	nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
 
@@ -150,22 +150,22 @@ void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 
 void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-	geometry_msgs::Twist perturbated_cmd;
+	geometry_msgs::Twist perturbed_cmd;
 
-	perturbated_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
-	perturbated_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
-	perturbated_cmd.linear.z = 0;
-	perturbated_cmd.angular.x = 0;
-	perturbated_cmd.angular.y = 0;
-	perturbated_cmd.angular.z = msg->angular.z; // no angular perturbation
+	perturbed_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
+	perturbed_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
+	perturbed_cmd.linear.z = 0;
+	perturbed_cmd.angular.x = 0;
+	perturbed_cmd.angular.y = 0;
+	perturbed_cmd.angular.z = msg->angular.z; // no angular perturbation
 
-	pub_perturbated_cmd_.publish(perturbated_cmd);
+	pub_perturbed_cmd_.publish(perturbed_cmd);
 }
 
 void HumanModel::stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 {
 	if((behavior_ != HARASS) && (behavior_ != STOP_LOOK || sub_stop_look_ != LOOK_AT_ROBOT))
-		pub_perturbated_cmd_.publish(*cmd);
+		pub_perturbed_cmd_.publish(*cmd);
 }
 
 void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
@@ -411,7 +411,7 @@ void HumanModel::stopLookRobot()
 					if(abs(alpha-model_pose_.theta)>PI)
 						cmd.angular.z=-cmd.angular.z;
 				}
-				pub_perturbated_cmd_.publish(cmd);
+				pub_perturbed_cmd_.publish(cmd);
 
 				if(ros::Time::now() - time_stopped_ > b_stop_look_stop_dur_)
 					sub_stop_look_=RESUME_GOAL;

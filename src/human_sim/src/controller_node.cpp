@@ -16,7 +16,7 @@ void teleopCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
 	pub_cmd_vel.publish(*msg);
 }
 
-void perturbatedCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
+void perturbedCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 	pub_cmd_vel.publish(*msg);
 }
@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 
 	ros::Subscriber sub_teleop = 		nh.subscribe("/boss/human/teleoperation", 100, teleopCmdCallback);
-	ros::Subscriber sub_perturbated_cmd = 	nh.subscribe("perturbated_cmd", 100, perturbatedCmdCallback);
+	ros::Subscriber sub_perturbed_cmd = 	nh.subscribe("perturbed_cmd", 100, perturbedCmdCallback);
 
 	pub_cmd_vel = 		nh.advertise<geometry_msgs::Twist>("interface/out/final_cmd", 100);
 	pub_cancel_goal =	nh.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
