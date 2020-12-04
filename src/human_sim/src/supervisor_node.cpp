@@ -7,14 +7,14 @@ Supervisor::Supervisor()
 , client_action_("move_base", true)
 , replan_freq_(1)
 , blocked_ask_path_freq_(1)
-, not_feasible_freq_check_pose_(1)
+, not_feasible_check_pose_freq_(1)
 {
 	// Ros Params
 	ros::NodeHandle private_nh("~");
 	float f_nb;
 	private_nh.param(std::string("replan_freq"), f_nb, float(2.0)); replan_freq_ = ros::Rate(f_nb);
 	private_nh.param(std::string("replan_dist_stop"), replan_dist_stop_, float(0.5));
-	private_nh.param(std::string("not_feasible_freq_check_pose"), f_nb, float(10.0)); not_feasible_freq_check_pose_ = ros::Rate(f_nb);
+	private_nh.param(std::string("not_feasible_check_pose_freq"), f_nb, float(10.0)); not_feasible_check_pose_freq_ = ros::Rate(f_nb);
 	private_nh.param(std::string("not_feasible_nb_same_pose_block"), not_feasible_nb_same_pose_block_, int(3));
 	private_nh.param(std::string("not_feasible_dist_threshold_unblock"), not_feasible_dist_threshold_unblock_, float(0.05));
 	private_nh.param(std::string("not_feasible_theta_threshold_unblock"), not_feasible_theta_threshold_unblock_, float(0.02));
@@ -26,7 +26,7 @@ Supervisor::Supervisor()
 	ROS_INFO("Params:");
 	ROS_INFO("replan_freq=%f", replan_freq_.expectedCycleTime().toSec());
 	ROS_INFO("replan_dist_stop=%f", replan_dist_stop_);
-	ROS_INFO("not_feasible_freq_check_pose=%f", not_feasible_freq_check_pose_.expectedCycleTime().toSec());
+	ROS_INFO("not_feasible_check_pose_freq=%f", not_feasible_check_pose_freq_.expectedCycleTime().toSec());
 	ROS_INFO("not_feasible_nb_same_pose_block=%d", not_feasible_nb_same_pose_block_);
 	ROS_INFO("not_feasible_dist_threshold_unblock=%f", not_feasible_dist_threshold_unblock_);
 	ROS_INFO("not_feasible_theta_threshold_unblock=%f", not_feasible_theta_threshold_unblock_);
@@ -443,7 +443,7 @@ bool Supervisor::checkPlanFailure()
 	}
 
 	// Check if trajectory not feasible, thus if not moving for too long
-	if(ros::Time::now() - last_check_human_pose_ > not_feasible_freq_check_pose_.expectedCycleTime())
+	if(ros::Time::now() - last_check_human_pose_ > not_feasible_check_pose_freq_.expectedCycleTime())
 	{
 		ROS_INFO("check not feasible");
 		// if current pose is close enough to previous one

@@ -9,7 +9,7 @@ supervisor_node: ##
     #=> if distance to goal is less than this then stop replan
 
 ### Not feasible
-  not_feasible_freq_check_pose: 10.0
+  not_feasible_check_pose_freq: 10.0
     #=> frequency check if moving while executing plan
   not_feasible_nb_same_pose_block : 4
     #=> number of concecutive times not moving required to concider blocked (not feasible)

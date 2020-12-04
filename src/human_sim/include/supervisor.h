@@ -92,7 +92,7 @@ private:
 	int goal_aborted_count_;
 	ros::Rate replan_freq_;
 	ros::Rate blocked_ask_path_freq_;
-	ros::Rate not_feasible_freq_check_pose_;
+	ros::Rate not_feasible_check_pose_freq_;
 	int blocked_nb_ask_success_unblock_;
 	ros::Time last_replan_;	
 	int replan_success_nb_;
