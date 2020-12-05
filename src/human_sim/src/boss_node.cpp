@@ -322,6 +322,9 @@ int main(int argc, char** argv)
 					case 4:
 						set_behavior.data = 3;
 						break;
+					case 5:
+						set_behavior.data = 4;
+						break;
 				}
 				pub_set_behavior.publish(set_behavior);
 				break;
