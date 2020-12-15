@@ -82,6 +82,7 @@ void wait(float delay)
 			else
 				rate.sleep();
 		}
+		cout << endl;
 	}
 }
 
@@ -113,7 +114,6 @@ int main(int argc, char** argv)
 	ros::Publisher pub_set_behavior = 	nh.advertise<std_msgs::Int32>("/boss/human/set_behavior", 1);
 
 	//0// to have easier index
-	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);
 
 	//1//
@@ -147,31 +147,57 @@ int main(int argc, char** argv)
 	area.goal.x=1.15; 	area.goal.y=6.52; 	area.goal.theta=-PI;	area.radius=0;
 	goals.push_back(area);
 
-	//9 bis // 11
+	// Scenarios //
+	// Cross
+	//11 // init cross H
+	area.goal.x=1.0; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
+	goals.push_back(area);	
+	//12 // goal cross H
+	area.goal.x=9.6; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
+	goals.push_back(area);	
+	//13 // init cross R
+	area.goal.x=10.6; 	area.goal.y=15.8; 	area.goal.theta=-PI;	area.radius=0;
+	goals.push_back(area);	
+	//14 // goal cross R
 	area.goal.x=2.0; 	area.goal.y=15.8; 	area.goal.theta=-PI;	area.radius=0;
 	goals.push_back(area);	
-	//4 bis // 12
+	
+	// Narrow Passage //
+	//15 // init narrow passage H
+	area.goal.x=1.0; 	area.goal.y=1.9; 	area.goal.theta=0;	area.radius=0;
+	goals.push_back(area);	
+	/////// goal narrow passage H => 4
+	//16 // init narrow passage R
 	area.goal.x=7.50; 	area.goal.y=7.32; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);
+	/////// goal narrow passage R => 1
 
-	// 13
+	// Corridor //
+	//17 // init corridor H
 	area.goal.x=10.4; 	area.goal.y=2.60; 	area.goal.theta=PI/2;	area.radius=0;
+	goals.push_back(area);	
+	//18 // goal corridor H
+	area.goal.x=10.4; 	area.goal.y=12.5; 	area.goal.theta=PI/2;	area.radius=0;
 	goals.push_back(area);
-	// 14
-	area.goal.x=10.4; 	area.goal.y=3.60; 	area.goal.theta=PI/2;	area.radius=0;
-	goals.push_back(area);
-	// 15
+	//19 // init corridor R
 	area.goal.x=10.4; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);
+	//20 // goal corridor R
+	area.goal.x=10.4; 	area.goal.y=3.60; 	area.goal.theta=-PI/2;	area.radius=0;
+	goals.push_back(area);
 
-	// 16
+	// Narrow corridor //
+	//21 // init narrow corridor H
 	area.goal.x=0.8; 	area.goal.y=3.9; 	area.goal.theta=PI/2;	area.radius=0;
 	goals.push_back(area);	
-	// 17
-	area.goal.x=0.8; 	area.goal.y=4.9; 	area.goal.theta=PI/2;	area.radius=0;
+	//22 // goal narrow corridor H
+	area.goal.x=0.8; 	area.goal.y=12.5; 	area.goal.theta=PI/2;	area.radius=0;
 	goals.push_back(area);
-	// 18
+	//23 // init narrow corridor R
 	area.goal.x=0.8; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
+	goals.push_back(area);	
+	//24 // goal narrow corridor R
+	area.goal.x=0.8; 	area.goal.y=4.9; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);
 
 	while(ros::ok())
@@ -213,10 +239,10 @@ int main(int argc, char** argv)
 				int h_goal, r_goal;
 
 				// Select scenario
-				while(ros::ok() && (cout << endl	<< "1- cross middle R4 H1" << endl 
-									<< "2- corridor R8 H3" << endl 
-									<< "3- cross R8 H9" << endl 
-									<< "4- narrow corridor R9 H1" << endl 
+				while(ros::ok() && (cout << endl	<< "1- cross" << endl 
+									<< "2- narrow passage" << endl 
+									<< "3- corridor" << endl 
+									<< "4- narrow corridor" << endl 
 									<< "Which scenario [1-4] ? ")
 				&& (!(cin >> choice) || !(choice>=1 && choice<=4)))
 					cleanInput();
@@ -235,39 +261,41 @@ int main(int argc, char** argv)
 					&& (!(cin >> delay)))
 						cleanInput();
 				}
+				else
+					delay=0;
 
 				switch(choice)
 				{
 					case 1:
-						// cross middle
+						// cross
 						if(choice_init == 1)
-							{r_goal = 12; h_goal = 1;}
+							{h_goal = 11; r_goal = 13;}
 						else
-							{r_goal = 1; h_goal = 4;}
+							{h_goal = 12; r_goal = 14;}
 						break;
 
 					case 2:
-						// corridor
+						// narrow passage
 						if(choice_init == 1)
-							{r_goal = 15; h_goal = 13;}
+							{h_goal = 15; r_goal = 16;}
 						else
-							{r_goal = 14; h_goal = 15;}
+							{h_goal = 4; r_goal = 1;}
 						break;
 
 					case 3:
-						// cross
+						// corridor
 						if(choice_init == 1)
-							{r_goal = 8; h_goal = 9;}
+							{h_goal = 17; r_goal = 19;}
 						else
-							{r_goal = 11; h_goal = 8;}
+							{h_goal = 18; r_goal = 20;}
 						break;
 
 					case 4:
 						// narrow corridor
 						if(choice_init == 1)
-							{r_goal = 18; h_goal = 16;}
+							{h_goal = 21; r_goal = 23;}
 						else
-							{r_goal = 17; h_goal = 18;}
+							{h_goal = 22; r_goal = 24;}
 						break;
 
 					default:
