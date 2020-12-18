@@ -45,6 +45,7 @@ private:
 	void newRandomGoalGeneration();
 	void stopLookRobot();
 	void harassRobot();
+	void publishGoal(human_sim::Goal& goal);
 
 ////////// ATTRIBUTES ////////// 
 
