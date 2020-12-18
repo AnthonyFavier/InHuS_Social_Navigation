@@ -345,7 +345,7 @@ void Supervisor::FSM()
 							plan_.updateCurrentAction();
 							std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
 
-							static Pose2D last_human_pose = human_pose_;
+							static geometry_msgs::Pose2D last_human_pose = human_pose_;
 
 							if(first_not_feasible_)
 							{

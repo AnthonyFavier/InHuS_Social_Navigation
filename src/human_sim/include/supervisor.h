@@ -6,8 +6,6 @@
 #include <vector>
 #include <math.h>
 #include "task.h"
-#include "type.h"
-#include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/Pose2D.h"
 #include "human_sim/ComputePlan.h"
@@ -84,7 +82,7 @@ private:
 	bool goal_received_;
 	human_sim::Goal current_goal_;
 	Plan plan_;
-	Pose2D human_pose_;
+	geometry_msgs::Pose2D human_pose_;
 
 	bool first_blocked_;
 	bool first_not_feasible_;
@@ -104,7 +102,7 @@ private:
 	float replan_dist_stop_;
 
 	int same_human_pose_count_;
-	Pose2D last_human_pose_;
+	geometry_msgs::Pose2D last_human_pose_;
 	ros::Time last_check_human_pose_;
 
 	nav_msgs::Path current_path_;

@@ -3,7 +3,6 @@
 
 #include "ros/ros.h"
 #include <vector>
-#include "type.h"
 #include <move_base_msgs/MoveBaseAction.h>
 
 enum State{UNKNOWN=0, PLANNED, NEEDED, READY, PROGRESS, DONE, FAILED};

@@ -4,3 +4,7 @@ devel/
 log.txt
 src/navigation/
 videos/
+
+src/hanp_msgs/
+
+src/hanp_prediction/
