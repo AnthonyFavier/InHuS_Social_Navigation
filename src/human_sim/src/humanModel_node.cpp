@@ -130,6 +130,13 @@ HumanModel::HumanModel()
 	known_goals_.push_back(area);
 }
 
+void HumanModel::publishGoal(human_sim::Goal& goal)
+{
+	executing_plan_ = true;
+	pub_new_goal_.publish(goal);
+	ROS_INFO("goal published");
+}
+
 void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
 	hcb=true;
@@ -255,8 +262,7 @@ void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 	ROS_INFO("CB current_goal = %.2f,%.2f", current_goal_.x, current_goal_.y);
 	ROS_INFO("CB previous_goal = %.2f,%.2f", previous_goal_.x, previous_goal_.y);
 
-	executing_plan_ = true;
-	pub_new_goal_.publish(*goal);
+	this->publishGoal(current_goal_);
 }
 
 void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
@@ -305,8 +311,7 @@ void HumanModel::nonStop()
 		ROS_INFO("CHOOSED");
 		human_sim::Goal goal = chooseGoal(false);
 	
-		executing_plan_ = true;
-		pub_new_goal_.publish(goal);
+		this->publishGoal(goal);
 	}
 }
 
@@ -323,7 +328,7 @@ void HumanModel::newRandomGoalGeneration()
 			human_sim::Goal new_goal = this->chooseGoal(true);
 			if(new_goal.x != previous_goal.x || new_goal.y != previous_goal.y)
 			{
-				pub_new_goal_.publish(new_goal);
+				this->publishGoal(new_goal);
 				ROS_INFO("published");
 			}
 			else

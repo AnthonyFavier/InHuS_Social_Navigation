@@ -13,6 +13,7 @@
 #include "human_sim/CancelGoalAndStop.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
+#include "std_msgs/Bool.h"
 #include "move_base_msgs/MoveBaseActionGoal.h"
 #include <tf2/LinearMath/Quaternion.h>
 
