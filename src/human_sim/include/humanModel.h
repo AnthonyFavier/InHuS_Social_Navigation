@@ -17,6 +17,9 @@
 #include "move_base_msgs/MoveBaseActionGoal.h"
 #include <tf2/LinearMath/Quaternion.h>
 
+#include "hanp_prediction/HumanGoal.h" // HATEB
+#include "human_sim/HatebGoal.h" // HATEB
+
 #define PI 3.1415926535897932384626433832795
 
 struct GoalArea
@@ -103,6 +106,15 @@ private:
 	std::vector<GoalArea> known_goals_;
 
 	bool executing_plan_;
+
+	// HATEB
+	ros::ServiceClient client_hateb_set_human_goal_;
+	bool send_goal_to_hateb_;
+	ros::Subscriber sub_set_send_goal_hateb_;
+	void setSendGoalHatebCallback(const std_msgs::Bool::ConstPtr& msg);
+	void sendGoalHateb(human_sim::Goal& goal);
+	ros::ServiceServer server_hateb_send_human_goal_;
+	bool serverSendGoalHateb(human_sim::HatebGoal::Request& req, human_sim::HatebGoal::Response& res);
 
 	// ratio perturbation
 	float ratio_perturbation_cmd_;

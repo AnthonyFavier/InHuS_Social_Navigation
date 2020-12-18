@@ -79,6 +79,12 @@ HumanModel::HumanModel()
 	last_harass_ = 	ros::Time::now();
 	time_stopped_=	ros::Time::now();
 
+	// HATEB
+	client_hateb_set_human_goal_ = 		nh_.serviceClient<hanp_prediction::HumanGoal>("/human_pose_prediction/set_human_goal"); 
+	server_hateb_send_human_goal_ = 	nh_.advertiseService("send_goal_to_hateb", &HumanModel::serverSendGoalHateb, this);
+	sub_set_send_goal_hateb_ = 		nh_.subscribe("set_send_goal_hateb", 100, &HumanModel::setSendGoalHatebCallback, this);
+	send_goal_to_hateb_ = 			false;
+
 	// BEHAVIORS //
 	behavior_ = NONE;
 	sub_stop_look_ = WAIT_ROBOT;
@@ -135,6 +141,41 @@ void HumanModel::publishGoal(human_sim::Goal& goal)
 	executing_plan_ = true;
 	pub_new_goal_.publish(goal);
 	ROS_INFO("goal published");
+	if(send_goal_to_hateb_) // HATEB
+		this->sendGoalHateb(goal);
+}
+
+void HumanModel::sendGoalHateb(human_sim::Goal& goal)
+{	
+	hanp_prediction::HumanPose pose;
+	pose.id = 1;
+	pose.pose.header.stamp = ros::Time::now();
+	pose.pose.header.frame_id = "map";
+	pose.pose.pose.position.x = goal.x;
+	pose.pose.pose.position.y = goal.y;
+
+	hanp_prediction::HumanGoal srv;
+	srv.request.goals.push_back(pose);
+
+	client_hateb_set_human_goal_.call(srv);
+	ROS_INFO("sent to hateb");
+}
+
+void HumanModel::setSendGoalHatebCallback(const std_msgs::Bool::ConstPtr& msg) // HATEB
+{
+	send_goal_to_hateb_ = msg->data;
+	if(send_goal_to_hateb_)
+		ROS_INFO("Sending goal to hateb !");
+	else
+		ROS_INFO("Stop sending goal to hateb !");
+}
+
+bool HumanModel::serverSendGoalHateb(human_sim::HatebGoal::Request& req, human_sim::HatebGoal::Response& res)
+{
+	ROS_INFO("SERVICE !!!!!");
+	this->sendGoalHateb(req.goal);
+
+	return true;
 }
 
 void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)

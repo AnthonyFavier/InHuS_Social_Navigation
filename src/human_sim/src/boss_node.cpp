@@ -4,6 +4,8 @@
 #include "move_base_msgs/MoveBaseGoal.h"
 #include "geometry_msgs/PoseStamped.h"
 #include <std_msgs/Int32.h>
+#include <std_msgs/Bool.h>
+#include "human_sim/HatebGoal.h"
 #include <vector>
 
 #include <iostream>
@@ -94,6 +96,7 @@ int main(int argc, char** argv)
 
 	int choice = 0;
 	int choice_init = 0;
+	int choice_send_goal = 0;
 	float delay;
 	GoalArea area;
 	geometry_msgs::PoseStamped pose;
@@ -112,6 +115,10 @@ int main(int argc, char** argv)
 	ros::Publisher pub_goal_robot = nh.advertise<geometry_msgs::PoseStamped>(topic_robot, 1);
 	ros::Publisher pub_goal_human = 	nh.advertise<human_sim::Goal>("/boss/human/new_goal", 1);
 	ros::Publisher pub_set_behavior = 	nh.advertise<std_msgs::Int32>("/boss/human/set_behavior", 1);
+	ros::Publisher pub_set_send_goal = 	nh.advertise<std_msgs::Bool>("set_send_goal_hateb", 1);
+	ros::ServiceClient client_send_goal_hateb = nh.serviceClient<human_sim::HatebGoal>("/human/send_goal_to_hateb");
+
+	bool send_goal_to_hateb = false;
 
 	//0// to have easier index
 	goals.push_back(area);
@@ -207,8 +214,9 @@ int main(int argc, char** argv)
 						<< "2- Robot goal" << endl 
 						<< "3- Scenario" << endl 
 						<< "4- Set Behavior" << endl
+						<< "5- Set send goal to hateb" << endl
 						<< "Choice ? ")
-		&& (!(cin >> choice) || !(choice>=1 && choice<=4)))
+		&& (!(cin >> choice) || !(choice>=1 && choice<=5)))
 			cleanInput();
 
 		switch(choice)
@@ -220,7 +228,18 @@ int main(int argc, char** argv)
 					cleanInput();
 
 				if(goals[choice].radius == 0)
+				{
 					pub_goal_human.publish(goals[choice].goal);
+
+					// HATEB
+					if(send_goal_to_hateb)
+					{
+						human_sim::HatebGoal srv;
+						srv.request.goal = goals[choice].goal; 
+						client_send_goal_hateb.call(srv);
+						cout << "asked to sent to hateb" << endl;
+					}
+				}
 				break;
 
 			/* ROBOT GOAL */
@@ -318,6 +337,16 @@ int main(int argc, char** argv)
 					wait(-delay);
 					cout << "Publish goal : human" << endl;
 					pub_goal_human.publish(goals[h_goal].goal);
+				}	
+
+				// HATEB
+				if(send_goal_to_hateb)
+				{
+					ros::Duration(0.5).sleep();
+					human_sim::HatebGoal srv;
+					srv.request.goal = goals[h_goal].goal; 
+					client_send_goal_hateb.call(srv);
+					cout << "asked to sent to hateb" << endl;
 				}
 				break;
 			}
@@ -357,6 +386,60 @@ int main(int argc, char** argv)
 				pub_set_behavior.publish(set_behavior);
 				break;
 			}
+
+			/* SET SEND GOAL TO HATBE */
+			case 5:
+				while(ros::ok() && (cout <<  endl 	<< "1- From HumanModel" << endl
+									<< "2- From the Boss" << endl
+									<< "Choice ? ")
+				&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
+					cleanInput();
+
+				while(ros::ok() && (cout <<  endl 	<< "1- True" << endl
+									<< "2- False" << endl
+									<< "Choice ? ")
+				&& (!(cin >> choice_send_goal) || !(choice_send_goal>=1 && choice_send_goal<=2)))
+					cleanInput();
+
+				switch(choice)
+				{
+					case 1:
+						switch(choice_send_goal)
+						{
+							case 1:
+							{
+								std_msgs::Bool msg;
+								msg.data=true;
+								pub_set_send_goal.publish(msg);
+								break;
+							}
+
+							case 2:
+							{
+								std_msgs::Bool msg;
+								msg.data=false;
+								pub_set_send_goal.publish(msg);
+								break;
+							}
+						}
+						break;
+
+					case 2:
+						switch(choice_send_goal)
+						{
+							case 1:
+								send_goal_to_hateb = true;
+								cout << "send goals to hateb" << endl;
+								break;
+
+							case 2:
+								send_goal_to_hateb = false;
+								cout << "stop sending goals to hateb" << endl;
+								break;
+						}
+						break;
+				}
+				break;
 
 			default:
 				break;
