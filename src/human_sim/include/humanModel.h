@@ -33,7 +33,7 @@ public:
 	void publishModelData();
 	void behaviors();
 	void pubDist();
-
+	void computeTTC();
 
 private:
 
@@ -106,12 +106,19 @@ private:
 	geometry_msgs::Pose2D model_robot_pose_;
 	geometry_msgs::Twist model_robot_vel_;
 
+	double ttc_;
+	float human_radius_;
+	float robot_radius_;
+	float radius_sum_sq_;
+
 	human_sim::Goal current_goal_;
 	human_sim::Goal previous_goal_;
 
 	std::vector<GoalArea> known_goals_;
 
 	bool executing_plan_;
+
+	std_msgs::String msg_log_;
 
 	// ratio perturbation
 	float ratio_perturbation_cmd_;

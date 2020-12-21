@@ -14,8 +14,9 @@ HumanModel::HumanModel()
 
 	// Ros Params
 	ros::NodeHandle private_nh("~");
-	std::string str;
-	float f_nb;
+	std::string str; float f_nb;
+	private_nh.param(std::string("human_radius"), human_radius_, float(0.25));
+	private_nh.param(std::string("robot_radius"), robot_radius_, float(0.3));
 	private_nh.param(std::string("ratio_perturbation_cmd"), ratio_perturbation_cmd_, float(0.0));
 	private_nh.param(std::string("b_random_chance_choose"), b_random_chance_choose_, int(30));
 	private_nh.param(std::string("b_random_try_freq"), f_nb, float(0.5)); b_random_try_freq_ = ros::Rate(f_nb);
@@ -25,6 +26,8 @@ HumanModel::HumanModel()
 	private_nh.param(std::string("b_harass_replan_freq"), f_nb, float(2.0)); b_harass_replan_freq_ = ros::Rate(f_nb);
 	
 	ROS_INFO("Params:");
+	ROS_INFO("human_radius=%f", human_radius_);
+	ROS_INFO("robot_radius=%f", robot_radius_);
 	ROS_INFO("ratio_perturbation_cmd=%f", ratio_perturbation_cmd_);
 	ROS_INFO("b_random_try_freq=%f", b_random_try_freq_.expectedCycleTime().toSec());
 	ROS_INFO("b_random_chance_choose=%d", b_random_chance_choose_);
@@ -82,6 +85,10 @@ HumanModel::HumanModel()
 	last_time_ = 	ros::Time::now();
 	last_harass_ = 	ros::Time::now();
 	time_stopped_=	ros::Time::now();
+
+	radius_sum_sq_ = human_radius_ + robot_radius_;
+	radius_sum_sq_ *= radius_sum_sq_;
+	ttc_ = -1.0;
 
 	// BEHAVIORS //
 	behavior_ = NONE;
@@ -435,9 +442,43 @@ void HumanModel::behaviors()
 void HumanModel::pubDist()
 {
 	float dist = sqrt(pow(model_robot_pose_.x-model_pose_.x,2) + pow(model_robot_pose_.y-model_pose_.y,2));
-	std_msgs::String msg;
-	msg.data = "HUMAN_MODEL DIST " + std::to_string(dist) + " " + std::to_string(ros::Time::now().toSec());
-	pub_log_.publish(msg);
+	msg_log_.data = "HUMAN_MODEL DIST " + std::to_string(dist) + " " + std::to_string(ros::Time::now().toSec());
+	pub_log_.publish(msg_log_);
+}
+
+void HumanModel::computeTTC()
+{
+	ttc_ = -1.0; // ttc infinite
+
+	geometry_msgs::Pose2D C; // robot to human distance 
+	C.x = model_pose_.x - model_robot_pose_.x;
+	C.y = model_pose_.y - model_robot_pose_.y;
+	double C_sq = C.x*C.x + C.y*C.y; // dot product C.C
+
+	if(C_sq <= radius_sum_sq_) // already touching
+		ttc_ = 0.0;
+	else
+	{
+		geometry_msgs::Twist V; // relative velocity human to robot
+		V.linear.x = model_robot_vel_.linear.x - model_vel_.linear.x;
+		V.linear.y = model_robot_vel_.linear.y - model_vel_.linear.y;
+		double C_dot_V = C.x*V.linear.x + C.y*V.linear.y;
+
+		if(C_dot_V > 0) // otherwise ttc infinite
+		{
+			double V_sq = V.linear.x*V.linear.x + V.linear.y*V.linear.y;
+			double f = (C_dot_V * C_dot_V) - (V_sq * (C_sq - radius_sum_sq_));
+			if(f > 0) // otherwise ttc infinite
+				ttc_ = (C_dot_V - sqrt(f)) / V_sq;
+		}
+	}
+
+	if(ttc_ != -1)
+	{
+		ROS_INFO("TTC = %f", ttc_);
+		msg_log_.data = "HUMAN_MODEL TTC " + std::to_string(ttc_) + " " + std::to_string(ros::Time::now().toSec());
+		pub_log_.publish(msg_log_);
+	}
 }
 
 ////////////////////// Callbacks//////////////////////////
@@ -571,8 +612,11 @@ int main(int argc, char** argv)
 
 	while(ros::ok())
 	{
-		// process data from simu
+		// Process data from simu
 		human_model.processSimData();
+
+		// Compute TTC
+		human_model.computeTTC();
 
 		// Publish data as perceived by the human model
 		human_model.publishModelData();

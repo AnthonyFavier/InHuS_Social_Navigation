@@ -60,7 +60,7 @@ void robotPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 void robotVelCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
 	r_vel = msg->twist;
-	pub_sim_robot_vel.publish(h_vel);
+	pub_sim_robot_vel.publish(r_vel);
 }
 
 int main(int argc, char** argv)
