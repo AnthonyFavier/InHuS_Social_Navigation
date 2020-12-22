@@ -28,6 +28,11 @@ supervisor_node: ##
   ratio_path_length_diff: 1.5
     #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good gloabl path"
 
+### Approach
+  approach_dist: 3.0
+    #=> when blocked, get close until this distance to the robot by ignoring it
+  approach_freq: 1.0
+    #=> frequency at which we either check if still block or replan w/o the robot
 
 ####################
 human_model_node: ##

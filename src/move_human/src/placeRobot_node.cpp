@@ -80,7 +80,8 @@ PlaceRobotMap::PlaceRobotMap()
 
 bool PlaceRobotMap::placeRobotSrv(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
 {
-	place_robot_ = req.data.data;
+	place_robot_ = req.data;
+
 	return true;
 }
 
@@ -124,7 +125,6 @@ void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_p
 			// publish empty
 			empty_PointCloud2_.header.stamp = ros::Time::now();
 			robot_pose_pub_.publish(empty_PointCloud2_);
-
 		}
 	}
 }
