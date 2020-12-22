@@ -310,7 +310,7 @@ void Supervisor::FSM()
 							client_place_robot_.call(srv);
 
 							ROS_INFO("waiting ...");
-							ros::Duration(0.5).sleep();
+							ros::Duration(0.5).sleep(); // peut etre forcement stop goal et human dans check puis relance ici, pour eviter commence a suivre chemin long ...
 
 							// replan 
 							client_action_.sendGoal((*curr_action).action);
