@@ -3,7 +3,6 @@
 
 #include "ros/ros.h"
 #include "geometry_msgs/Pose2D.h"
-#include "type.h"
 
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/PointCloud2.h"
@@ -19,11 +18,11 @@ private:
 	
 	ros::Subscriber robot_pose_sub_;
 	void robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_pose);
-	Pose2D robot_pose_;
+	geometry_msgs::Pose2D robot_pose_;
 
 	ros::Subscriber human_pose_sub_;
 	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_pose);
-	Pose2D human_pose_;
+	geometry_msgs::Pose2D human_pose_;
 	bool human_pose_init_;
 
 	sensor_msgs::PointCloud2 robot_pose_PointCloud2_;
