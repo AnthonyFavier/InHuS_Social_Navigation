@@ -60,6 +60,7 @@ HumanModel::HumanModel()
 	// Service clients
 	client_set_get_goal_ = 		nh_.serviceClient<human_sim::SetGetGoal>("set_get_goal");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
+	client_place_robot_ =		nh_.serviceClient<move_human::PlaceRobot>("place_robo");
 
 	ROS_INFO("I am human");
 

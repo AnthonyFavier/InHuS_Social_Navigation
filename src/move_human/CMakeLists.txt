@@ -10,6 +10,16 @@ find_package(catkin REQUIRED COMPONENTS
   tf
 )
 
+add_service_files(
+  FILES
+  PlaceRobot.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS roscpp rospy tf

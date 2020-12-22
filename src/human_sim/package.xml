@@ -6,9 +6,7 @@
 
   <maintainer email="rhaynnix@todo.todo">rhaynnix</maintainer>
 
-
   <license>TODO</license>
-
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
@@ -37,6 +35,9 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>roslib</exec_depend>
   <exec_depend>tf</exec_depend>
+
+  <exec_depend>move_human</exec_depend>
+  <build_depend>move_human</build_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -16,6 +16,8 @@
 #include "move_base_msgs/MoveBaseActionGoal.h"
 #include <tf2/LinearMath/Quaternion.h>
 
+#include "move_human/PlaceRobot.h"
+
 #define PI 3.1415926535897932384626433832795
 
 struct GoalArea
@@ -92,6 +94,7 @@ private:
 	// Service Clients //
 	ros::ServiceClient client_set_get_goal_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
+	ros::ServiceClient client_place_robot_;
 
 	//// Variables ////
 	ros::NodeHandle nh_;

@@ -8,10 +8,13 @@
 #include "sensor_msgs/PointCloud2.h"
 #include "sensor_msgs/point_cloud_conversion.h"
 
+#include "move_human/PlaceRobot.h"
+
 class PlaceRobotMap
 {
 public:
 	PlaceRobotMap();
+	bool placeRobotSrv(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res);
 
 private:
 	ros::NodeHandle nh_;
@@ -29,9 +32,13 @@ private:
 	sensor_msgs::PointCloud2 empty_PointCloud2_;
 	ros::Publisher robot_pose_pub_;
 
+	ros::ServiceServer place_robot_server_;
+
 	float size_rob_;
 	float dist_threshold_;
+
 	bool robot_near_;
+	bool place_robot_;
 };
 
 #endif
