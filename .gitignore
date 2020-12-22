@@ -2,9 +2,8 @@ build/
 devel/
 *.swp
 log.txt
-src/navigation/
 videos/
 
+src/navigation/
 src/hanp_msgs/
-
 src/hanp_prediction/
