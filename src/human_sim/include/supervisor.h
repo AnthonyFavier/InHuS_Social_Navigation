@@ -47,7 +47,7 @@ private:
 	StateGlobal global_state_;
 	enum BlockedState{NOT_FEASIBLE, ABORTED, LONGER};
 	BlockedState blocked_state_;
-	enum ApproachState{FIRST, CHECKING, REPLANNING};
+	enum ApproachState{CHECKING, REPLANNING};
 	ApproachState approach_state_;
 
 	// Subscribers //
@@ -92,7 +92,6 @@ private:
 	geometry_msgs::Pose2D human_pose_;
 	geometry_msgs::Pose2D robot_pose_;
 
-	bool first_blocked_;
 	bool first_not_feasible_;
 
 	int goal_aborted_count_;

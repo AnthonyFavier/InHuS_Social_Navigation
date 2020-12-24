@@ -80,7 +80,6 @@ Supervisor::Supervisor()
 	marker_rviz_.color.a = 			0;
 
 	global_state_ = GET_GOAL;
-	approach_state_ = FIRST;
 
 	goal_received_ = false;
 
@@ -106,7 +105,6 @@ void Supervisor::init()
 	current_path_.poses.clear();
 	previous_path_.poses.clear();
 	first_not_feasible_ = 	true;
-	first_blocked_ = 	true;
 	replan_success_nb_ = 	0;
 	goal_aborted_count_ = 	0;
 	last_replan_ = 		ros::Time::now();
@@ -253,8 +251,22 @@ void Supervisor::FSM()
 
 							if(this->checkBlocked())
 							{
+								// stop human
+								human_sim::CancelGoalAndStop srv_sh;
+								client_cancel_goal_and_stop_.call(srv_sh);
+								client_action_.stopTrackingGoal();
+
+								// remove robot
+								move_human::PlaceRobot srv;
+								srv.request.data = false;
+								client_place_robot_.call(srv);
+
+								last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime() + ros::Duration(0.3);
+								// wait before replanning to be sure the robot has actually been removed from the map
+
+								// switch to APPROACH
 								global_state_ = APPROACH;
-								approach_state_ = FIRST;
+								approach_state_ = REPLANNING;
 							}
 							break;
 					}
@@ -271,10 +283,12 @@ void Supervisor::FSM()
 			if(goal_received_)
 			{
 				goal_received_ = false;
+				global_state_ = ASK_PLAN;
+
+				// be sure robot is on the map
 				move_human::PlaceRobot srv;
 				srv.request.data = true;
 				client_place_robot_.call(srv);
-				global_state_ = ASK_PLAN;
 			}
 			else
 			{
@@ -285,11 +299,19 @@ void Supervisor::FSM()
 					ROS_INFO("close enough");
 
 					// switch to BLOCKED
-					approach_state_ = CHECKING;
 					global_state_ = BLOCKED;
-					move_human::PlaceRobot srv;
-					srv.request.data = true;
-					client_place_robot_.call(srv);
+
+					// place back robot
+					move_human::PlaceRobot srv_pr;
+					srv_pr.request.data = true;
+					client_place_robot_.call(srv_pr);
+
+					// stop human
+					human_sim::CancelGoalAndStop srv;
+					client_cancel_goal_and_stop_.call(srv);
+					client_action_.stopTrackingGoal();
+
+					last_replan_ = ros::Time::now();
 				}
 				else
 				{	
@@ -299,32 +321,6 @@ void Supervisor::FSM()
 
 					switch(approach_state_)
 					{
-						case FIRST:
-						{
-							ROS_INFO("\t => APPROACH <=");
-							ROS_INFO("FIRST");
-							ROS_INFO("dist=%f", dist_to_robot);
-
-							move_human::PlaceRobot srv;
-							srv.request.data = false;
-							client_place_robot_.call(srv);
-
-							ROS_INFO("waiting ...");
-							ros::Duration(0.5).sleep(); // peut etre forcement stop goal et human dans check puis relance ici, pour eviter commence a suivre chemin long ...
-
-							// replan 
-							client_action_.sendGoal((*curr_action).action);
-							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
-							last_replan_ = ros::Time::now();
-							ROS_INFO("replanned");
-
-							srv.request.data = true;
-							client_place_robot_.call(srv);
-	
-							approach_state_ = CHECKING;
-							break;
-						}
-
 						case CHECKING:
 							if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
 							{
@@ -374,7 +370,6 @@ void Supervisor::FSM()
 								{
 									// since the human isn't blocked anymore, switch back to EXEC_PLAN 
 									last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
-									approach_state_ = CHECKING;
 									global_state_ = EXEC_PLAN;
 								}
 
@@ -390,7 +385,7 @@ void Supervisor::FSM()
 								ROS_INFO("dist=%f", dist_to_robot);
 
 								// replan (without the robot)
-								if(dist_to_robot > approach_dist_ + 1) // if not too close from approach_dist
+								if(dist_to_robot > approach_dist_ + 0.5) // if not too close from approach_dist
 								{
 									client_action_.sendGoal((*curr_action).action);
 									this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
@@ -424,15 +419,22 @@ void Supervisor::FSM()
 			}
 			else
 			{
-				if(first_blocked_)
+				// if too far, back to approach
+				float dist_to_robot = sqrt(pow(human_pose_.x - robot_pose_.x,2) + pow(human_pose_.y - robot_pose_.y,2));
+				ROS_INFO("dist=%f", dist_to_robot);
+				if(dist_to_robot > approach_dist_)
 				{
-					ROS_INFO("\t => BLOCKED <=");
-					human_sim::CancelGoalAndStop srv;
-					client_cancel_goal_and_stop_.call(srv);
-					client_action_.stopTrackingGoal();
+					// remove robot
+					move_human::PlaceRobot srv;
+					srv.request.data = false;
+					client_place_robot_.call(srv);
 
-					last_replan_ = ros::Time::now();
-					first_blocked_=false;
+					last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime() + ros::Duration(0.3);
+					// wait before replanning to be sure the robot has actually been removed from the map
+
+					// switch to APPROACH
+					global_state_ = APPROACH;
+					approach_state_ = REPLANNING;
 				}
 				else
 				{
@@ -442,6 +444,7 @@ void Supervisor::FSM()
 						case LONGER:
 							if(ros::Time::now() - last_replan_ > blocked_ask_path_freq_.expectedCycleTime())
 							{
+								ROS_INFO("\t => BLOCKED <=");
 								ROS_INFO("try to replan");
 
 								plan_.updateCurrentAction();
@@ -478,7 +481,6 @@ void Supervisor::FSM()
 											{
 												ROS_INFO("replan successfully !");
 												replan_success_nb_ = 0;
-												first_blocked_ = true;
 												last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
 												global_state_ = EXEC_PLAN;
 											}
@@ -521,7 +523,8 @@ void Supervisor::FSM()
 
 							if(ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime())
 							{
-								ROS_INFO("send goal");
+								ROS_INFO("\t => BLOCKED <=");
+								ROS_INFO("not feasible, send goal");
 								client_action_.sendGoal((*curr_action).action);
 								this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
 								last_replan_ = ros::Time::now();
@@ -531,7 +534,6 @@ void Supervisor::FSM()
 								|| abs(human_pose_.theta-last_human_pose.theta) > not_feasible_theta_threshold_unblock_)
 								{
 									ROS_INFO("We moved !");
-									first_blocked_ = true;
 									first_not_feasible_ = true;
 									global_state_ = EXEC_PLAN;
 								}

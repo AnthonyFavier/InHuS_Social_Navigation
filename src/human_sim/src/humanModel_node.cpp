@@ -460,8 +460,11 @@ void HumanModel::computeTTC()
 	else
 	{
 		geometry_msgs::Twist V; // relative velocity human to robot
-		V.linear.x = model_robot_vel_.linear.x - model_vel_.linear.x;
-		V.linear.y = model_robot_vel_.linear.y - model_vel_.linear.y;
+		//V.linear.x = model_robot_vel_.linear.x - model_vel_.linear.x;
+		//V.linear.y = model_robot_vel_.linear.y - model_vel_.linear.y;
+
+		V.linear.x = model_vel_.linear.x - model_robot_vel_.linear.x;
+		V.linear.y = model_vel_.linear.y - model_robot_vel_.linear.y;
 		double C_dot_V = C.x*V.linear.x + C.y*V.linear.y;
 
 		if(C_dot_V > 0) // otherwise ttc infinite
