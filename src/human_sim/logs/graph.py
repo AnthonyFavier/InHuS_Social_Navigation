@@ -21,6 +21,9 @@ list_first_time = []
 list_state_exec_data = []
 list_state_exec_time = []
 
+list_state_approach_data = []
+list_state_approach_time = []
+
 list_state_blocked_data = []
 list_state_blocked_time = []
 
@@ -50,6 +53,10 @@ for line in f:
                     list_state_exec_data.append(value_state)
                     list_state_exec_time.append(float(mylist[5]))
 
+                elif mylist[4] == 'APPROACH':
+                    list_state_approach_data.append(value_state)
+                    list_state_approach_time.append(float(mylist[5]))
+
                 elif mylist[4] == 'BLOCKED':
                     list_state_blocked_data.append(value_state)
                     list_state_blocked_time.append(float(mylist[5]))
@@ -75,6 +82,7 @@ ax1.plot(list_path_time, list_path_data, 'b+')
 ax1.plot(list_first_time, list_first_data, 'ro')
 
 ax1.plot(list_state_exec_time, list_state_exec_data, 'gs')
+ax1.plot(list_state_approach_time, list_state_approach_data, 'ys')
 ax1.plot(list_state_blocked_time, list_state_blocked_data, 'rs')
 
 ax2 = ax1.twinx()
@@ -87,6 +95,7 @@ ax3.set_xlabel('time (s)')
 ax3.set_ylabel('TTC (s)')
 ax3.plot(list_ttc_time, list_ttc_data, 'k+')
 ax3.set_xlim(left=ax1.get_xbound()[0], right=ax1.get_xbound()[1])
+ax3.set_ylim(bottom=0)
 
 fig.tight_layout()
 
