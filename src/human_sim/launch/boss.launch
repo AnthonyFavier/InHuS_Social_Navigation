@@ -1,5 +1,5 @@
 <launch>
 
-	<node name="boss_node" type="boss_node" pkg="human_sim" output="screen" launch-prefix="xterm -geometry '80x25+945+0' -e"/>
+	<node name="boss_node" type="boss_node" pkg="human_sim" output="screen" launch-prefix="xterm -geometry '62x15+610+0' -e"/>
 
 </launch>
