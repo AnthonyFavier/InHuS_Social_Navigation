@@ -2,6 +2,10 @@
 supervisor_node: ##
 ###################
 
+### PlaceRobot
+  place_robot_delay: 0.4
+    #=> duration waited after calling place_robot service to "be sure" it's effective
+
 ### Replan global path
   replan_freq: 2.0
     #=> frequency to replan global path
@@ -18,7 +22,7 @@ supervisor_node: ##
   not_feasible_theta_threshold_unblock: 0.02
     #=> when blocked by not feasible, if rotate of this angle from stopped angle then unblock
 
-## Changed too much
+### Changed too much
   blocked_ask_path_freq: 2.0
     #=> frequency ask global path when blocked
   blocked_nb_ask_success_unblock: 1
@@ -28,10 +32,19 @@ supervisor_node: ##
   ratio_path_length_diff: 1.5
     #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good gloabl path"
 
+### Approach
+  approach_dist: 3.0
+    #=> when blocked, get close until this distance to the robot by ignoring it
+  approach_freq: 1.0
+    #=> frequency at which we either check if still block or replan w/o the robot
 
 ####################
 human_model_node: ##
 ####################
+
+  human_radius: 0.35
+  robot_radius: 0.35
+    #=> radius of both human and robot to compute TTC (Time To Collision)
 
   ratio_perturbation_cmd: 0.0
     #=> perturbate cmd_vel 0.2 <=> +/- 20% of cmd_vel value
@@ -58,7 +71,7 @@ human_model_node: ##
 place_robot_node: ##
 ####################
 
-  size_rob: 0.5
+  size_rob: 0.6
     #=> size of robot to add on costmap (one side of a square)
   dist_threshold: 5.0
     #=> distance above which the robot isn't drawn on costmap

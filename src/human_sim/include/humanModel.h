@@ -5,7 +5,6 @@
 #include <vector>
 #include <time.h>
 #include <math.h>
-#include "type.h"
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
 #include "human_sim/Goal.h"
@@ -37,7 +36,7 @@ public:
 	void publishModelData();
 	void behaviors();
 	void pubDist();
-
+	void computeTTC();
 
 private:
 
@@ -65,8 +64,12 @@ private:
 	// Subscribers //
 	ros::Subscriber sub_pose_;
 	void poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
+	ros::Subscriber sub_vel_;
+	void velCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_robot_pose_;
 	void robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
+	ros::Subscriber sub_robot_vel_;
+	void robotVelCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_cmd_geo_;
 	void cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_goal_done_;
@@ -81,7 +84,9 @@ private:
 	// Publishers //
 	ros::Publisher pub_new_goal_;
 	ros::Publisher pub_human_pose_;
+	ros::Publisher pub_human_vel_;
 	ros::Publisher pub_robot_pose_;
+	ros::Publisher pub_robot_vel_;
 	ros::Publisher pub_perturbed_cmd_;
 	ros::Publisher pub_cancel_goal_;
 	ros::Publisher pub_goal_move_base_;
@@ -94,11 +99,20 @@ private:
 	//// Variables ////
 	ros::NodeHandle nh_;
 
-	Pose2D sim_pose_;
-	Pose2D sim_robot_pose_;
+	geometry_msgs::Pose2D sim_pose_;
+	geometry_msgs::Twist sim_vel_;
+	geometry_msgs::Pose2D sim_robot_pose_;
+	geometry_msgs::Twist sim_robot_vel_;
 
-	Pose2D model_pose_;
-	Pose2D model_robot_pose_;
+	geometry_msgs::Pose2D model_pose_;
+	geometry_msgs::Twist model_vel_;
+	geometry_msgs::Pose2D model_robot_pose_;
+	geometry_msgs::Twist model_robot_vel_;
+
+	double ttc_;
+	float human_radius_;
+	float robot_radius_;
+	float radius_sum_sq_;
 
 	human_sim::Goal current_goal_;
 	human_sim::Goal previous_goal_;
@@ -106,6 +120,8 @@ private:
 	std::vector<GoalArea> known_goals_;
 
 	bool executing_plan_;
+
+	std_msgs::String msg_log_;
 
 	// HATEB
 	ros::ServiceClient client_hateb_set_human_goal_;

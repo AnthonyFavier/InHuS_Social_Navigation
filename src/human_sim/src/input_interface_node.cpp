@@ -1,6 +1,8 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/Twist.h"
+#include "geometry_msgs/TwistStamped.h"
 #include "tf/tf.h"
 #include "nav_msgs/Odometry.h"
 #include <math.h>
@@ -15,9 +17,15 @@ ros::Publisher pub_sim_human_pose;
 geometry_msgs::Pose2D h_pose;
 double h_roll, h_pitch, h_yaw;
 
+ros::Publisher pub_sim_human_vel;
+geometry_msgs::Twist h_vel;
+
 ros::Publisher pub_sim_robot_pose;
 geometry_msgs::Pose2D r_pose;
 double r_roll, r_pitch, r_yaw;
+
+ros::Publisher pub_sim_robot_vel;
+geometry_msgs::Twist r_vel;
 
 void humanPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 {
@@ -29,6 +37,12 @@ void humanPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 	h_pose.y=msg->pose.position.y;
 
 	pub_sim_human_pose.publish(h_pose);
+}
+
+void humanVelCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+{
+	h_vel = msg->twist;
+	pub_sim_human_vel.publish(h_vel);
 }
 
 void robotPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
@@ -43,6 +57,12 @@ void robotPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 	pub_sim_robot_pose.publish(r_pose);
 }
 
+void robotVelCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+{
+	r_vel = msg->twist;
+	pub_sim_robot_vel.publish(r_vel);
+}
+
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "input_interface");
@@ -52,9 +72,15 @@ int main(int argc, char** argv)
 
 	ros::Subscriber sub_human_pose = nh.subscribe("/morse/human_pose", 100, humanPoseCallback);
 	pub_sim_human_pose = nh.advertise<geometry_msgs::Pose2D>("in/human_pose", 100);
+	
+	ros::Subscriber sub_human_vel = nh.subscribe("/morse/human_vel", 100, humanVelCallback);
+	pub_sim_human_vel = nh.advertise<geometry_msgs::Twist>("in/human_vel", 100);
 
 	ros::Subscriber sub_robot_pose = nh.subscribe("/morse/robot_pose", 100, robotPoseCallback);
 	pub_sim_robot_pose = nh.advertise<geometry_msgs::Pose2D>("in/robot_pose", 100);
+
+	ros::Subscriber sub_robot_vel = nh.subscribe("/morse/robot_vel", 100, robotVelCallback);
+	pub_sim_robot_vel = nh.advertise<geometry_msgs::Twist>("in/robot_vel", 100);
 
 	tf::TransformBroadcaster br;
 	tf::Quaternion q;

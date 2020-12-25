@@ -6,7 +6,7 @@ PlaceRobotMap::PlaceRobotMap()
 {
 	// Ros Params
 	ros::NodeHandle private_nh("~");
-	private_nh.param(std::string("size_rob"), size_rob_, float(0.5));
+	private_nh.param(std::string("size_rob"), size_rob_, float(0.6));
 	private_nh.param(std::string("dist_threshold"), dist_threshold_, float(5.0));
 
 	ROS_INFO("Params:");
@@ -24,6 +24,7 @@ PlaceRobotMap::PlaceRobotMap()
 
 	human_pose_init_ = 	false;
 	robot_near_ = false;
+	place_robot_ = true;
 
 	// Build empty_PointCloud2
 	sensor_msgs::PointCloud cloud;
@@ -72,6 +73,16 @@ PlaceRobotMap::PlaceRobotMap()
 
 	// Publisher
 	robot_pose_pub_ =	nh_.advertise<sensor_msgs::PointCloud2>("robot_pose_PointCloud2", 10);
+
+	// Server
+	place_robot_server_ = nh_.advertiseService("place_robot", &PlaceRobotMap::placeRobotSrv, this);
+}
+
+bool PlaceRobotMap::placeRobotSrv(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
+{
+	place_robot_ = req.data;
+
+	return true;
 }
 
 void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_pose)
@@ -82,6 +93,8 @@ void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_p
 		robot_pose_.y = 	r_pose->y+8;
 		robot_pose_.theta = 	r_pose->theta;
 
+		/*
+		// if close enough
 		if(sqrt(pow(human_pose_.x-robot_pose_.x,2) + pow(human_pose_.y-robot_pose_.y,2)) < dist_threshold_)
 		{
 			robot_near_ = true;
@@ -91,10 +104,24 @@ void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_p
 			robot_pose_pub_.publish(robot_pose_PointCloud2_);
 
 		}
-		else if(robot_near_)
+		else if(robot_near_) // if too far but was close enough before
 		{
 			robot_near_ = false;
 
+			// publish empty
+			empty_PointCloud2_.header.stamp = ros::Time::now();
+			robot_pose_pub_.publish(empty_PointCloud2_);
+		}
+		*/
+
+		if(place_robot_)
+		{
+			// publish with obst
+			robot_pose_PointCloud2_.header.stamp = ros::Time::now();
+			robot_pose_pub_.publish(robot_pose_PointCloud2_);
+		}
+		else
+		{
 			// publish empty
 			empty_PointCloud2_.header.stamp = ros::Time::now();
 			robot_pose_pub_.publish(empty_PointCloud2_);

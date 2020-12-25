@@ -2,7 +2,6 @@
 #define DEF_TASKPLANNER
 
 #include "ros/ros.h"
-#include "type.h"
 #include "std_msgs/String.h"
 #include "human_sim/ComputePlan.h"
 #include "geometry_msgs/Pose2D.h"
