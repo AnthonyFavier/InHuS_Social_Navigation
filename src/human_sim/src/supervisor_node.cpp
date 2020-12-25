@@ -9,6 +9,7 @@ Supervisor::Supervisor()
 , blocked_ask_path_freq_(1)
 , not_feasible_check_pose_freq_(1)
 , approach_freq_(1)
+, place_robot_delay_(1)
 {
 	// Ros Params
 	ros::NodeHandle private_nh("~");
@@ -25,6 +26,7 @@ Supervisor::Supervisor()
 	private_nh.param(std::string("ratio_path_length_diff"), ratio_path_length_diff_, float(1.5));
 	private_nh.param(std::string("approach_dist"), approach_dist_, float(4.0));
 	private_nh.param(std::string("approach_freq"), f_nb, float(2.0)); approach_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("place_robot_delay"), f_nb, float(0.3)); place_robot_delay_ = ros::Duration(f_nb);
 
 	ROS_INFO("Params:");
 	ROS_INFO("replan_freq=%f", replan_freq_.expectedCycleTime().toSec());
@@ -39,6 +41,7 @@ Supervisor::Supervisor()
 	ROS_INFO("ratio_path_length_diff=%f", ratio_path_length_diff_);
 	ROS_INFO("approach_dist=%f", approach_dist_);
 	ROS_INFO("approach_freq=%f", approach_freq_.expectedCycleTime().toSec());
+	ROS_INFO("place_robot_delay=%f", place_robot_delay_.toSec());
 
 	// Service clients
 	client_plan_ = 			nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
@@ -147,8 +150,6 @@ void Supervisor::FSM()
 
 		case EXEC_PLAN:
 			ROS_INFO("\t => EXEC_PLAN <=");
-			msg_.data = "SUPERVISOR STATE EXEC " + std::to_string(ros::Time::now().toSec());
-			pub_log_.publish(msg_);
 			ROS_INFO("current_goal : %s (%f, %f, %f)", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
 			if(goal_received_)
 			{
@@ -204,18 +205,59 @@ void Supervisor::FSM()
 							break;
 
 						case READY:
+						{
 							ROS_INFO("READY");
+
+							// plan without robot first
+							ROS_INFO("Plan without robot");
+
+							// remove robot
+							move_human::PlaceRobot srv_pr;
+							srv_pr.request.data = false;
+							client_place_robot_.call(srv_pr);
+							ROS_INFO("removed");
+							place_robot_delay_.sleep(); // wait delay
+
+							// call make_plan
+							nav_msgs::GetPlan srv;
+							srv.request.start.pose.position.x = 	human_pose_.x;
+							srv.request.start.pose.position.y = 	human_pose_.y;
+							srv.request.start.header.frame_id = 	"map";
+							srv.request.goal.pose.position.x = 	(*curr_action).action.target_pose.pose.position.x;
+							srv.request.goal.pose.position.y = 	(*curr_action).action.target_pose.pose.position.y;
+							srv.request.goal.header.frame_id = 	"map";
+							srv.request.tolerance = 		0.1;
+							if(client_make_plan_.call(srv)) 
+							{
+								previous_path_ = srv.response.plan;
+								float path_length = this->computePathLength(&previous_path_);
+								msg_.data = "SUPERVISOR FIRST " + std::to_string(previous_path_.header.stamp.toSec()) + " " + std::to_string(path_length);
+								pub_log_.publish(msg_);
+								ROS_INFO("planned");
+							}
+							else
+								ROS_ERROR("Failed to call service make_plan");
+
+							// place robot back
+							srv_pr.request.data = true;
+							client_place_robot_.call(srv_pr);
+							ROS_INFO("back");
+							place_robot_delay_.sleep(); // wait delay
+
 							// send to geometric planner
 							current_path_.poses.clear();
-							previous_path_.poses.clear();
 							client_action_.sendGoal((*curr_action).action);
 							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
 							this->initCheckBlocked();
 							(*curr_action).state=PROGRESS;
 							break;
+						}
 
 						case PROGRESS:
 							ROS_INFO("PROGRESS");
+							msg_.data = "SUPERVISOR STATE PROGRESS " + std::to_string(ros::Time::now().toSec());
+							pub_log_.publish(msg_);
+
 							// check postconditions
 							// for now : if human at destination
 							if(client_action_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
@@ -249,6 +291,7 @@ void Supervisor::FSM()
 								}
 							}
 
+							// Check if blocked
 							if(this->checkBlocked())
 							{
 								// stop human
@@ -261,7 +304,7 @@ void Supervisor::FSM()
 								srv.request.data = false;
 								client_place_robot_.call(srv);
 
-								last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime() + ros::Duration(0.3);
+								last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime() + place_robot_delay_;
 								// wait before replanning to be sure the robot has actually been removed from the map
 
 								// switch to APPROACH
@@ -385,7 +428,7 @@ void Supervisor::FSM()
 								ROS_INFO("dist=%f", dist_to_robot);
 
 								// replan (without the robot)
-								if(dist_to_robot > approach_dist_ + 0.5) // if not too close from approach_dist
+								if(dist_to_robot > approach_dist_ + replan_dist_stop_) // if not too close from approach_dist
 								{
 									client_action_.sendGoal((*curr_action).action);
 									this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
@@ -429,7 +472,7 @@ void Supervisor::FSM()
 					srv.request.data = false;
 					client_place_robot_.call(srv);
 
-					last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime() + ros::Duration(0.3);
+					last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime() + place_robot_delay_;
 					// wait before replanning to be sure the robot has actually been removed from the map
 
 					// switch to APPROACH
@@ -723,32 +766,18 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 	{
 		ROS_INFO("pathCallback %d ! length %f ", (int)path->poses.size(), path_length);
 
-		ROS_INFO("before CB : path=%d current=%d previous=%d", (int)path->poses.size(), (int)current_path_.poses.size(), (int)previous_path_.poses.size());
-		if((int)current_path_.poses.size()==0 && (int)previous_path_.poses.size()==0)
-		{
-			ROS_INFO("======> first !");
-			current_path_ = *path;
-			msg_.data = "SUPERVISOR FIRST " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
-			pub_log_.publish(msg_);
-		}
+		// in order to always have a valid path stored in previous_path_ 
+		// the current_path is always uptaded but the previous is only 
+		// updated if the current one wasn't empty
 
-		else if((int)current_path_.poses.size()==0 && (int)previous_path_.poses.size()!=0)
+		if((int)current_path_.poses.size()!=0)
 		{
-			ROS_INFO("retreive new current path");
-			current_path_ = *path;
-		}
-
-		else if((int)current_path_.poses.size()!=0)
-		{
-			ROS_INFO("CUTTING path !");
-
 			// seek pose closest to current_pose from current_path
 			// only keep path from current_pose to the end store to previous
 			this->cutPath(current_path_, previous_path_);
-
-			// update current_path
-			current_path_ = *path;
 		}
+		// update current_path
+		current_path_ = *path;
 
 		ROS_INFO("after CB : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	}
@@ -756,22 +785,27 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 
 int Supervisor::cutPath(const nav_msgs::Path& path1, nav_msgs::Path& path2)
 {
-	float dist = sqrt(pow(path1.poses[0].pose.position.x-human_pose_.x,2) + pow(path1.poses[0].pose.position.y-human_pose_.y,2));
-	float dist_min = dist;
-	int i_min = 0;
-	for(int i=1; i<(int)path1.poses.size(); i++)
-	{
-		dist = sqrt(pow(path1.poses[i].pose.position.x-human_pose_.x,2) + pow(path1.poses[i].pose.position.y-human_pose_.y,2));
-		if(dist < dist_min)
-		{
-			dist_min = dist;
-			i_min = i;
-		}
-	}
+	int i_min = -1;
 
-	path2.poses.clear();
-	for(int i=i_min; i<(int)path1.poses.size(); i++)
-		path2.poses.push_back(path1.poses[i]);
+	if((int)path1.poses.size()>0)
+	{
+		float dist = sqrt(pow(path1.poses[0].pose.position.x-human_pose_.x,2) + pow(path1.poses[0].pose.position.y-human_pose_.y,2));
+		float dist_min = dist;
+		i_min = 0;
+		for(int i=1; i<(int)path1.poses.size(); i++)
+		{
+			dist = sqrt(pow(path1.poses[i].pose.position.x-human_pose_.x,2) + pow(path1.poses[i].pose.position.y-human_pose_.y,2));
+			if(dist < dist_min)
+			{
+				dist_min = dist;
+				i_min = i;
+			}
+		}
+
+		path2.poses.clear();
+		for(int i=i_min; i<(int)path1.poses.size(); i++)
+			path2.poses.push_back(path1.poses[i]);
+	}
 
 	return i_min;
 }

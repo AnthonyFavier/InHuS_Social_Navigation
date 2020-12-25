@@ -49,7 +49,7 @@ for line in f:
                 list_first_time.append(float(mylist[4]))
 
             elif mylist[3] == 'STATE':
-                if mylist[4] == 'EXEC':
+                if mylist[4] == 'PROGRESS':
                     list_state_exec_data.append(value_state)
                     list_state_exec_time.append(float(mylist[5]))
 

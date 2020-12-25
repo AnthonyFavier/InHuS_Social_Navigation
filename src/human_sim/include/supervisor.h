@@ -109,6 +109,7 @@ private:
 	float replan_dist_stop_;
 	float approach_dist_;
 	ros::Rate approach_freq_;
+	ros::Duration place_robot_delay_;
 
 	int same_human_pose_count_;
 	geometry_msgs::Pose2D last_human_pose_;

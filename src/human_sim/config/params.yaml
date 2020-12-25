@@ -2,6 +2,10 @@
 supervisor_node: ##
 ###################
 
+### PlaceRobot
+  place_robot_delay: 0.4
+    #=> duration waited after calling place_robot service to "be sure" it's effective
+
 ### Replan global path
   replan_freq: 2.0
     #=> frequency to replan global path
