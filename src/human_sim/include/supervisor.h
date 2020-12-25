@@ -75,6 +75,11 @@ private:
 	ros::ServiceClient client_cancel_goal_and_stop_;
 	ros::ServiceClient client_place_robot_;
 
+	// Services
+	move_human::PlaceRobot srv_place_robot_;
+	nav_msgs::GetPlan srv_get_plan_;
+	human_sim::CancelGoalAndStop srv_cancel_stop_;
+
 	// Service servers //
 	ros::ServiceServer service_set_get_goal_;
 	bool setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res);
