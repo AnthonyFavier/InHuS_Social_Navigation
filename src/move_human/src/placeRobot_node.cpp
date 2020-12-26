@@ -82,6 +82,19 @@ bool PlaceRobotMap::placeRobotSrv(move_human::PlaceRobot::Request& req, move_hum
 {
 	place_robot_ = req.data;
 
+	if(place_robot_)
+	{
+		// publish with obst
+		robot_pose_PointCloud2_.header.stamp = ros::Time::now();
+		robot_pose_pub_.publish(robot_pose_PointCloud2_);
+	}
+	else
+	{
+		// publish empty
+		empty_PointCloud2_.header.stamp = ros::Time::now();
+		robot_pose_pub_.publish(empty_PointCloud2_);
+	}
+
 	return true;
 }
 

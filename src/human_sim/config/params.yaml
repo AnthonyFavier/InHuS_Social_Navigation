@@ -3,7 +3,7 @@ supervisor_node: ##
 ###################
 
 ### PlaceRobot
-  place_robot_delay: 0.4
+  place_robot_delay: 0.5
     #=> duration waited after calling place_robot service to "be sure" it's effective
 
 ### Replan global path
@@ -29,7 +29,7 @@ supervisor_node: ##
     #=> when blocked, number of concecutive times required successfully getting a "good global path" to unblock
   absolute_path_length_diff: 1.0
     #=> if length difference between the path received and the previous stored path is less than this then concidered as "good global path"
-  ratio_path_length_diff: 1.5
+  ratio_path_length_diff: 1.3
     #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good gloabl path"
 
 ### Approach
@@ -42,8 +42,9 @@ supervisor_node: ##
 human_model_node: ##
 ####################
 
-  human_radius: 0.35
-  robot_radius: 0.35
+### TTC
+  human_radius: 0.40
+  robot_radius: 0.50
     #=> radius of both human and robot to compute TTC (Time To Collision)
 
   ratio_perturbation_cmd: 0.0
