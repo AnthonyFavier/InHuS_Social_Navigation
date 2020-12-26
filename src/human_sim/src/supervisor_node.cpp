@@ -224,6 +224,7 @@ void Supervisor::FSM()
 							place_robot_delay_.sleep(); // wait delay
 
 							// send to geometric planner
+							ROS_INFO("plan");
 							client_action_.sendGoal((*curr_action).action);
 							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, 
 									(*curr_action).action.target_pose.pose.position.y, 1);
@@ -232,7 +233,7 @@ void Supervisor::FSM()
 							// place robot back
 							srv_place_robot_.request.data = true;
 							client_place_robot_.call(srv_place_robot_);
-							ROS_INFO("back");
+							ROS_INFO("robot back");
 							place_robot_delay_.sleep(); // wait delay
 
 							(*curr_action).state=PROGRESS;
@@ -272,11 +273,13 @@ void Supervisor::FSM()
 									ROS_INFO("=> Resend !");
 									client_action_.sendGoal((*curr_action).action);
 									this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
+									ros::Duration(0.2).sleep();
 									last_replan_ = ros::Time::now();
 								}
 							}
 
 							// Check if blocked
+							ros::spinOnce();
 							if(this->checkBlocked())
 							{
 								// stop human
@@ -286,8 +289,9 @@ void Supervisor::FSM()
 								// remove robot
 								srv_place_robot_.request.data = false;
 								client_place_robot_.call(srv_place_robot_);
+								place_robot_delay_.sleep();
 
-								last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime() + place_robot_delay_;
+								last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
 								// wait before replanning to be sure the robot has actually been removed from the map
 
 								// switch to APPROACH
@@ -329,12 +333,13 @@ void Supervisor::FSM()
 					// place back robot
 					srv_place_robot_.request.data = true;
 					client_place_robot_.call(srv_place_robot_);
+					place_robot_delay_.sleep();
 
 					// stop human
 					client_cancel_goal_and_stop_.call(srv_cancel_stop_);
 					client_action_.stopTrackingGoal();
 
-					last_replan_ = ros::Time::now();
+					last_replan_ = ros::Time::now() - blocked_ask_path_freq_.expectedCycleTime();
 				}
 				else
 				{	
@@ -445,7 +450,7 @@ void Supervisor::FSM()
 					srv_place_robot_.request.data = false;
 					client_place_robot_.call(srv_place_robot_);
 
-					last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime() + place_robot_delay_;
+					last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
 					// wait before replanning to be sure the robot has actually been removed from the map
 
 					// switch to APPROACH
