@@ -110,17 +110,19 @@ Supervisor::Supervisor()
 
 void Supervisor::init()
 {
-	current_path_.poses.clear();
-	previous_path_.poses.clear();
 	first_not_feasible_ = 	true;
 	replan_success_nb_ = 	0;
-	goal_aborted_count_ = 	0;
 	last_replan_ = 		ros::Time::now();
 	this->initCheckBlocked();
 }
 
 void Supervisor::initCheckBlocked()
 {
+	current_path_.poses.clear();
+	previous_path_.poses.clear();
+
+	goal_aborted_count_ = 	0;
+
 	same_human_pose_count_ = 0;
 	last_human_pose_ = human_pose_;
 	last_check_human_pose_ = ros::Time::now();
@@ -210,6 +212,8 @@ void Supervisor::FSM()
 						case READY:
 							ROS_INFO("READY");
 
+							this->initCheckBlocked();
+
 							// plan without robot first
 							ROS_INFO("Plan without robot");
 
@@ -219,21 +223,11 @@ void Supervisor::FSM()
 							ROS_INFO("removed");
 							place_robot_delay_.sleep(); // wait delay
 
-							// call make_plan
-							srv_get_plan_.request.start.pose.position.x = 	human_pose_.x;
-							srv_get_plan_.request.start.pose.position.y = 	human_pose_.y;
-							srv_get_plan_.request.goal.pose.position.x = 	(*curr_action).action.target_pose.pose.position.x;
-							srv_get_plan_.request.goal.pose.position.y = 	(*curr_action).action.target_pose.pose.position.y;
-							if(client_make_plan_.call(srv_get_plan_)) 
-							{
-								previous_path_ = srv_get_plan_.response.plan;
-								float path_length = this->computePathLength(&previous_path_);
-								msg_.data = "SUPERVISOR FIRST " + std::to_string(previous_path_.header.stamp.toSec()) + " " + std::to_string(path_length);
-								pub_log_.publish(msg_);
-								ROS_INFO("planned");
-							}
-							else
-								ROS_ERROR("Failed to call service make_plan");
+							// send to geometric planner
+							client_action_.sendGoal((*curr_action).action);
+							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, 
+									(*curr_action).action.target_pose.pose.position.y, 1);
+							last_replan_ = ros::Time::now();
 
 							// place robot back
 							srv_place_robot_.request.data = true;
@@ -241,11 +235,6 @@ void Supervisor::FSM()
 							ROS_INFO("back");
 							place_robot_delay_.sleep(); // wait delay
 
-							// send to geometric planner
-							current_path_.poses.clear();
-							client_action_.sendGoal((*curr_action).action);
-							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
-							this->initCheckBlocked();
 							(*curr_action).state=PROGRESS;
 							break;
 
@@ -274,7 +263,7 @@ void Supervisor::FSM()
 
 							}
 							// If not too close, try to replan
-							else if(computePathLength(&current_path_) > replan_dist_stop_)
+							else if((int)current_path_.poses.size()==0 || computePathLength(&current_path_) > replan_dist_stop_)
 							{
 								ROS_INFO("Test for resend");
 								if(client_action_.getState() == actionlib::SimpleClientGoalState::LOST
@@ -743,20 +732,31 @@ void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 
 	if(global_state_ != BLOCKED && global_state_ != APPROACH)
 	{
-		ROS_INFO("pathCallback %d ! length %f ", (int)path->poses.size(), path_length);
+		ROS_INFO("pathCallback %d length %f ! current %d previous %d", (int)path->poses.size(), path_length,(int)current_path_.poses.size(), (int)previous_path_.poses.size());
 
 		// in order to always have a valid path stored in previous_path_ 
 		// the current_path is always uptaded but the previous is only 
 		// updated if the current one wasn't empty
 
-		if((int)current_path_.poses.size()!=0)
+		if((int)previous_path_.poses.size()==0)
 		{
-			// seek pose closest to current_pose from current_path
-			// only keep path from current_pose to the end store to previous
-			this->cutPath(current_path_, previous_path_);
+			ROS_INFO("FIRST !");
+			// first w/o robot
+			previous_path_ = *path;
+			msg_.data = "SUPERVISOR FIRST " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
+			pub_log_.publish(msg_);
 		}
-		// update current_path
-		current_path_ = *path;
+		else
+		{
+			if((int)current_path_.poses.size()!=0)
+			{
+				// seek pose closest to current_pose from current_path
+				// only keep path from current_pose to the end store to previous
+				this->cutPath(current_path_, previous_path_);
+			}
+			// update current_path
+			current_path_ = *path;
+		}
 
 		ROS_INFO("after CB : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	}
