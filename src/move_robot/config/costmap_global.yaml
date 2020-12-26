@@ -4,3 +4,8 @@ global_costmap:
   update_frequency: 4.0
   width: 40.0
   height: 40.0
+
+  plugins:
+  - {name: static_layer, type: "costmap_2d::StaticLayer"}
+  - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+

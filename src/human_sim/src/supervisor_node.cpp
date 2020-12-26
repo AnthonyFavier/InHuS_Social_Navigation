@@ -355,6 +355,31 @@ void Supervisor::FSM()
 
 					switch(approach_state_)
 					{
+						// Replan without the robot
+						case REPLANNING:
+							if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
+							{
+								ROS_INFO("\t => APPROACH <=");
+								ROS_INFO("REPLANNING");
+								ROS_INFO("dist=%f", dist_to_robot);
+
+								// if not too close from approach_dist
+								if(dist_to_robot > approach_dist_ + replan_dist_stop_) 
+								{
+									client_action_.sendGoal((*curr_action).action);
+									this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
+								}
+
+								// put the robot back on the map to check if still blocked in next approach loop
+								srv_place_robot_.request.data = true;
+								client_place_robot_.call(srv_place_robot_);
+								approach_state_ = CHECKING;
+
+								last_replan_ = ros::Time::now();
+							}
+							break;
+
+						// check, with the robot, if the human is still blocked
 						case CHECKING:
 							if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
 							{
@@ -390,9 +415,10 @@ void Supervisor::FSM()
 								{
 									ROS_INFO("Still blocked, rm R");
 
-									// remove the robot from the map for next replanning
+									// remove the robot from the map for replanning in next approach loop
 									srv_place_robot_.request.data = false;
 									client_place_robot_.call(srv_place_robot_);
+									last_replan_ = ros::Time::now();
 									approach_state_ = REPLANNING;
 								}
 								else
@@ -401,31 +427,6 @@ void Supervisor::FSM()
 									last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
 									global_state_ = EXEC_PLAN;
 								}
-
-								last_replan_ = ros::Time::now();
-							}
-							break;
-
-						case REPLANNING:
-							if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
-							{
-								ROS_INFO("\t => APPROACH <=");
-								ROS_INFO("REPLANNING");
-								ROS_INFO("dist=%f", dist_to_robot);
-
-								// replan (without the robot)
-								if(dist_to_robot > approach_dist_ + replan_dist_stop_) // if not too close from approach_dist
-								{
-									client_action_.sendGoal((*curr_action).action);
-									this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
-								}
-
-								// put the robot back on the map to check if still blocked in next checking
-								srv_place_robot_.request.data = true;
-								client_place_robot_.call(srv_place_robot_);
-								approach_state_ = CHECKING;
-
-								last_replan_ = ros::Time::now();
 							}
 							break;
 					}
@@ -485,6 +486,7 @@ void Supervisor::FSM()
 								if(client_make_plan_.call(srv_get_plan_))
 								{
 									ROS_INFO("BLOCK : srv.plan=%d previous=%d", (int)srv_get_plan_.response.plan.poses.size(), (int)previous_path_.poses.size());
+									last_replan_ = ros::Time::now();
 									if((int)srv_get_plan_.response.plan.poses.size()!=0) // successfully planned once
 									{
 
@@ -521,8 +523,6 @@ void Supervisor::FSM()
 								}
 								else
 									ROS_ERROR("Failed to call service make_plan");
-
-								last_replan_ = ros::Time::now();
 							}
 							break;
 

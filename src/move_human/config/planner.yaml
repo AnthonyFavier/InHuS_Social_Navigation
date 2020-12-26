@@ -30,7 +30,7 @@ TebLocalPlannerROS:
   dt_hysteresis: 0.01
   global_plan_overwrite_orientation: true
   max_global_plan_lookahead_dist: 1.5
-  feasibility_check_no_poses: 30
+  feasibility_check_no_poses: 1
   global_plan_viapoint_sep: 0.1
      
   # Robot

@@ -5,8 +5,7 @@ raytrace_range: 4.5
 transform_tolerance: 0.5
 meter_scoring: true
 
-footprint: [[-0.3, -0.3], [-0.3, 0.3], [0.3, 0.3], [0.3, -0.3]]
-footprint_padding: 0.0
+robot_radius: 0.3
 
 publish_frequency: 5.0
 

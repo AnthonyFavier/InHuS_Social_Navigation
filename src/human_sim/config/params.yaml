@@ -30,13 +30,13 @@ supervisor_node: ##
   absolute_path_length_diff: 1.0
     #=> if length difference between the path received and the previous stored path is less than this then concidered as "good global path"
   ratio_path_length_diff: 1.3
-    #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good gloabl path"
+    #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good global path"
 
 ### Approach
   approach_dist: 3.0
     #=> when blocked, get close until this distance to the robot by ignoring it
   approach_freq: 1.0
-    #=> frequency at which we either check if still block or replan w/o the robot
+    #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
 
 ####################
 human_model_node: ##
