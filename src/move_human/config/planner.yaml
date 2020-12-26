@@ -24,17 +24,15 @@ GlobalPlanner:
 
 TebLocalPlannerROS:
  # Trajectory
-  
   teb_autosize: true
   dt_ref: 0.20
   dt_hysteresis: 0.01
   global_plan_overwrite_orientation: true
-  max_global_plan_lookahead_dist: 1.5
+  max_global_plan_lookahead_dist: 1.0
   feasibility_check_no_poses: 1
   global_plan_viapoint_sep: 0.1
      
   # Robot
-          
   max_vel_x: 2.0 # 1.2 when testing
   max_vel_x_backwards: 0.7
   max_vel_theta: 2.0

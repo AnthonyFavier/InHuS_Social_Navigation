@@ -536,7 +536,7 @@ void HumanModel::stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 
 void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 {
-	ROS_INFO("received !!");
+	ROS_INFO("goal done !!");
 	previous_goal_ = current_goal_;
 	executing_plan_ = false;
 }
