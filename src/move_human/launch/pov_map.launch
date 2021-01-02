@@ -1,0 +1,8 @@
+<launch>
+
+	<arg name="map_file" default="$(find move_human)/maps/pov.yaml"/>
+	<node name="map_server_pov" pkg="map_server" type="map_server" ns="human" args="$(arg map_file)">
+		<remap from="map" to="pov_map"/>
+	</node>
+
+</launch>
