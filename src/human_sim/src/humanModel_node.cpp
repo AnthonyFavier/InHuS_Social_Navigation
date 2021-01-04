@@ -1,8 +1,5 @@
 #include "humanModel.h"
 
-bool hcb=false;
-bool rcb=false;
-
 /////////////////////// HUMAN MODEL ///////////////////////
 
 HumanModel::HumanModel()
@@ -90,6 +87,8 @@ HumanModel::HumanModel()
 	radius_sum_sq_ *= radius_sum_sq_;
 	ttc_ = -1.0;
 
+	hcb_ = 		false;
+	rcb_ = 		false;
 	// BEHAVIORS //
 	behavior_ = NONE;
 	sub_stop_look_ = WAIT_ROBOT;
@@ -488,7 +487,7 @@ void HumanModel::computeTTC()
 
 void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
-	hcb=true;
+	hcb_=true;
 
 	sim_pose_.x=msg->x;
 	sim_pose_.y=msg->y;
@@ -502,7 +501,7 @@ void HumanModel::velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 
 void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
-	rcb=true;
+	rcb_=true;
 
 	sim_robot_pose_.x=msg->x;
 	sim_robot_pose_.y=msg->y;
@@ -605,7 +604,7 @@ int main(int argc, char** argv)
 
 	ros::Rate rate(15);
 
-	while(ros::ok() && (!hcb || !rcb))
+	while(ros::ok() && (!human_model.getHcb() || !human_model.getRcb()))
 	{
 		ros::spinOnce();
 		rate.sleep();

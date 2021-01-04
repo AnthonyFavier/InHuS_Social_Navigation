@@ -35,6 +35,8 @@ public:
 	void pubDist();
 	void computeTTC();
 
+	bool getHcb(){return hcb_;};
+	bool getRcb(){return rcb_;};
 private:
 
 ////////// METHODS ////////// 
@@ -120,6 +122,8 @@ private:
 
 	std_msgs::String msg_log_;
 
+	bool hcb_;
+	bool rcb_;
 	// ratio perturbation
 	float ratio_perturbation_cmd_;
 
