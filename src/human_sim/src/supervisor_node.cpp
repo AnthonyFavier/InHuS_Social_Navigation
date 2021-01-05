@@ -321,7 +321,7 @@ void Supervisor::FSM()
 			}
 			else
 			{
-				// if close enough
+				// if close enough => BLOCKED
 				float dist_to_robot = sqrt(pow(human_pose_.x - robot_pose_.x,2) + pow(human_pose_.y - robot_pose_.y,2));
 				if(dist_to_robot <= approach_dist_)
 				{
@@ -441,7 +441,7 @@ void Supervisor::FSM()
 			}
 			else
 			{
-				// if too far, back to approach
+				// if too far, back to APPROACH
 				float dist_to_robot = sqrt(pow(human_pose_.x - robot_pose_.x,2) + pow(human_pose_.y - robot_pose_.y,2));
 				ROS_INFO("dist=%f", dist_to_robot);
 				if(dist_to_robot > approach_dist_)

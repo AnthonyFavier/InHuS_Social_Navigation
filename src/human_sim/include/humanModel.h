@@ -159,6 +159,7 @@ private:
 	float offset_pov_map_y_;
 	ros::Time last_seen_robot_;
 	ros::Duration delay_forget_robot_;
+	bool supervisor_wants_robot_;
 
 	// ratio perturbation
 	float ratio_perturbation_cmd_;

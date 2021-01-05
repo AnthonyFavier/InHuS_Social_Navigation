@@ -106,6 +106,7 @@ HumanModel::HumanModel()
 
 	pmcb_ = false;
 	know_robot_pose_ = false;
+	supervisor_wants_robot_ = true;
 
 	// BEHAVIORS //
 	behavior_ = NONE;
@@ -508,16 +509,7 @@ bool HumanModel::initDone()
 
 bool HumanModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
 {
-	/*
-	 *
-	// if changed
-	if((know_robot_pose_ && !req.data)
-	|| (!know_robot_pose_ && req.data))
-	{
-		srv_place_robot_.request.data = req.data;
-		client_place_robot_.call(srv_place_robot_);
-	}
-	*/
+	supervisor_wants_robot_ = req.data;
 
 	return true;
 }
@@ -654,8 +646,8 @@ bool HumanModel::testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float
 				alpha = atan(q) - PI;
 		}
 	}
-	float diff;
 
+	float diff;
 	if(alpha * B.theta > 0) // same sign
 		diff = abs(alpha - B.theta);
 	else
@@ -666,7 +658,6 @@ bool HumanModel::testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float
 			diff = std::min(abs(alpha - B.theta), abs(alpha - (B.theta+2*PI)));
 	}
 
-	ROS_INFO("diff=%f", diff);
 	return diff < fov/2;
 }
 
@@ -710,23 +701,55 @@ void HumanModel::testSeeRobot()
 		// Update robot on map if needed
 		if(see)
 		{
-			if(!know_robot_pose_) // rising edge
+			if(supervisor_wants_robot_)
 			{
-				know_robot_pose_ = true;
-				srv_place_robot_.request.data = true;
-				client_place_robot_.call(srv_place_robot_);
+				if(!know_robot_pose_) // rising edge
+				{
+					ROS_INFO("place_robot true");
+					know_robot_pose_ = true;
+					srv_place_robot_.request.data = true;
+					client_place_robot_.call(srv_place_robot_);
+				}
 			}
-		}
-		else
-		{
-			if(ros::Time::now() - last_seen_robot_ > ros::Duration(1.5)) // delay see robot, memory/prediction
+			else
 			{
 				if(know_robot_pose_) // falling edge
 				{
+					ROS_INFO("place_robot false");
 					know_robot_pose_ = false;
 					srv_place_robot_.request.data = false;
 					client_place_robot_.call(srv_place_robot_);
 				}
+
+			}
+
+
+		}
+		else
+		{
+			if(supervisor_wants_robot_)
+			{
+				if(ros::Time::now() - last_seen_robot_ > ros::Duration(1.5)) // delay see robot, memory/prediction
+				{
+					if(know_robot_pose_) // falling edge
+					{
+						ROS_INFO("place_robot false");
+						know_robot_pose_ = false;
+						srv_place_robot_.request.data = false;
+						client_place_robot_.call(srv_place_robot_);
+					}
+				}
+			}
+			else
+			{
+				if(know_robot_pose_) // falling edge
+				{
+					ROS_INFO("place_robot false");
+					know_robot_pose_ = false;
+					srv_place_robot_.request.data = false;
+					client_place_robot_.call(srv_place_robot_);
+				}
+
 			}
 		}
 
