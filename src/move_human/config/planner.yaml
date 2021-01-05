@@ -24,17 +24,15 @@ GlobalPlanner:
 
 TebLocalPlannerROS:
  # Trajectory
-  
   teb_autosize: true
   dt_ref: 0.20
   dt_hysteresis: 0.01
   global_plan_overwrite_orientation: true
-  max_global_plan_lookahead_dist: 1.5
-  feasibility_check_no_poses: 30
+  max_global_plan_lookahead_dist: 1.0
+  feasibility_check_no_poses: 0
   global_plan_viapoint_sep: 0.1
      
   # Robot
-          
   max_vel_x: 2.0 # 1.2 when testing
   max_vel_x_backwards: 0.7
   max_vel_theta: 2.0
@@ -62,7 +60,7 @@ TebLocalPlannerROS:
      
   # Obstacles
     
-  min_obstacle_dist: 0.3
+  min_obstacle_dist: 0.4
   include_costmap_obstacles: true
   obstacle_association_force_inclusion_factor: 0.0
   obstacle_association_cutoff_factor: 1.0
@@ -87,7 +85,8 @@ TebLocalPlannerROS:
   weight_kinematics_forward_drive: 1
   weight_kinematics_turning_radius: 1
   weight_optimaltime: 1
-  weight_obstacle: 50
+  weight_shortest_path: 1
+  weight_obstacle: 30
   weight_dynamic_obstacle: 10 # not in use yet
   selection_alternative_time_cost: false
  

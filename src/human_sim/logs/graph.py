@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 import sys
 
-for arg in sys.argv:
-    filename = arg
-
+if len(sys.argv)>=2:
+    filename =sys.argv[1]
 f = open(filename, "r")
 
 # start
@@ -80,13 +79,12 @@ ax1.set_xlabel('time (s)')
 ax1.set_ylabel('path length (m)')
 ax1.plot(list_path_time, list_path_data, 'b+')
 ax1.plot(list_first_time, list_first_data, 'ro')
-
 ax1.plot(list_state_exec_time, list_state_exec_data, 'gs')
 ax1.plot(list_state_approach_time, list_state_approach_data, 'ys')
 ax1.plot(list_state_blocked_time, list_state_blocked_data, 'rs')
 
-ax2 = ax1.twinx()
 color = 'tab:grey'
+ax2 = ax1.twinx()
 ax2.set_ylabel('human-robot distance (m)', color=color)
 ax2.plot(list_dist_time, list_dist_data, '--', color=color)
 ax2.set_ylim(bottom=0)
@@ -94,8 +92,14 @@ ax2.set_ylim(bottom=0)
 ax3.set_xlabel('time (s)')
 ax3.set_ylabel('TTC (s)')
 ax3.plot(list_ttc_time, list_ttc_data, 'k+')
-ax3.set_xlim(left=ax1.get_xbound()[0], right=ax1.get_xbound()[1])
 ax3.set_ylim(bottom=0)
+ax3.set_xlim(left=ax1.get_xbound()[0], right=ax1.get_xbound()[1])
+
+if len(sys.argv)>=4:
+    left_lim = int(sys.argv[2])
+    right_lim = int(sys.argv[3])
+    ax1.set_xlim(left=left_lim, right=right_lim)
+    ax3.set_xlim(left=left_lim, right=right_lim)
 
 fig.tight_layout()
 

@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
-#include "human_sim/CancelGoalAndStop.h"
+#include "human_sim/Signal.h"
 #include "actionlib_msgs/GoalID.h"
 #include "human_sim/Goal.h"
 
@@ -23,7 +23,7 @@ void perturbedCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
 	pub_cmd_vel.publish(*msg);
 }
 
-bool cancelGoalAndStop(human_sim::CancelGoalAndStop::Request &req, human_sim::CancelGoalAndStop::Response &res)
+bool cancelGoalAndStop(human_sim::Signal::Request &req, human_sim::Signal::Response &res)
 {
 	actionlib_msgs::GoalID goal_id;
 	goal_id.stamp = ros::Time::now();

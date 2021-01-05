@@ -5,10 +5,9 @@ raytrace_range: 4.5
 transform_tolerance: 0.5
 meter_scoring: true
 
-footprint: [[-0.3, -0.3], [-0.3, 0.3], [0.3, 0.3], [0.3, -0.3]]
-footprint_padding: 0.0
-
 publish_frequency: 5.0
+
+footprint_padding: 0.0
 
 static_layer:
   map_topic: /map
@@ -19,6 +18,7 @@ inflater_layer:
   enabled:              true
   inflation_radius:     1.75  # max. distance from an obstacle at which costs are incurred for planning paths.
   cost_scaling_factor:  2.58  # exponential rate at which the obstacle cost drops off (default: 10)
+  inflate_unkown: true
 
 obstacle_layer:
   combination_method: 1

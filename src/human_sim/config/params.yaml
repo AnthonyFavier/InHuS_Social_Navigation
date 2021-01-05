@@ -2,10 +2,6 @@
 supervisor_node: ##
 ###################
 
-### PlaceRobot
-  place_robot_delay: 0.4
-    #=> duration waited after calling place_robot service to "be sure" it's effective
-
 ### Replan global path
   replan_freq: 2.0
     #=> frequency to replan global path
@@ -29,25 +25,39 @@ supervisor_node: ##
     #=> when blocked, number of concecutive times required successfully getting a "good global path" to unblock
   absolute_path_length_diff: 1.0
     #=> if length difference between the path received and the previous stored path is less than this then concidered as "good global path"
-  ratio_path_length_diff: 1.5
-    #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good gloabl path"
+  ratio_path_length_diff: 1.3
+    #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good global path"
 
 ### Approach
   approach_dist: 3.0
     #=> when blocked, get close until this distance to the robot by ignoring it
-  approach_freq: 1.0
-    #=> frequency at which we either check if still block or replan w/o the robot
+  approach_freq: 0.8
+    #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
+    
+### PlaceRobot
+  place_robot_delay: 0.5
+    #=> duration waited after calling place_robot service to "be sure" it's effective
+
 
 ####################
 human_model_node: ##
 ####################
 
-  human_radius: 0.35
-  robot_radius: 0.35
-    #=> radius of both human and robot to compute TTC (Time To Collision)
-
   ratio_perturbation_cmd: 0.0
     #=> perturbate cmd_vel 0.2 <=> +/- 20% of cmd_vel value
+
+### Check see robot
+  fov: 180
+    #=> field of view of the human in degrees and in [180;-180]
+  check_see_robot_freq: 5.0
+    #=> frequence at which the human checks if he sees the robot
+  delay_forget_robot: 1.5
+    #=> delay after the last time the robot has been seen to forget the robot pose
+    
+### TTC
+  human_radius: 0.40
+  robot_radius: 0.50
+    #=> radius of both human and robot to compute TTC (Time To Collision)
 
 ### Behavior RANDOM
   b_random_chance_choose: 30

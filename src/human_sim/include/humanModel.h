@@ -7,14 +7,15 @@
 #include <math.h>
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
+#include "nav_msgs/OccupancyGrid.h"
 #include "human_sim/Goal.h"
-#include "human_sim/SetGetGoal.h"
-#include "human_sim/CancelGoalAndStop.h"
+#include "human_sim/Signal.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Bool.h"
 #include "move_base_msgs/MoveBaseActionGoal.h"
 #include <tf2/LinearMath/Quaternion.h>
+#include "move_human/PlaceRobot.h"
 
 #include "hanp_prediction/HumanGoal.h" // HATEB
 #include "human_sim/HatebGoal.h" // HATEB
@@ -27,6 +28,12 @@ struct GoalArea
 	float radius;
 };
 
+struct PoseInt
+{
+	int x;
+	int y;
+};
+
 class HumanModel
 {
 public:
@@ -37,6 +44,9 @@ public:
 	void behaviors();
 	void pubDist();
 	void computeTTC();
+	void testSeeRobot();
+
+	bool initDone();
 
 private:
 
@@ -48,6 +58,8 @@ private:
 	void stopLookRobot();
 	void harassRobot();
 	void publishGoal(human_sim::Goal& goal);
+	bool testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real);
+	bool testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov);
 
 ////////// ATTRIBUTES ////////// 
 
@@ -80,6 +92,8 @@ private:
 	void newGoalCallback(const human_sim::Goal::ConstPtr& goal);
 	ros::Subscriber sub_stop_cmd_;
 	void stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd);
+	ros::Subscriber sub_pov_map_;
+	void povMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& map);
 
 	// Publishers //
 	ros::Publisher pub_new_goal_;
@@ -95,6 +109,14 @@ private:
 	// Service Clients //
 	ros::ServiceClient client_set_get_goal_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
+	ros::ServiceClient client_place_robot_;
+
+	// Service Server //
+	ros::ServiceServer server_place_robot_;
+	bool srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res);
+
+	// Services //
+	move_human::PlaceRobot srv_place_robot_;
 
 	//// Variables ////
 	ros::NodeHandle nh_;
@@ -122,6 +144,23 @@ private:
 	bool executing_plan_;
 
 	std_msgs::String msg_log_;
+
+	bool hcb_;
+	bool rcb_;
+
+	// POV //
+	bool know_robot_pose_;
+	bool pmcb_;
+	std::vector<std::vector<int>> g_map_;
+	float fov_;
+	float resol_pov_map_;
+	ros::Rate check_see_robot_freq_;
+	ros::Time last_check_see_robot_;
+	float offset_pov_map_x_;
+	float offset_pov_map_y_;
+	ros::Time last_seen_robot_;
+	ros::Duration delay_forget_robot_;
+	bool supervisor_wants_robot_;
 
 	// HATEB
 	ros::ServiceClient client_hateb_set_human_goal_;

@@ -2,8 +2,11 @@ global_costmap:
   global_frame: map
   robot_base_frame: human_human_base
   update_frequency: 10.0
-  width: 40.0
-  height: 40.0
+  width: 15.0
+  height: 30.0
+  origin_x: -2.0
+  origin_y: -8.0
+  robot_radius: 0.3
 
   plugins:
   - {name: static_layer, type: "costmap_2d::StaticLayer"}

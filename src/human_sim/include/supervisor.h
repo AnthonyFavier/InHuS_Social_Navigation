@@ -10,8 +10,7 @@
 #include "geometry_msgs/Pose2D.h"
 #include "human_sim/ComputePlan.h"
 #include "human_sim/Goal.h"
-#include "human_sim/SetGetGoal.h"
-#include "human_sim/CancelGoalAndStop.h"
+#include "human_sim/Signal.h"
 #include "move_human/PlaceRobot.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
@@ -73,16 +72,16 @@ private:
 	ros::ServiceClient client_plan_;
 	ros::ServiceClient client_make_plan_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
-	ros::ServiceClient client_place_robot_;
+	ros::ServiceClient client_place_robot_hm_;
 
 	// Services
-	move_human::PlaceRobot srv_place_robot_;
+	move_human::PlaceRobot srv_place_robot_hm_;
 	nav_msgs::GetPlan srv_get_plan_;
-	human_sim::CancelGoalAndStop srv_cancel_stop_;
+	human_sim::Signal srv_cancel_stop_;
 
 	// Service servers //
 	ros::ServiceServer service_set_get_goal_;
-	bool setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res);
+	bool setGetGoal(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
 
 	//// Variables ////
 	ros::NodeHandle nh_;
