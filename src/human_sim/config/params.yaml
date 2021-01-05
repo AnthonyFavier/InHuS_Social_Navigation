@@ -38,17 +38,24 @@ supervisor_node: ##
   place_robot_delay: 0.5
     #=> duration waited after calling place_robot service to "be sure" it's effective
 
+
 ####################
 human_model_node: ##
 ####################
 
+  ratio_perturbation_cmd: 0.0
+    #=> perturbate cmd_vel 0.2 <=> +/- 20% of cmd_vel value
+
+### Check see robot
+  fov: 180
+    #=> field of view of the human in degrees and in [180;-180]
+  check_see_robot_freq: 1.0
+    #=> frequence at which the human checks if he sees the robot
+    
 ### TTC
   human_radius: 0.40
   robot_radius: 0.50
     #=> radius of both human and robot to compute TTC (Time To Collision)
-
-  ratio_perturbation_cmd: 0.0
-    #=> perturbate cmd_vel 0.2 <=> +/- 20% of cmd_vel value
 
 ### Behavior RANDOM
   b_random_chance_choose: 30

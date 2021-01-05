@@ -6,12 +6,13 @@ HumanModel::HumanModel()
 : b_stop_look_stop_dur_(1)
 , b_harass_replan_freq_(1)
 , b_random_try_freq_(1) 
+, check_see_robot_freq_(1)
 {
 	srand(time(NULL));
 
 	// Ros Params
 	ros::NodeHandle private_nh("~");
-	std::string str; float f_nb;
+	std::string str; float f_nb; int fov_int;
 	private_nh.param(std::string("human_radius"), human_radius_, float(0.25));
 	private_nh.param(std::string("robot_radius"), robot_radius_, float(0.3));
 	private_nh.param(std::string("ratio_perturbation_cmd"), ratio_perturbation_cmd_, float(0.0));
@@ -21,6 +22,8 @@ HumanModel::HumanModel()
 	private_nh.param(std::string("b_stop_look_stop_dur"), f_nb, float(2.0)); b_stop_look_stop_dur_ = ros::Duration(f_nb);
 	private_nh.param(std::string("b_harass_dist_in_front"), b_harass_dist_in_front_, float(2.0));
 	private_nh.param(std::string("b_harass_replan_freq"), f_nb, float(2.0)); b_harass_replan_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("fov"), fov_int, int(180)); fov_ = fov_int*PI/180;
+	private_nh.param(std::string("check_see_robot_freq"), f_nb, float(1.0)); check_see_robot_freq_ = ros::Rate(f_nb);
 	
 	ROS_INFO("Params:");
 	ROS_INFO("human_radius=%f", human_radius_);
@@ -32,6 +35,8 @@ HumanModel::HumanModel()
 	ROS_INFO("b_stop_look_stop_dur=%f", b_stop_look_stop_dur_.toSec());
 	ROS_INFO("b_harass_dist_in_front=%f", b_harass_dist_in_front_);
 	ROS_INFO("b_harass_replan_freq=%f", b_harass_replan_freq_.expectedCycleTime().toSec());
+	ROS_INFO("fov_int=%d fov=%f", fov_int, fov_);
+	ROS_INFO("check_see_robot_freq=%f", check_see_robot_freq_.expectedCycleTime().toSec());
 
 	// Subscribers
 	sub_pose_ = 	 	nh_.subscribe("interface/in/human_pose", 100, &HumanModel::poseCallback, this);
@@ -43,6 +48,7 @@ HumanModel::HumanModel()
 	sub_set_behavior_ = 	nh_.subscribe("/boss/human/set_behavior", 100, &HumanModel::setBehaviorCallback, this);
 	sub_new_goal_ =		nh_.subscribe("/boss/human/new_goal", 100, &HumanModel::newGoalCallback, this);
 	sub_stop_cmd_ = 	nh_.subscribe("stop_cmd", 100, &HumanModel::stopCmdCallback, this);
+	sub_pov_map_ = 		nh_.subscribe("pov_map", 1, &HumanModel::povMapCallback, this);
 
 	// Publishers
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("known/human_pose", 100);
@@ -57,6 +63,10 @@ HumanModel::HumanModel()
 	// Service clients
 	client_set_get_goal_ = 		nh_.serviceClient<human_sim::SetGetGoal>("set_get_goal");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
+	client_place_robot_ = 		nh_.serviceClient<move_human::PlaceRobot>("place_robot");
+
+	// Service server
+	server_place_robot_ = nh_.advertiseService("place_robot_hm", &HumanModel::srvPlaceRobotHM, this);
 
 	ROS_INFO("I am human");
 
@@ -79,9 +89,10 @@ HumanModel::HumanModel()
 
 	executing_plan_ = 	false;
 
-	last_time_ = 	ros::Time::now();
-	last_harass_ = 	ros::Time::now();
-	time_stopped_=	ros::Time::now();
+	last_check_see_robot_ = ros::Time::now();
+	last_time_ = 		ros::Time::now();
+	last_harass_ = 		ros::Time::now();
+	time_stopped_=		ros::Time::now();
 
 	radius_sum_sq_ = human_radius_ + robot_radius_;
 	radius_sum_sq_ *= radius_sum_sq_;
@@ -89,6 +100,10 @@ HumanModel::HumanModel()
 
 	hcb_ = 		false;
 	rcb_ = 		false;
+
+	pmcb_ = false;
+	know_robot_pose_ = false;
+
 	// BEHAVIORS //
 	behavior_ = NONE;
 	sub_stop_look_ = WAIT_ROBOT;
@@ -459,11 +474,11 @@ void HumanModel::computeTTC()
 	else
 	{
 		geometry_msgs::Twist V; // relative velocity human to robot
-		//V.linear.x = model_robot_vel_.linear.x - model_vel_.linear.x;
-		//V.linear.y = model_robot_vel_.linear.y - model_vel_.linear.y;
+		V.linear.x = model_robot_vel_.linear.x - model_vel_.linear.x;
+		V.linear.y = model_robot_vel_.linear.y - model_vel_.linear.y;
 
-		V.linear.x = model_vel_.linear.x - model_robot_vel_.linear.x;
-		V.linear.y = model_vel_.linear.y - model_robot_vel_.linear.y;
+		//V.linear.x = model_vel_.linear.x - model_robot_vel_.linear.x;
+		//V.linear.y = model_vel_.linear.y - model_robot_vel_.linear.y;
 		double C_dot_V = C.x*V.linear.x + C.y*V.linear.y;
 
 		if(C_dot_V > 0) // otherwise ttc infinite
@@ -483,15 +498,249 @@ void HumanModel::computeTTC()
 	}
 }
 
+bool HumanModel::initDone()
+{
+	return hcb_ && rcb_ && pmcb_;
+}
+
+bool HumanModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
+{
+	/*
+	 *
+	// if changed
+	if((know_robot_pose_ && !req.data)
+	|| (!know_robot_pose_ && req.data))
+	{
+		srv_place_robot_.request.data = req.data;
+		client_place_robot_.call(srv_place_robot_);
+	}
+	*/
+
+	return true;
+}
+
+bool HumanModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real)
+{
+	// check if there are obstacles preventing A from seeing B
+	
+	PoseInt A_map;
+	A_map.x = (int)(A_real.x / resol_pov_map_); A_map.y = (int)(A_real.y / resol_pov_map_);
+	PoseInt B_map;
+	B_map.x = (int)(B_real.x / resol_pov_map_); B_map.y = (int)(B_real.y / resol_pov_map_);
+
+	// if outside the map
+	if(A_map.x < 0 || A_map.x >= g_map_[0].size() || A_map.y < 0 || A_map.x >= g_map_.size()
+	|| B_map.x < 0 || B_map.x >= g_map_[0].size() || B_map.y < 0 || B_map.x >= g_map_.size())
+		return false;
+
+	// particular cases
+	// if one of the poses is an obstacle
+	if(g_map_[A_map.y][A_map.x] == 1 || g_map_[B_map.y][B_map.x] == 1)
+		return false;
+	else if(A_map.x == B_map.x || A_map.y == B_map.y) 
+	{
+		// same place
+		if(A_map.x == B_map.x && A_map.y == B_map.y)
+			return true;
+
+		// vertical
+		else if(A_map.x == B_map.x) 
+		{
+			for(int i=0; A_map.y + i != B_map.y;)
+			{
+				int xi = A_map.x;
+				int yi = A_map.y + i;
+
+				if(g_map_[yi][xi]==1) // if obstacle
+					return false;
+
+				// up
+				if(B_map.y > A_map.y)
+					i++;
+				// down
+				else
+					i--;
+			}
+		}
+
+		// horizontal
+		else if(A_map.y == B_map.y)
+		{
+			for(int i=0; A_map.x + i != B_map.x;)
+			{
+				int xi = A_map.x + i;
+				int yi = A_map.y;
+
+				if(g_map_[yi][xi]==1)
+					return false;
+
+				// right
+				if(B_map.x > A_map.x)
+					i++;
+				// left
+				else
+					i--;
+			}
+		}
+	}
+	// general cases
+	else 
+	{
+		float m = (float)(B_map.y - A_map.y)/(float)(B_map.x - A_map.x);
+		float b = A_map.y - m * A_map.x;
+
+		float marge = 0.9;
+		float delta_x = std::min(marge/abs(m), marge);
+
+		// sign
+		if(B_map.x < A_map.x)
+			delta_x = -delta_x;
+
+		int i=1;
+		bool cond = true;
+		while(cond)
+		{
+			float xi_f = A_map.x + i * delta_x;
+			float yi_f = m * xi_f + b;
+
+			int xi = (int)(xi_f);
+			int yi = (int)(yi_f);
+
+			if(g_map_[yi][xi]==1) // if obstacle
+				return false;
+
+			i++;
+			if(delta_x > 0)
+				cond = i*delta_x + A_map.x < B_map.x;
+			else
+				cond = i*delta_x + A_map.x > B_map.x;
+		}
+	}
+
+	return true;
+}
+
+bool HumanModel::testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov)
+{
+	// check if A is in the specified field of view of B (w/o obstacle)
+	float alpha;
+	float qy = A.y - B.y;
+	float qx = A.x - B.x;
+	if(qx==0)
+	{
+		if(qy>0)
+			alpha = PI/2;
+		else
+			alpha = -PI/2;
+	}
+	else
+	{
+		float q = abs(qy/qx);
+		if(qx>0)
+		{
+			if(qy>0)
+				alpha = atan(q);
+			else
+				alpha = -atan(q);
+		}
+		else
+		{
+			if(qy>0)
+				alpha = PI - atan(q);
+			else
+				alpha = atan(q) - PI;
+		}
+	}
+	float diff;
+
+	if(alpha * B.theta > 0) // same sign
+		diff = abs(alpha - B.theta);
+	else
+	{
+		if(alpha < 0)
+			diff = std::min(abs(alpha - B.theta), abs((alpha+2*PI) - B.theta));
+		else
+			diff = std::min(abs(alpha - B.theta), abs(alpha - (B.theta+2*PI)));
+	}
+
+	ROS_INFO("diff=%f", diff);
+	return diff < fov/2;
+}
+
+void HumanModel::testSeeRobot()
+{
+	if(ros::Time::now() - last_check_see_robot_ > check_see_robot_freq_.expectedCycleTime())
+	{
+		geometry_msgs::Pose2D human_pose_offset = model_pose_;
+		human_pose_offset.x -= offset_pov_map_x_;
+		human_pose_offset.y -= offset_pov_map_y_;
+		geometry_msgs::Pose2D robot_pose_offset = model_robot_pose_;
+		robot_pose_offset.x -= offset_pov_map_x_;
+		robot_pose_offset.y -= offset_pov_map_y_;
+
+		// check if the robot is in the field of view of the human
+		// (without obstacles)
+		bool changed = false;
+		if(this->testFOV(robot_pose_offset, human_pose_offset, fov_))
+		{
+			ROS_INFO("IN FOV");
+			// check if there are obstacles blocking the human view of the robot
+			if(this->testObstacleView(human_pose_offset, robot_pose_offset))
+			{
+				ROS_INFO("I SEE");
+
+				// the human sees the robot
+				if(!know_robot_pose_)
+				{
+					know_robot_pose_ = true;
+					changed = true;
+				}
+			}
+			else
+			{
+				// human can't see the robot
+				// check if long enough (memory)
+				ROS_INFO("VIEW IS BLOCKED");
+				if(know_robot_pose_)
+				{
+					know_robot_pose_ = false;
+					changed = true;
+				}
+			}
+		}
+		else
+		{
+			ROS_INFO("NOT IN FOV");
+			if(know_robot_pose_)
+			{
+				know_robot_pose_ = false;
+				changed = true;
+			}
+		}
+
+		if(changed)
+		{
+			srv_place_robot_.request.data = know_robot_pose_;
+			client_place_robot_.call(srv_place_robot_);
+		}	
+
+		last_check_see_robot_ = ros::Time::now();
+	}
+}
+
 ////////////////////// Callbacks//////////////////////////
 
 void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
-	hcb_=true;
-
 	sim_pose_.x=msg->x;
 	sim_pose_.y=msg->y;
 	sim_pose_.theta=msg->theta;
+
+	if(!hcb_)
+	{
+		ROS_INFO("hcb");
+		hcb_=true;
+	}
 }
 
 void HumanModel::velCallback(const geometry_msgs::Twist::ConstPtr& msg)
@@ -501,11 +750,15 @@ void HumanModel::velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 
 void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
-	rcb_=true;
-
 	sim_robot_pose_.x=msg->x;
 	sim_robot_pose_.y=msg->y;
 	sim_robot_pose_.theta=msg->theta;
+
+	if(!rcb_)
+	{
+		ROS_INFO("rcb");
+		rcb_=true;
+	}
 }
 
 void HumanModel::robotVelCallback(const geometry_msgs::Twist::ConstPtr& msg)
@@ -594,6 +847,38 @@ void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 	}
 }
 
+void HumanModel::povMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& map)
+{
+	offset_pov_map_x_ = map->info.origin.position.x;
+	offset_pov_map_y_ = map->info.origin.position.y;
+
+	int width = map->info.width;
+	int height = map->info.height;
+	int cell;
+
+	resol_pov_map_ = map->info.resolution;
+
+	for(int i=0; i<height; i++)
+	{
+		std::vector<int> line;
+		for(int j=0; j<width; j++)
+		{
+			cell = map->data[width*i+j];
+			if(cell == 0)
+				line.push_back(0);
+			else
+				line.push_back(1);
+		}
+		g_map_.push_back(line);
+	}
+
+	if(!pmcb_)
+	{
+		ROS_INFO("pmcb");
+		pmcb_ = true;
+	}
+}
+
 ////////////////////////// MAIN ///////////////////////////
 
 int main(int argc, char** argv)
@@ -604,18 +889,21 @@ int main(int argc, char** argv)
 
 	ros::Rate rate(15);
 
-	while(ros::ok() && (!human_model.getHcb() || !human_model.getRcb()))
+	ROS_INFO("Waiting for init ...");
+	while(ros::ok() && !human_model.initDone())
 	{
 		ros::spinOnce();
 		rate.sleep();
 	}
-
 	ROS_INFO("LETS_GO");
 
 	while(ros::ok())
 	{
 		// Process data from simu
 		human_model.processSimData();
+
+		// Update robot pose knowledge
+		human_model.testSeeRobot();
 
 		// Compute TTC
 		human_model.computeTTC();

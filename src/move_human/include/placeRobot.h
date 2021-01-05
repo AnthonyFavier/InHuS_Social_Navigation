@@ -16,17 +16,26 @@ public:
 	PlaceRobotMap();
 	bool placeRobotSrv(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res);
 
+	bool initDone();
+
+	void start();
+
+	void placeRobot();
+
 private:
 	ros::NodeHandle nh_;
 	
 	ros::Subscriber robot_pose_sub_;
 	void robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_pose);
 	geometry_msgs::Pose2D robot_pose_;
+	bool rcb_;
 
 	ros::Subscriber human_pose_sub_;
 	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_pose);
 	geometry_msgs::Pose2D human_pose_;
-	bool human_pose_init_;
+	bool hcb_;
+
+	bool active_;
 
 	sensor_msgs::PointCloud2 robot_pose_PointCloud2_;
 	sensor_msgs::PointCloud2 empty_PointCloud2_;

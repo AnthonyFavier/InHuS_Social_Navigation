@@ -73,10 +73,10 @@ private:
 	ros::ServiceClient client_plan_;
 	ros::ServiceClient client_make_plan_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
-	ros::ServiceClient client_place_robot_;
+	ros::ServiceClient client_place_robot_hm_;
 
 	// Services
-	move_human::PlaceRobot srv_place_robot_;
+	move_human::PlaceRobot srv_place_robot_hm_;
 	nav_msgs::GetPlan srv_get_plan_;
 	human_sim::CancelGoalAndStop srv_cancel_stop_;
 

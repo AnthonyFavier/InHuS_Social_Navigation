@@ -47,7 +47,7 @@ Supervisor::Supervisor()
 	client_plan_ = 			nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
 	client_make_plan_ =		nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
 	client_cancel_goal_and_stop_= 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
-	client_place_robot_ =		nh_.serviceClient<move_human::PlaceRobot>("place_robot");
+	client_place_robot_hm_ =	nh_.serviceClient<move_human::PlaceRobot>("place_robot_hm");
 
 	// Services
 	srv_get_plan_.request.start.header.frame_id = 	"map";
@@ -139,8 +139,8 @@ void Supervisor::FSM()
 			if(goal_received_)
 			{
 				goal_received_ = false;
-				srv_place_robot_.request.data = true;
-				client_place_robot_.call(srv_place_robot_);
+				srv_place_robot_hm_.request.data = true;
+				client_place_robot_hm_.call(srv_place_robot_hm_);
 				global_state_ = ASK_PLAN;
 			}
 			else
@@ -161,8 +161,8 @@ void Supervisor::FSM()
 			{
 				goal_received_ = false;
 				global_state_ = ASK_PLAN;
-				srv_place_robot_.request.data = true;
-				client_place_robot_.call(srv_place_robot_);
+				srv_place_robot_hm_.request.data = true;
+				client_place_robot_hm_.call(srv_place_robot_hm_);
 			}
 			else
 			{
@@ -218,8 +218,8 @@ void Supervisor::FSM()
 							ROS_INFO("Plan without robot");
 
 							// remove robot
-							srv_place_robot_.request.data = false;
-							client_place_robot_.call(srv_place_robot_);
+							srv_place_robot_hm_.request.data = false;
+							client_place_robot_hm_.call(srv_place_robot_hm_);
 							ROS_INFO("removed");
 							place_robot_delay_.sleep(); // wait delay
 
@@ -231,8 +231,8 @@ void Supervisor::FSM()
 							last_replan_ = ros::Time::now();
 
 							// place robot back
-							srv_place_robot_.request.data = true;
-							client_place_robot_.call(srv_place_robot_);
+							srv_place_robot_hm_.request.data = true;
+							client_place_robot_hm_.call(srv_place_robot_hm_);
 							ROS_INFO("robot back");
 							place_robot_delay_.sleep(); // wait delay
 
@@ -287,8 +287,8 @@ void Supervisor::FSM()
 								client_action_.stopTrackingGoal();
 
 								// remove robot
-								srv_place_robot_.request.data = false;
-								client_place_robot_.call(srv_place_robot_);
+								srv_place_robot_hm_.request.data = false;
+								client_place_robot_hm_.call(srv_place_robot_hm_);
 								place_robot_delay_.sleep();
 
 								last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
@@ -316,8 +316,8 @@ void Supervisor::FSM()
 				global_state_ = ASK_PLAN;
 
 				// be sure robot is on the map
-				srv_place_robot_.request.data = true;
-				client_place_robot_.call(srv_place_robot_);
+				srv_place_robot_hm_.request.data = true;
+				client_place_robot_hm_.call(srv_place_robot_hm_);
 			}
 			else
 			{
@@ -331,8 +331,8 @@ void Supervisor::FSM()
 					global_state_ = BLOCKED;
 
 					// place back robot
-					srv_place_robot_.request.data = true;
-					client_place_robot_.call(srv_place_robot_);
+					srv_place_robot_hm_.request.data = true;
+					client_place_robot_hm_.call(srv_place_robot_hm_);
 					place_robot_delay_.sleep();
 
 					// stop human
@@ -365,8 +365,8 @@ void Supervisor::FSM()
 								}
 
 								// put the robot back on the map to check if still blocked in next approach loop
-								srv_place_robot_.request.data = true;
-								client_place_robot_.call(srv_place_robot_);
+								srv_place_robot_hm_.request.data = true;
+								client_place_robot_hm_.call(srv_place_robot_hm_);
 								approach_state_ = CHECKING;
 
 								last_replan_ = ros::Time::now();
@@ -410,8 +410,8 @@ void Supervisor::FSM()
 									ROS_INFO("Still blocked, rm R");
 
 									// remove the robot from the map for replanning in next approach loop
-									srv_place_robot_.request.data = false;
-									client_place_robot_.call(srv_place_robot_);
+									srv_place_robot_hm_.request.data = false;
+									client_place_robot_hm_.call(srv_place_robot_hm_);
 									last_replan_ = ros::Time::now();
 									approach_state_ = REPLANNING;
 								}
@@ -436,8 +436,8 @@ void Supervisor::FSM()
 			{
 				goal_received_ = false;
 				global_state_ = ASK_PLAN;
-				srv_place_robot_.request.data = true;
-				client_place_robot_.call(srv_place_robot_);
+				srv_place_robot_hm_.request.data = true;
+				client_place_robot_hm_.call(srv_place_robot_hm_);
 			}
 			else
 			{
@@ -447,8 +447,8 @@ void Supervisor::FSM()
 				if(dist_to_robot > approach_dist_)
 				{
 					// remove robot
-					srv_place_robot_.request.data = false;
-					client_place_robot_.call(srv_place_robot_);
+					srv_place_robot_hm_.request.data = false;
+					client_place_robot_hm_.call(srv_place_robot_hm_);
 
 					last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
 					// wait before replanning to be sure the robot has actually been removed from the map

@@ -1,6 +1,7 @@
 <launch>
 
 	<include file="$(find move_human)/launch/map.launch"/>
+	<include file="$(find move_human)/launch/pov_map.launch"/>
 	<include file="$(find move_human)/launch/move_base.launch"/>
 	<node name="place_robot_node" type="place_robot_node" pkg="move_human" output="screen" ns="human"/>
 	<node name="odom_to_map_broadcaster" type="static_transform_publisher" pkg="tf" args="0 0 0 0 0 0 map odom 1000" ns="human"/>
