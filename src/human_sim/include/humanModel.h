@@ -157,6 +157,8 @@ private:
 	ros::Time last_check_see_robot_;
 	float offset_pov_map_x_;
 	float offset_pov_map_y_;
+	ros::Time last_seen_robot_;
+	ros::Duration delay_forget_robot_;
 
 	// ratio perturbation
 	float ratio_perturbation_cmd_;

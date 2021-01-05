@@ -23,7 +23,8 @@ HumanModel::HumanModel()
 	private_nh.param(std::string("b_harass_dist_in_front"), b_harass_dist_in_front_, float(2.0));
 	private_nh.param(std::string("b_harass_replan_freq"), f_nb, float(2.0)); b_harass_replan_freq_ = ros::Rate(f_nb);
 	private_nh.param(std::string("fov"), fov_int, int(180)); fov_ = fov_int*PI/180;
-	private_nh.param(std::string("check_see_robot_freq"), f_nb, float(1.0)); check_see_robot_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("check_see_robot_freq"), f_nb, float(2.0)); check_see_robot_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("delay_forget_robot"), f_nb, float(1.5)); delay_forget_robot_ = ros::Duration(f_nb);
 	
 	ROS_INFO("Params:");
 	ROS_INFO("human_radius=%f", human_radius_);
@@ -37,6 +38,7 @@ HumanModel::HumanModel()
 	ROS_INFO("b_harass_replan_freq=%f", b_harass_replan_freq_.expectedCycleTime().toSec());
 	ROS_INFO("fov_int=%d fov=%f", fov_int, fov_);
 	ROS_INFO("check_see_robot_freq=%f", check_see_robot_freq_.expectedCycleTime().toSec());
+	ROS_INFO("delay_forget_robot=%f", delay_forget_robot_.toSec());
 
 	// Subscribers
 	sub_pose_ = 	 	nh_.subscribe("interface/in/human_pose", 100, &HumanModel::poseCallback, this);
@@ -90,6 +92,7 @@ HumanModel::HumanModel()
 	executing_plan_ = 	false;
 
 	last_check_see_robot_ = ros::Time::now();
+	last_seen_robot_ = 	ros::Time::now();
 	last_time_ = 		ros::Time::now();
 	last_harass_ = 		ros::Time::now();
 	time_stopped_=		ros::Time::now();
@@ -680,49 +683,52 @@ void HumanModel::testSeeRobot()
 
 		// check if the robot is in the field of view of the human
 		// (without obstacles)
-		bool changed = false;
+		bool see;
 		if(this->testFOV(robot_pose_offset, human_pose_offset, fov_))
 		{
-			ROS_INFO("IN FOV");
 			// check if there are obstacles blocking the human view of the robot
 			if(this->testObstacleView(human_pose_offset, robot_pose_offset))
 			{
-				ROS_INFO("I SEE");
-
 				// the human sees the robot
-				if(!know_robot_pose_)
-				{
-					know_robot_pose_ = true;
-					changed = true;
-				}
+				ROS_INFO("I SEE");
+				see = true;
+				last_seen_robot_ = ros::Time::now();
 			}
 			else
 			{
 				// human can't see the robot
-				// check if long enough (memory)
 				ROS_INFO("VIEW IS BLOCKED");
-				if(know_robot_pose_)
-				{
-					know_robot_pose_ = false;
-					changed = true;
-				}
+				see = false;
 			}
 		}
 		else
 		{
 			ROS_INFO("NOT IN FOV");
-			if(know_robot_pose_)
-			{
-				know_robot_pose_ = false;
-				changed = true;
-			}
+			see = false;
 		}
 
-		if(changed)
+		// Update robot on map if needed
+		if(see)
 		{
-			srv_place_robot_.request.data = know_robot_pose_;
-			client_place_robot_.call(srv_place_robot_);
-		}	
+			if(!know_robot_pose_) // rising edge
+			{
+				know_robot_pose_ = true;
+				srv_place_robot_.request.data = true;
+				client_place_robot_.call(srv_place_robot_);
+			}
+		}
+		else
+		{
+			if(ros::Time::now() - last_seen_robot_ > ros::Duration(1.5)) // delay see robot, memory/prediction
+			{
+				if(know_robot_pose_) // falling edge
+				{
+					know_robot_pose_ = false;
+					srv_place_robot_.request.data = false;
+					client_place_robot_.call(srv_place_robot_);
+				}
+			}
+		}
 
 		last_check_see_robot_ = ros::Time::now();
 	}

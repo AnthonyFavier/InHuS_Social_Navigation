@@ -49,8 +49,10 @@ human_model_node: ##
 ### Check see robot
   fov: 180
     #=> field of view of the human in degrees and in [180;-180]
-  check_see_robot_freq: 1.0
+  check_see_robot_freq: 2.0
     #=> frequence at which the human checks if he sees the robot
+  delay_forget_robot: 1.5
+    #=> delay after the last time the robot has been seen to forget the robot pose
     
 ### TTC
   human_radius: 0.40
