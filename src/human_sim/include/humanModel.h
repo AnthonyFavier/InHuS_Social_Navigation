@@ -9,8 +9,6 @@
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "human_sim/Goal.h"
-#include "human_sim/SetGetGoal.h"
-#include "human_sim/CancelGoalAndStop.h"
 #include "human_sim/Signal.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"

@@ -25,8 +25,6 @@ add_message_files(
 add_service_files(
   FILES
   ComputePlan.srv
-  SetGetGoal.srv
-  CancelGoalAndStop.srv
   Signal.srv
 )
 

@@ -63,8 +63,8 @@ HumanModel::HumanModel()
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
 
 	// Service clients
-	client_set_get_goal_ = 		nh_.serviceClient<human_sim::SetGetGoal>("set_get_goal");
-	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
+	client_set_get_goal_ = 		nh_.serviceClient<human_sim::Signal>("set_get_goal");
+	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
 	client_place_robot_ = 		nh_.serviceClient<move_human::PlaceRobot>("place_robot");
 
 	// Service server
@@ -284,11 +284,11 @@ void HumanModel::stopLookRobot()
 
 				// Stop goal and motion
 				ROS_INFO("Stopped !");
-				human_sim::CancelGoalAndStop srv_cancel;
+				human_sim::Signal srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
 
 				// Set global FSM to GET_GOAL
-				human_sim::SetGetGoal srv_set;
+				human_sim::Signal srv_set;
 				client_set_get_goal_.call(srv_set);
 
 				// Get time
@@ -389,10 +389,10 @@ void HumanModel::harassRobot()
 	{
 		case INIT:
 			{
-				human_sim::CancelGoalAndStop srv_cancel;
+				human_sim::Signal srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
 
-				human_sim::SetGetGoal srv_set;
+				human_sim::Signal srv_set;
 				client_set_get_goal_.call(srv_set);
 				sub_harass_=HARASSING;
 				break;

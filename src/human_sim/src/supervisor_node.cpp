@@ -46,7 +46,7 @@ Supervisor::Supervisor()
 	// Service clients
 	client_plan_ = 			nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
 	client_make_plan_ =		nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
-	client_cancel_goal_and_stop_= 	nh_.serviceClient<human_sim::CancelGoalAndStop>("cancel_goal_and_stop");
+	client_cancel_goal_and_stop_= 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
 	client_place_robot_hm_ =	nh_.serviceClient<move_human::PlaceRobot>("place_robot_hm");
 
 	// Services
@@ -707,7 +707,7 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 	current_goal_.theta=msg->theta;
 }
 
-bool Supervisor::setGetGoal(human_sim::SetGetGoal::Request &req, human_sim::SetGetGoal::Response &res)
+bool Supervisor::setGetGoal(human_sim::Signal::Request &req, human_sim::Signal::Response &res)
 {
 	ROS_INFO("GET_GOAL_SET !!!");
 	global_state_=GET_GOAL;
