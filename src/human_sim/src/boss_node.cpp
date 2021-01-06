@@ -6,6 +6,8 @@
 #include <std_msgs/Int32.h>
 #include <vector>
 
+#include <boost/thread/thread.hpp>
+
 #include <iostream>
 
 #define PI 3.14159265358
@@ -17,6 +19,11 @@ struct GoalArea
 	human_sim::Goal goal;
 	float radius;
 };
+
+bool autoRobotGoal;
+GoalArea area;
+vector<GoalArea> goals;
+int current_behavior;
 
 geometry_msgs::PoseStamped getPose(human_sim::Goal goal)
 {
@@ -86,6 +93,21 @@ void wait(float delay)
 	}
 }
 
+void pubGoalsRobot(ros::Publisher& pub_goal_robot)
+{
+	ros::Duration loop(10);
+	while(ros::ok())
+	{
+		if(autoRobotGoal)
+		{
+			int i = rand()%10 + 1;
+			cout << "plop " << i << endl;
+			pub_goal_robot.publish(getPose(goals[i].goal));
+		}
+		loop.sleep();
+	}
+}
+
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "boss");
@@ -95,11 +117,8 @@ int main(int argc, char** argv)
 	int choice = 0;
 	int choice_init = 0;
 	float delay;
-	GoalArea area;
 	geometry_msgs::PoseStamped pose;
-	vector<GoalArea> goals;
-
-	area.goal.type="Position";
+	current_behavior = 0;
 
 	string topic_robot = "/move_base_simple/goal";
 	while(ros::ok() && (cout 	<< "1- Simple move_base" << endl 
@@ -112,6 +131,8 @@ int main(int argc, char** argv)
 	ros::Publisher pub_goal_robot = nh.advertise<geometry_msgs::PoseStamped>(topic_robot, 1);
 	ros::Publisher pub_goal_human = 	nh.advertise<human_sim::Goal>("/boss/human/new_goal", 1);
 	ros::Publisher pub_set_behavior = 	nh.advertise<std_msgs::Int32>("/boss/human/set_behavior", 1);
+
+	area.goal.type="Position";
 
 	//0// to have easier index
 	goals.push_back(area);
@@ -144,7 +165,7 @@ int main(int argc, char** argv)
 	area.goal.x=1.0; 	area.goal.y=15.8; 	area.goal.theta=-PI;	area.radius=0;
 	goals.push_back(area);
 	//10//
-	area.goal.x=1.15; 	area.goal.y=6.52; 	area.goal.theta=-PI;	area.radius=0;
+	area.goal.x=0.65; 	area.goal.y=8.50; 	area.goal.theta=-PI;	area.radius=0;
 	goals.push_back(area);
 
 	// Scenarios //
@@ -200,15 +221,45 @@ int main(int argc, char** argv)
 	area.goal.x=0.8; 	area.goal.y=4.9; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);
 
+	// spawn thread to publish auto goals to robot
+	autoRobotGoal = false;
+	boost::thread thread_b(pubGoalsRobot, pub_goal_robot);
+
 	while(ros::ok())
 	{
 		for(int i=0; i<10; i++){cout << endl;}
+		cout << "current auto send robot goal : ";
+		if(autoRobotGoal)
+			cout << "True";
+		else
+			cout << "False";
+		cout << endl << "current behavior : ";
+		switch(current_behavior)
+		{
+			case 0:
+				cout << "NONE" << endl;
+				break;
+			case 1:
+				cout << "NON_STOP" << endl;
+				break;
+			case 2:
+				cout << "RANDOM" << endl;
+				break;
+			case 3:
+				cout << "STOP_LOOK" << endl;
+				break;
+			case 4:
+				cout << "HARASS" << endl;
+				break;
+
+		}
 		while(ros::ok() && (cout	<< "1- Human goal" << endl 
 						<< "2- Robot goal" << endl 
 						<< "3- Scenario" << endl 
 						<< "4- Set Behavior" << endl
+						<< "5- Auto goals robot" << endl
 						<< "Choice ? ")
-		&& (!(cin >> choice) || !(choice>=1 && choice<=4)))
+		&& (!(cin >> choice) || !(choice>=1 && choice<=5)))
 			cleanInput();
 
 		switch(choice)
@@ -339,24 +390,45 @@ int main(int argc, char** argv)
 				switch(choice)
 				{
 					case 1:
-						set_behavior.data = 0;
+						current_behavior = 0;
 						break;
 					case 2:
-						set_behavior.data = 1;
+						current_behavior = 1;
 						break;
 					case 3:
-						set_behavior.data = 2;
+						current_behavior = 2;
 						break;
 					case 4:
-						set_behavior.data = 3;
+						current_behavior = 3;
 						break;
 					case 5:
-						set_behavior.data = 4;
+						current_behavior = 4;
 						break;
 				}
+				set_behavior.data = current_behavior;
 				pub_set_behavior.publish(set_behavior);
 				break;
 			}
+
+			/* AUTOMATICALLY SEND GOALS TO ROBOT */
+			case 5:
+				while(ros::ok() && (cout << endl	<< "1- True" << endl
+									<< "2- False" << endl
+									<< "Choice ? ? ")
+				&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
+					cleanInput();
+
+				switch(choice)
+				{
+					case 1:
+						autoRobotGoal = true;
+						break;
+					case 2:
+						autoRobotGoal = false;
+						break;
+				}
+
+				break;
 
 			default:
 				break;
