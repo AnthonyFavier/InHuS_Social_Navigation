@@ -214,9 +214,9 @@ int main(int argc, char** argv)
 						<< "2- Robot goal" << endl 
 						<< "3- Scenario" << endl 
 						<< "4- Set Behavior" << endl
-						<< "5- Set send goal to hateb" << endl
+						<< "6- Set send goal to hateb" << endl
 						<< "Choice ? ")
-		&& (!(cin >> choice) || !(choice>=1 && choice<=5)))
+		&& (!(cin >> choice) || !(choice>=1 && choice<=6)))
 			cleanInput();
 
 		switch(choice)
@@ -388,7 +388,7 @@ int main(int argc, char** argv)
 			}
 
 			/* SET SEND GOAL TO HATBE */
-			case 5:
+			case 6:
 				while(ros::ok() && (cout <<  endl 	<< "1- From HumanModel" << endl
 									<< "2- From the Boss" << endl
 									<< "Choice ? ")
