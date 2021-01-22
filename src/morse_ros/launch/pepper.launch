@@ -1,3 +1,0 @@
-<launch>
-    <include file="$(find pepper_description)/launch/display.launch" />
-</launch>
