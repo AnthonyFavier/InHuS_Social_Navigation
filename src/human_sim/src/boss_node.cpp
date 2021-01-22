@@ -195,16 +195,16 @@ int main(int argc, char** argv)
 
 	// Corridor //
 	//17 // init corridor H
-	area.goal.x=10.4; 	area.goal.y=2.60; 	area.goal.theta=PI/2;	area.radius=0;
+	area.goal.x=10.35; 	area.goal.y=2.60; 	area.goal.theta=PI/2;	area.radius=0;
 	goals.push_back(area);	
 	//18 // goal corridor H
-	area.goal.x=10.4; 	area.goal.y=12.5; 	area.goal.theta=PI/2;	area.radius=0;
+	area.goal.x=10.6; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
 	goals.push_back(area);
 	//19 // init corridor R
-	area.goal.x=10.4; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
+	area.goal.x=10.35; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);
 	//20 // goal corridor R
-	area.goal.x=10.4; 	area.goal.y=3.60; 	area.goal.theta=-PI/2;	area.radius=0;
+	area.goal.x=10.2; 	area.goal.y=-3.98; 	area.goal.theta=0;	area.radius=0;
 	goals.push_back(area);
 
 	// Narrow corridor //
