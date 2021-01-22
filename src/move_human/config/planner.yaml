@@ -25,7 +25,7 @@ GlobalPlanner:
 TebLocalPlannerROS:
  # Trajectory
   teb_autosize: true
-  dt_ref: 0.20
+  dt_ref: 0.2
   dt_hysteresis: 0.01
   global_plan_overwrite_orientation: true
   max_global_plan_lookahead_dist: 1.0
@@ -86,8 +86,8 @@ TebLocalPlannerROS:
   weight_kinematics_turning_radius: 1
   weight_optimaltime: 1
   weight_shortest_path: 1
-  weight_obstacle: 30
-  weight_dynamic_obstacle: 10 # not in use yet
+  weight_obstacle: 0.5
+  weight_dynamic_obstacle: 0.5
   selection_alternative_time_cost: false
  
   # Homotopy Class Planner

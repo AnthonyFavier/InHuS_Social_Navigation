@@ -145,7 +145,7 @@ HumanModel::HumanModel()
 	area.goal.x=1.0; 	area.goal.y=15.8; 	area.goal.theta=-PI;	area.radius=0;
 	known_goals_.push_back(area);
 	//10//
-	area.goal.x=1.15; 	area.goal.y=6.52; 	area.goal.theta=-PI;	area.radius=0;
+	area.goal.x=0.65; 	area.goal.y=8.50; 	area.goal.theta=-PI;	area.radius=0;
 	known_goals_.push_back(area);
 
 	//11//
