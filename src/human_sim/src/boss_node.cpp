@@ -201,7 +201,7 @@ int main(int argc, char** argv)
 	area.goal.x=10.6; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
 	goals.push_back(area);
 	//19 // init corridor R
-	area.goal.x=10.35; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
+	area.goal.x=10.35; 	area.goal.y=14.3; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);
 	//20 // goal corridor R
 	area.goal.x=10.2; 	area.goal.y=-3.98; 	area.goal.theta=0;	area.radius=0;
@@ -212,13 +212,13 @@ int main(int argc, char** argv)
 	area.goal.x=0.8; 	area.goal.y=3.9; 	area.goal.theta=PI/2;	area.radius=0;
 	goals.push_back(area);	
 	//22 // goal narrow corridor H
-	area.goal.x=0.8; 	area.goal.y=12.5; 	area.goal.theta=PI/2;	area.radius=0;
+	area.goal.x=1.0; 	area.goal.y=15.8; 	area.goal.theta=-PI;	area.radius=0;
 	goals.push_back(area);
 	//23 // init narrow corridor R
 	area.goal.x=0.8; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);	
 	//24 // goal narrow corridor R
-	area.goal.x=0.8; 	area.goal.y=4.9; 	area.goal.theta=-PI/2;	area.radius=0;
+	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);
 
 	// spawn thread to publish auto goals to robot
