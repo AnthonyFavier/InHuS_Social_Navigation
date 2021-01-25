@@ -31,11 +31,11 @@ supervisor_node: ##
 ### Approach
   approach_dist: 3.0
     #=> when blocked, get close until this distance to the robot by ignoring it
-  approach_freq: 0.8
+  approach_freq: 2.0
     #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
     
 ### PlaceRobot
-  place_robot_delay: 0.5
+  place_robot_delay: 0.4
     #=> duration waited after calling place_robot service to "be sure" it's effective
 
 
