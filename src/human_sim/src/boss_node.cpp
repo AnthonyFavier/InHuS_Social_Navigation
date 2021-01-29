@@ -209,13 +209,13 @@ int main(int argc, char** argv)
 
 	// Narrow corridor //
 	//21 // init narrow corridor H
-	area.goal.x=0.8; 	area.goal.y=3.9; 	area.goal.theta=PI/2;	area.radius=0;
+	area.goal.x=0.65; 	area.goal.y=3.2; 	area.goal.theta=PI/2;	area.radius=0;
 	goals.push_back(area);	
 	//22 // goal narrow corridor H
 	area.goal.x=1.0; 	area.goal.y=15.8; 	area.goal.theta=-PI;	area.radius=0;
 	goals.push_back(area);
 	//23 // init narrow corridor R
-	area.goal.x=0.8; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
+	area.goal.x=0.65; 	area.goal.y=14.1; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);	
 	//24 // goal narrow corridor R
 	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
