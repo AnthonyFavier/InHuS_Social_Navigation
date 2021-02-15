@@ -90,9 +90,19 @@ void PlaceRobotMap::placeRobot()
 {
 	if(place_robot_)
 	{
-		// publish with obst
-		robot_pose_PointCloud2_.header.stamp = ros::Time::now();
-		robot_pose_pub_.publish(robot_pose_PointCloud2_);
+		// check if also not too far
+		if(sqrt(pow(human_pose_.x-robot_pose_.x,2) + pow(human_pose_.y-robot_pose_.y,2)) <= dist_threshold_)
+		{
+			// publish with obst
+			robot_pose_PointCloud2_.header.stamp = ros::Time::now();
+			robot_pose_pub_.publish(robot_pose_PointCloud2_);
+		}
+		else
+		{	
+			// publish empty
+			empty_PointCloud2_.header.stamp = ros::Time::now();
+			robot_pose_pub_.publish(empty_PointCloud2_);
+		}
 	}
 	else
 	{

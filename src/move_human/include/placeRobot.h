@@ -3,6 +3,7 @@
 
 #include "ros/ros.h"
 #include "geometry_msgs/Pose2D.h"
+#include "math.h"
 
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/PointCloud2.h"
