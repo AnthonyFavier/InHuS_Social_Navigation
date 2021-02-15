@@ -96,13 +96,13 @@ ax3.set_ylim(bottom=0)
 ax3.set_xlim(left=ax1.get_xbound()[0], right=ax1.get_xbound()[1])
 
 if len(sys.argv)>=3:
-    left_lim = int(sys.argv[2])
+    left_lim = float(sys.argv[2])
     ax1.set_xlim(left=left_lim)
     ax3.set_xlim(left=left_lim)
 
 
 if len(sys.argv)>=4:
-    right_lim = int(sys.argv[3])
+    right_lim = float(sys.argv[3])
     ax1.set_xlim(right=right_lim)
     ax3.set_xlim(right=right_lim)
 
