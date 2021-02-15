@@ -1,5 +1,5 @@
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import sys
 
 def convert_pose_map(pose):
@@ -61,7 +61,6 @@ for line in f:
 
         elif mylist[2] == 'R':
             path_R.append((float(mylist[3]), (float(mylist[4]), float(mylist[5]))))
-
 f.close()
 
 
@@ -97,7 +96,7 @@ dT = Tf-Td
 if show_H:
     for i in range(len(path_H)):
         if(path_H[i][0] >= Td and path_H[i][0] <= Tf):
-            ratio = (path_H[i][0] - Td)/(dT)
+            ratio = (path_H[i][0] - Td)/dT
             color = compute_color(ratio)
             pose = convert_pose_map(path_H[i][1])
             draw.rectangle((pose[0]-size, pose[1]-size, pose[0]+size, pose[1]+size), fill=color)
@@ -106,9 +105,25 @@ if show_H:
 if show_R:
     for i in range(len(path_R)):
         if(path_R[i][0] >= Td and path_R[i][0] <= Tf):
-            ratio = (path_R[i][0] - Td)/(dT)
+            ratio = (path_R[i][0] - Td)/dT
             color = compute_color(ratio)
             pose = convert_pose_map(path_R[i][1])
             draw.rectangle((pose[0]-size, pose[1]-size, pose[0]+size, pose[1]+size), fill=color)
+
+# Legend
+legend_pose = (30,20)
+legend_size = 400
+n=5
+off_txt = (-15, 20)
+for i in range(0,n+1):
+    x = int(legend_pose[0] + i*legend_size/n)
+    t = Td + i*dT/n
+    out = "%.1f" % t
+    draw.text((x+off_txt[0],legend_pose[1]+off_txt[1]), out, font=ImageFont.truetype("FreeMono.ttf", 15), fill=(0,0,0))
+for x in np.arange(legend_pose[0], legend_pose[0]+legend_size, 0.01):
+    ratio = (x - legend_pose[0])/legend_size
+    color = compute_color(ratio)
+    draw.rectangle((int(x)-4, legend_pose[1]-8, int(x)+4, legend_pose[1]+8), fill=color)
+
 
 im.show()
