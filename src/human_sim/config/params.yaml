@@ -29,7 +29,7 @@ supervisor_node: ##
     #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good global path"
 
 ### Approach
-  approach_dist: 3.0
+  approach_dist: 1.5
     #=> when blocked, get close until this distance to the robot by ignoring it
   approach_freq: 2.0
     #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
