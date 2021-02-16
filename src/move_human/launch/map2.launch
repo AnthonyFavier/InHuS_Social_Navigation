@@ -1,6 +1,0 @@
-<launch>
-
-	<arg name="map_file" default="$(find move_human)/maps/laas_adream.yaml"/>
-	<node name="map_server" pkg="map_server" type="map_server" ns="human2" args="$(arg map_file)"/>
-
-</launch>

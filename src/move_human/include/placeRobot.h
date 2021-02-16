@@ -9,6 +9,8 @@
 #include "sensor_msgs/PointCloud2.h"
 #include "sensor_msgs/point_cloud_conversion.h"
 
+#include "move_human/PlaceRobot.h"
+
 class PlaceRobotMap
 {
 public:

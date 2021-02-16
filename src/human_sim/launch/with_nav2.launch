@@ -1,7 +1,0 @@
-<launch>
-
-	<rosparam command="load" file="$(find human_sim)/config/params.yaml" ns="human2"/>
-	<include file="$(find move_human)/launch/all2.launch"/>
-	<include file="$(find human_sim)/launch/human_sim2.launch"/>
-
-</launch>
