@@ -509,13 +509,13 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /move_base_node/TebLocalPlannerROS/human_local_plans_fp_poses
       Name: HATEB human pose predict
       Namespaces:
-        human_fp_poses: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 15
