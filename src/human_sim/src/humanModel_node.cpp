@@ -43,6 +43,8 @@ HumanModel::HumanModel()
 	// Subscribers
 	sub_pose_ = 	 	nh_.subscribe("interface/in/human_pose", 100, &HumanModel::poseCallback, this);
 	sub_vel_ = 	 	nh_.subscribe("interface/in/human_vel", 100, &HumanModel::velCallback, this);
+	sub_other_pose_ = 	nh_.subscribe("interface/in/human_other_pose", 100, &HumanModel::otherPoseCallback, this);
+	sub_other_vel_ = 	nh_.subscribe("interface/in/human_other_vel", 100, &HumanModel::otherVelCallback, this);
 	sub_robot_pose_ =	nh_.subscribe("interface/in/robot_pose", 100, &HumanModel::robotPoseCallback, this);
 	sub_robot_vel_ =	nh_.subscribe("interface/in/robot_vel", 100, &HumanModel::robotVelCallback, this);
 	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
@@ -55,6 +57,8 @@ HumanModel::HumanModel()
 	// Publishers
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("known/human_pose", 100);
 	pub_human_vel_ = 	nh_.advertise<geometry_msgs::Twist>("known/human_vel", 100);
+	pub_human_other_pose_ = nh_.advertise<geometry_msgs::Pose2D>("known/human_other_pose", 100);
+	pub_human_other_vel_ = 	nh_.advertise<geometry_msgs::Twist>("known/human_other_vel", 100);
 	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("known/robot_pose", 100);
 	pub_robot_vel_ = 	nh_.advertise<geometry_msgs::Twist>("known/robot_vel", 100);
 	pub_new_goal_ = 	nh_.advertise<human_sim::Goal>("new_goal", 100);
@@ -78,8 +82,10 @@ HumanModel::HumanModel()
 	zero.y = 	0;
 	zero.theta = 	0;
 	sim_pose_ =		zero;
+	sim_other_pose_ = 	zero;
 	sim_robot_pose_=    	zero;
 	model_pose_ = 	   	zero;
+	model_other_pose_ =	zero;
 	model_robot_pose_ =	zero;
 
 	current_goal_.type = 	"Position";
@@ -102,6 +108,7 @@ HumanModel::HumanModel()
 	ttc_ = -1.0;
 
 	hcb_ = 		false;
+	hocb_ = 	false;
 	rcb_ = 		false;
 
 	pmcb_ = false;
@@ -216,7 +223,9 @@ human_sim::Goal HumanModel::chooseGoal(bool random)
 void HumanModel::processSimData()
 {
 	model_pose_ = 		sim_pose_;
+	model_other_pose_ =	sim_other_pose_;
 	model_vel_ = 		sim_vel_;
+	model_other_vel_=	sim_other_vel_;
 	model_robot_pose_ = 	sim_robot_pose_;
 	model_robot_vel_ = 	sim_robot_vel_;
 }
@@ -225,6 +234,8 @@ void HumanModel::publishModelData()
 {
 	pub_human_pose_.publish(model_pose_);
 	pub_human_vel_.publish(model_vel_);
+	pub_human_other_pose_.publish(model_other_pose_);
+	pub_human_other_vel_.publish(model_other_vel_);
 	pub_robot_pose_.publish(model_robot_pose_);
 	pub_robot_vel_.publish(model_robot_vel_);
 }
@@ -504,7 +515,7 @@ void HumanModel::computeTTC()
 
 bool HumanModel::initDone()
 {
-	return hcb_ && rcb_ && pmcb_;
+	return hcb_ && hocb_ && rcb_ && pmcb_;
 }
 
 bool HumanModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
@@ -776,6 +787,25 @@ void HumanModel::velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 	sim_vel_ = *msg;
 }
+
+void HumanModel::otherPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+{
+	sim_other_pose_.x=msg->x;
+	sim_other_pose_.y=msg->y;
+	sim_other_pose_.theta=msg->theta;
+
+	if(!hocb_)
+	{
+		ROS_INFO("hcb");
+		hocb_=true;
+	}
+}
+
+void HumanModel::otherVelCallback(const geometry_msgs::Twist::ConstPtr& msg)
+{
+	sim_other_vel_ = *msg;
+}
+
 
 void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {

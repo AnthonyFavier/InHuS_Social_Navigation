@@ -18,7 +18,7 @@ public:
 
 	void start();
 
-	void placeRobot();
+	void placeHuman();
 
 private:
 	ros::NodeHandle nh_;

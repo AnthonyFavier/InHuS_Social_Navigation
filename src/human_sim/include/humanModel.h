@@ -75,6 +75,10 @@ private:
 	void poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 	ros::Subscriber sub_vel_;
 	void velCallback(const geometry_msgs::Twist::ConstPtr& msg);
+	ros::Subscriber sub_other_pose_;
+	void otherPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
+	ros::Subscriber sub_other_vel_;
+	void otherVelCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_robot_pose_;
 	void robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 	ros::Subscriber sub_robot_vel_;
@@ -96,6 +100,8 @@ private:
 	ros::Publisher pub_new_goal_;
 	ros::Publisher pub_human_pose_;
 	ros::Publisher pub_human_vel_;
+	ros::Publisher pub_human_other_pose_;
+	ros::Publisher pub_human_other_vel_;
 	ros::Publisher pub_robot_pose_;
 	ros::Publisher pub_robot_vel_;
 	ros::Publisher pub_perturbed_cmd_;
@@ -119,12 +125,16 @@ private:
 	ros::NodeHandle nh_;
 
 	geometry_msgs::Pose2D sim_pose_;
-	geometry_msgs::Twist sim_vel_;
+	geometry_msgs::Twist sim_vel_;	
+	geometry_msgs::Pose2D sim_other_pose_;
+	geometry_msgs::Twist sim_other_vel_;
 	geometry_msgs::Pose2D sim_robot_pose_;
 	geometry_msgs::Twist sim_robot_vel_;
 
 	geometry_msgs::Pose2D model_pose_;
 	geometry_msgs::Twist model_vel_;
+	geometry_msgs::Pose2D model_other_pose_;
+	geometry_msgs::Twist model_other_vel_;
 	geometry_msgs::Pose2D model_robot_pose_;
 	geometry_msgs::Twist model_robot_vel_;
 
@@ -143,6 +153,7 @@ private:
 	std_msgs::String msg_log_;
 
 	bool hcb_;
+	bool hocb_;
 	bool rcb_;
 
 	// POV //

@@ -5,7 +5,7 @@
 PlaceHumanMap::PlaceHumanMap()
 {
 	// Ros Params
-	size_h = 0.6;
+	size_h_ = 0.6;
 
 	// Init
 	human_pose_.x = 	0;
@@ -18,53 +18,53 @@ PlaceHumanMap::PlaceHumanMap()
 
 	// Build empty_PointCloud2
 	sensor_msgs::PointCloud cloud;
-	cloud.header.frame_id = "human2_human2_base";
+	cloud.header.frame_id = "human_human_base";
 	cloud.header.stamp = ros::Time::now();
 	sensor_msgs::convertPointCloudToPointCloud2(cloud, empty_PointCloud2_);
 
 	// Build human_pose_PoinCloud2_
-	cloud.header.frame_id = "human2_human2_base";
+	cloud.header.frame_id = "human_human_base";
 	cloud.header.stamp = ros::Time::now();
 	geometry_msgs::Point32 point;
 	point.z = 0.0;
-	point.x = -size_rob_/2;
-	point.y = -size_rob_/2;
+	point.x = -size_h_/2;
+	point.y = -size_h_/2;
 	cloud.points.push_back(point);	
-	point.x = -size_rob_/2;
+	point.x = -size_h_/2;
 	point.y = 0.01;
 	cloud.points.push_back(point);
-	point.x = -size_rob_/2;
-	point.y = size_rob_/2;
+	point.x = -size_h_/2;
+	point.y = size_h_/2;
 	cloud.points.push_back(point);
 	point.x = 0;
-	point.y = size_rob_/2;
+	point.y = size_h_/2;
 	cloud.points.push_back(point);
-	point.x = size_rob_/2;
-	point.y = size_rob_/2;
+	point.x = size_h_/2;
+	point.y = size_h_/2;
 	cloud.points.push_back(point);
-	point.x = size_rob_/2;
+	point.x = size_h_/2;
 	point.y = 0;
 	cloud.points.push_back(point);
-	point.x = size_rob_/2;
-	point.y = -size_rob_/2;
+	point.x = size_h_/2;
+	point.y = -size_h_/2;
 	cloud.points.push_back(point);
 	point.x = 0;
-	point.y = -size_rob_/2;
+	point.y = -size_h_/2;
 	cloud.points.push_back(point);
-	sensor_msgs::convertPointCloudToPointCloud2(cloud, robot_pose_PointCloud2_);
+	sensor_msgs::convertPointCloudToPointCloud2(cloud, human_pose_PointCloud2_);
 
 	// Subscriber
-	human_pose_sub_ = 	nh_.subscribe("known/human_pose", 100, &PlaceHumanMap::humanPoseCallback, this);
+	human_pose_sub_ = 	nh_.subscribe("known/human_other_pose", 100, &PlaceHumanMap::humanPoseCallback, this);
 
 	// Publisher
 	human_pose_pub_ =	nh_.advertise<sensor_msgs::PointCloud2>("human_pose_PointCloud2", 10);
 }
 
-void PlaceHumanMap::placeRobot()
+void PlaceHumanMap::placeHuman()
 {
 	// publish with obst
-	robot_pose_PointCloud2_.header.stamp = ros::Time::now();
-	robot_pose_pub_.publish(human_pose_PointCloud2_);
+	human_pose_PointCloud2_.header.stamp = ros::Time::now();
+	human_pose_pub_.publish(human_pose_PointCloud2_);
 }
 
 bool PlaceHumanMap::initDone()
@@ -85,7 +85,7 @@ void PlaceHumanMap::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_p
 	hcb_ =	true;
 
 	if(active_)
-		this->placeRobot();
+		this->placeHuman();
 }
 
 //////////////////////// MAIN //////////////////////////////

@@ -11,4 +11,5 @@ local_costmap:
 
   plugins:
   - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
+  - {name: obstacle_human_layer, type: "costmap_2d::ObstacleLayer"}
   - {name: inflater_layer, type: "costmap_2d::InflationLayer"}

@@ -20,6 +20,13 @@ double h_roll, h_pitch, h_yaw;
 ros::Publisher pub_sim_human_vel;
 geometry_msgs::Twist h_vel;
 
+ros::Publisher pub_sim_human_other_pose;
+geometry_msgs::Pose2D h_o_pose;
+double h_o_roll, h_o_pitch, h_o_yaw;
+
+ros::Publisher pub_sim_human_other_vel;
+geometry_msgs::Twist h_o_vel;
+
 ros::Publisher pub_sim_robot_pose;
 geometry_msgs::Pose2D r_pose;
 double r_roll, r_pitch, r_yaw;
@@ -44,6 +51,25 @@ void humanVelCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 	h_vel = msg->twist;
 	pub_sim_human_vel.publish(h_vel);
 }
+
+void humanOtherPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+{
+	tf::Quaternion q(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w);
+	tf::Matrix3x3 m(q);
+	m.getRPY(h_o_roll, h_o_pitch, h_o_yaw);
+	h_o_pose.theta=h_yaw;
+	h_o_pose.x=msg->pose.position.x;
+	h_o_pose.y=msg->pose.position.y;
+
+	pub_sim_human_other_pose.publish(h_o_pose);
+}
+
+void humanOtherVelCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+{
+	h_o_vel = msg->twist;
+	pub_sim_human_other_vel.publish(h_o_vel);
+}
+
 
 void robotPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 {
@@ -75,6 +101,12 @@ int main(int argc, char** argv)
 
 	ros::Subscriber sub_human_vel = nh.subscribe("/morse/human2_vel", 100, humanVelCallback);
 	pub_sim_human_vel = nh.advertise<geometry_msgs::Twist>("in/human_vel", 100);
+
+	ros::Subscriber sub_human_other_pose = nh.subscribe("/morse/human_pose", 100, humanOtherPoseCallback);
+	pub_sim_human_other_pose = nh.advertise<geometry_msgs::Pose2D>("in/human_other_pose", 100);
+
+	ros::Subscriber sub_human_other_vel = nh.subscribe("/morse/human_vel", 100, humanOtherVelCallback);
+	pub_sim_human_other_vel = nh.advertise<geometry_msgs::Twist>("in/human_other_vel", 100);
 
 	ros::Subscriber sub_robot_pose = nh.subscribe("/morse/robot_pose", 100, robotPoseCallback);
 	pub_sim_robot_pose = nh.advertise<geometry_msgs::Pose2D>("in/robot_pose", 100);
