@@ -26,7 +26,7 @@
 		<remap from="scan" to="robot_pose_LaserScan"/>
 	</node>
 
-	<node name="place_other_node" type="place_other_node" pkg="move_human" output="screen" ns="human2"/>
+	<node name="place_human_node" type="place_human_node" pkg="move_human" output="screen" ns="human2"/>
 	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscanH" ns="human2">
 		<!-- See all params at http://wiki.ros.org/pointcloud_to_laserscan -->
 
@@ -42,10 +42,10 @@
 		<param name="target_frame" value="human_human_base"/>
 
 		<!-- Topic from which to read PointCloud2 -->
-		<remap from="cloud_in" to="other_pose_PointCloud2"/>
+		<remap from="cloud_in" to="human_pose_PointCloud2"/>
 
 		<!-- Topic to which LaserScan will be published -->
-		<remap from="scan" to="other_pose_LaserScan"/>
+		<remap from="scan" to="human_pose_LaserScan"/>
 	</node>
 
 
