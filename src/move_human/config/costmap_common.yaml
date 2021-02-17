@@ -31,13 +31,13 @@ obstacle_layer:
     inf_is_valid: true
     min_obstacle_height: 0.0
     max_obstacle_height: 1.0
- 
-obstacle_human_layer:
+
+obstacle_other_layer:
   combination_method: 1
   observation_sources: scan
   scan:
     data_type: LaserScan
-    topic: human_pose_LaserScan
+    topic: other_pose_LaserScan
     marking: true
     clearing: true
     inf_is_valid: true

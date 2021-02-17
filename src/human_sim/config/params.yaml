@@ -85,3 +85,12 @@ place_robot_node: ##
     #=> size of robot to add on costmap (one side of a square)
   dist_threshold: 5.0
     #=> distance above which the robot isn't drawn on costmap
+
+####################
+place_other_node: ##
+####################
+
+  size_h: 0.4
+    #=> size of robot to add on costmap (one side of a square)
+  dist_threshold: 5.0
+    #=> distance above which the robot isn't drawn on costmap

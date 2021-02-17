@@ -18,6 +18,7 @@ add_message_files(
 add_service_files(
   FILES
   PlaceRobot.srv
+  PlaceOther.srv
   Test.srv
 )
 
@@ -41,9 +42,9 @@ add_executable(place_robot_node src/placeRobot_node.cpp)
 add_dependencies(place_robot_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(place_robot_node ${catkin_LIBRARIES})
 
-add_executable(place_human_node src/placeHuman_node.cpp)
-add_dependencies(place_human_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(place_human_node ${catkin_LIBRARIES})
+add_executable(place_other_node src/placeOther_node.cpp)
+add_dependencies(place_other_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(place_other_node ${catkin_LIBRARIES})
 
 add_executable(pov_node src/test_pov_node.cpp)
 add_dependencies(pov_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
