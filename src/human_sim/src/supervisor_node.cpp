@@ -286,17 +286,20 @@ void Supervisor::FSM()
 								client_cancel_goal_and_stop_.call(srv_cancel_stop_);
 								client_action_.stopTrackingGoal();
 
+								/*
 								// remove robot
 								srv_place_robot_hm_.request.data = false;
 								client_place_robot_hm_.call(srv_place_robot_hm_);
-								place_robot_delay_.sleep();
+								place_robot_delay_.sleep();*/
 
 								last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
 								// wait before replanning to be sure the robot has actually been removed from the map
 
+								/*
 								// switch to APPROACH
 								global_state_ = APPROACH;
-								approach_state_ = REPLANNING;
+								approach_state_ = REPLANNING;*/
+								global_state_ = BLOCKED;
 							}
 							break;
 					}
