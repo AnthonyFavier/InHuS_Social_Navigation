@@ -1,6 +1,6 @@
 <launch>
 
-	<node name="place_human_node" pkg="move_robot" type="place_human_node" ns="robot"/>
+	<node name="place_human_for_r_node" pkg="move_robot" type="place_human_for_r_node" ns="robot"/>
 	<node name="preprocessing_r_node" pkg="move_robot" type="preprocessing_r_node" ns="robot"/>
 
 </launch>

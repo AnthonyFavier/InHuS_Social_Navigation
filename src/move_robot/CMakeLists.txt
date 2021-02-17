@@ -123,9 +123,9 @@ include_directories(
 
 
 
-add_executable(place_human_node src/placeHuman_node.cpp)
-add_dependencies(place_human_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(place_human_node ${catkin_LIBRARIES})
+add_executable(place_human_for_r_node src/placeHuman_node.cpp)
+add_dependencies(place_human_for_r_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(place_human_for_r_node ${catkin_LIBRARIES})
 
 add_executable(preprocessing_r_node src/preprocessing_node.cpp)
 add_dependencies(preprocessing_r_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
