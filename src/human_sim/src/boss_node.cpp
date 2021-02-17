@@ -130,6 +130,7 @@ int main(int argc, char** argv)
 		topic_robot = "/robot" + topic_robot;
 	ros::Publisher pub_goal_robot = nh.advertise<geometry_msgs::PoseStamped>(topic_robot, 1);
 	ros::Publisher pub_goal_human = 	nh.advertise<human_sim::Goal>("/boss/human/new_goal", 1);
+	ros::Publisher pub_goal_human2 = 	nh.advertise<human_sim::Goal>("/boss/human2/new_goal", 1);
 	ros::Publisher pub_set_behavior = 	nh.advertise<std_msgs::Int32>("/boss/human/set_behavior", 1);
 
 	area.goal.type="Position";
@@ -266,13 +267,25 @@ int main(int argc, char** argv)
 		{
 			/* HUMAN GOAL */
 			case 1:
+			{
+				while(ros::ok() && (cout <<  endl << "Which human [1-2] ? ")
+				&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
+					cleanInput();
+				int id_h = choice;
+
 				while(ros::ok() && (cout <<  endl << "Which goal [1-10] ? ")
 				&& (!(cin >> choice) || !(choice>=1 && choice<=10)))
 					cleanInput();
 
 				if(goals[choice].radius == 0)
-					pub_goal_human.publish(goals[choice].goal);
+				{
+					if(id_h==1)
+						pub_goal_human.publish(goals[choice].goal);
+					else if(id_h==2)
+						pub_goal_human2.publish(goals[choice].goal);
+				}
 				break;
+			}
 
 			/* ROBOT GOAL */
 			case 2:
