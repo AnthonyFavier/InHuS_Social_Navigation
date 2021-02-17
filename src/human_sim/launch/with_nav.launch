@@ -1,6 +1,6 @@
 <launch>
 
-	<rosparam command="load" file="$(find human_sim)/config/params.yaml" ns="human"/>
+	<rosparam command="load" file="$(find human_sim)/config/params.yaml" ns="human2"/>
 	<include file="$(find move_human)/launch/all.launch"/>
 	<include file="$(find human_sim)/launch/human_sim.launch"/>
 

@@ -98,8 +98,8 @@ int main(int argc, char** argv)
 		q.setRPY(0, 0, r_pose.theta);
 		tf_map_robot.setRotation(q);
 
-		br.sendTransform(tf::StampedTransform(tf_map_footprint, ros::Time::now(), "map", "human_human_base"));
-		br.sendTransform(tf::StampedTransform(tf_map_robot, ros::Time::now(), "map", "human_robot_base"));
+		br.sendTransform(tf::StampedTransform(tf_map_footprint, ros::Time::now(), "map", "human2_human_base"));
+		br.sendTransform(tf::StampedTransform(tf_map_robot, ros::Time::now(), "map", "human2_robot_base"));
 
 		ros::spinOnce();
 		rate.sleep();

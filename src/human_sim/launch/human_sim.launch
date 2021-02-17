@@ -2,15 +2,15 @@
 
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find human_sim)/config.rviz"/>
 
-	<node name="human_model_node" type="human_model_node" pkg="human_sim" ns="human"/> <!-- output="screen" launch-prefix="xterm -geometry '80x25+1470+0' -e"/-->
-	<node name="task_planner_node" type="task_planner_node" pkg="human_sim" ns="human"/> 
-	<node name="supervisor_node" type="supervisor_node" pkg="human_sim" ns="human"/> <!--output="screen" launch-prefix="xterm -geometry '156x25+0+0' -e"/-->
-	<node name="input_node" type="input_node" pkg="human_sim" ns="human/interface"/>
-	<node name="output_node" type="output_node" pkg="human_sim" ns="human/interface"/>
-	<node name="log_manager_node" type="log_manager_node" pkg="human_sim" ns="human"/>
-	<node name="pose_log_node" type="pose_log_node" pkg="human_sim" ns="human"/>
-	<node name="controller_node" type="controller_node" pkg="human_sim" ns="human"/>
-	
+	<node name="human_model_node" type="human_model_node" pkg="human_sim" ns="human2"/> <!-- output="screen" launch-prefix="xterm -geometry '80x25+1470+0' -e"/-->
+	<node name="task_planner_node" type="task_planner_node" pkg="human_sim" ns="human2"/>
+	<node name="supervisor_node" type="supervisor_node" pkg="human_sim" ns="human2"/> <!--output="screen" launch-prefix="xterm -geometry '156x25+0+0' -e"/-->
+	<node name="input_node" type="input_node" pkg="human_sim" ns="human2/interface"/>
+	<node name="output_node" type="output_node" pkg="human_sim" ns="human2/interface"/>
+	<node name="log_manager_node" type="log_manager_node" pkg="human_sim" ns="human2"/>
+	<node name="pose_log_node" type="pose_log_node" pkg="human_sim" ns="human2"/>
+	<node name="controller_node" type="controller_node" pkg="human_sim" ns="human2"/>
+
 	<include file="$(find human_sim)/launch/boss.launch"/>
 
 </launch>
