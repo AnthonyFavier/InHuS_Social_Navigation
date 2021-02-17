@@ -47,8 +47,8 @@ HumanModel::HumanModel()
 	sub_robot_vel_ =	nh_.subscribe("interface/in/robot_vel", 100, &HumanModel::robotVelCallback, this);
 	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
 	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanModel::goalDoneCallback, this);
-	sub_set_behavior_ = 	nh_.subscribe("/boss/human/set_behavior", 100, &HumanModel::setBehaviorCallback, this);
-	sub_new_goal_ =		nh_.subscribe("/boss/human/new_goal", 100, &HumanModel::newGoalCallback, this);
+	sub_set_behavior_ = 	nh_.subscribe("/boss/human2/set_behavior", 100, &HumanModel::setBehaviorCallback, this);
+	sub_new_goal_ =		nh_.subscribe("/boss/human2/new_goal", 100, &HumanModel::newGoalCallback, this);
 	sub_stop_cmd_ = 	nh_.subscribe("stop_cmd", 100, &HumanModel::stopCmdCallback, this);
 	sub_pov_map_ = 		nh_.subscribe("pov_map", 1, &HumanModel::povMapCallback, this);
 

@@ -70,10 +70,10 @@ int main(int argc, char** argv)
 
 	ros::Rate rate(30);
 
-	ros::Subscriber sub_human_pose = nh.subscribe("/morse/human_pose", 100, humanPoseCallback);
+	ros::Subscriber sub_human_pose = nh.subscribe("/morse/human2_pose", 100, humanPoseCallback);
 	pub_sim_human_pose = nh.advertise<geometry_msgs::Pose2D>("in/human_pose", 100);
-	
-	ros::Subscriber sub_human_vel = nh.subscribe("/morse/human_vel", 100, humanVelCallback);
+
+	ros::Subscriber sub_human_vel = nh.subscribe("/morse/human2_vel", 100, humanVelCallback);
 	pub_sim_human_vel = nh.advertise<geometry_msgs::Twist>("in/human_vel", 100);
 
 	ros::Subscriber sub_robot_pose = nh.subscribe("/morse/robot_pose", 100, robotPoseCallback);
