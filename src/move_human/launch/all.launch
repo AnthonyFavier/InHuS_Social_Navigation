@@ -4,7 +4,8 @@
 	<include file="$(find move_human)/launch/pov_map.launch"/>
 	<include file="$(find move_human)/launch/move_base.launch"/>
 	<node name="place_robot_node" type="place_robot_node" pkg="move_human" output="screen" ns="human2"/>
-	<node name="odom_to_map_broadcaster" type="static_transform_publisher" pkg="tf" args="0 0 0 0 0 0 map odom 1000" ns="human2"/>
+	<!--node name="odom_to_map_broadcaster" type="static_transform_publisher" pkg="tf" args="2 2 0 0 0 0 map odom 1000" ns="human2"/-->
+	<node name="odom_to_map_broadcaster" type="static_transform_publisher" pkg="tf" args="2 2 0 0 0 0 map odom 1000" ns="human2"/>
 
 	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" ns="human2">
 		<!-- See all params at http://wiki.ros.org/pointcloud_to_laserscan -->
@@ -18,7 +19,7 @@
 		<param name="range_max" value="100.0"/>
 
 		<!-- Frame of your depth sensor -->
-		<param name="target_frame" value="human_robot_base"/>
+		<param name="target_frame" value="human2_robot_base"/>
 
 		<!-- Topic from which to read PointCloud2 -->
 		<remap from="cloud_in" to="robot_pose_PointCloud2"/>

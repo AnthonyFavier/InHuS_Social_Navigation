@@ -1,6 +1,6 @@
 global_costmap:
   global_frame: map
-  robot_base_frame: human_human_base
+  robot_base_frame: human2_human_base
   update_frequency: 10.0
   width: 15.0
   height: 30.0
@@ -11,6 +11,4 @@ global_costmap:
   plugins:
   - {name: static_layer, type: "costmap_2d::StaticLayer"}
   - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
-  - {name: obstacle_human_layer, type: "costmap_2d::ObstacleLayer"}
   - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
-

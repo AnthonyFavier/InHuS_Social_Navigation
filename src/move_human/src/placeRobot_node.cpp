@@ -31,18 +31,18 @@ PlaceRobotMap::PlaceRobotMap()
 
 	// Build empty_PointCloud2
 	sensor_msgs::PointCloud cloud;
-	cloud.header.frame_id = "human_robot_base";
+	cloud.header.frame_id = "human2_robot_base";
 	cloud.header.stamp = ros::Time::now();
 	sensor_msgs::convertPointCloudToPointCloud2(cloud, empty_PointCloud2_);
 
 	// Build robot_pose_PoinCloud2_
-	cloud.header.frame_id = "human_robot_base";
+	cloud.header.frame_id = "human2_robot_base";
 	cloud.header.stamp = ros::Time::now();
 	geometry_msgs::Point32 point;
 	point.z = 0.0;
 	point.x = -size_rob_/2;
 	point.y = -size_rob_/2;
-	cloud.points.push_back(point);	
+	cloud.points.push_back(point);
 	point.x = -size_rob_/2;
 	point.y = 0.01;
 	cloud.points.push_back(point);
@@ -98,7 +98,7 @@ void PlaceRobotMap::placeRobot()
 			robot_pose_pub_.publish(robot_pose_PointCloud2_);
 		}
 		else
-		{	
+		{
 			// publish empty
 			empty_PointCloud2_.header.stamp = ros::Time::now();
 			robot_pose_pub_.publish(empty_PointCloud2_);
