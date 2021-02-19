@@ -1,8 +1,8 @@
 build/
 devel/
 *.swp
-log.txt
-poseLog.txt
+src/human_sim/logs/log.txt
+src/human_sim/logs/poseLog.txt
 videos/
 
 src/navigation/
