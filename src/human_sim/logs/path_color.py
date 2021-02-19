@@ -119,7 +119,7 @@ for i in range(0,n+1):
     x = int(legend_pose[0] + i*legend_size/n)
     t = Td + i*dT/n
     out = "%.1f" % t
-    draw.text((x+off_txt[0],legend_pose[1]+off_txt[1]), out, font=ImageFont.truetype("FreeMono.ttf", 15), fill=(0,0,0))
+    draw.text((x+off_txt[0],legend_pose[1]+off_txt[1]), out, font=ImageFont.truetype("FreeMonoBold.ttf", 18), fill=(0,0,0))
 for x in np.arange(legend_pose[0], legend_pose[0]+legend_size, 0.01):
     ratio = (x - legend_pose[0])/legend_size
     color = compute_color(ratio)
