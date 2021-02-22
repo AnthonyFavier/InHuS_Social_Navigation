@@ -2,6 +2,7 @@
 #include "human_sim/Goal.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include "move_base_msgs/MoveBaseGoal.h"
+#include "actionlib_msgs/GoalStatusArray.h"
 #include "geometry_msgs/PoseStamped.h"
 #include <std_msgs/Int32.h>
 #include <vector>
@@ -20,10 +21,18 @@ struct GoalArea
 	float radius;
 };
 
-bool autoRobotGoal;
+bool auto_robot_goal;
 GoalArea area;
 vector<GoalArea> goals;
 int current_behavior;
+bool robot_goal_done;
+bool human_goal_done;
+vector<GoalArea> goals_routine_robot;
+vector<GoalArea> goals_routine_human;
+bool routine_robot;
+bool routine_human;
+int i_routine_robot;
+int i_routine_human;
 
 geometry_msgs::PoseStamped getPose(human_sim::Goal goal)
 {
@@ -98,7 +107,7 @@ void pubGoalsRobot(ros::Publisher& pub_goal_robot)
 	ros::Duration loop(15);
 	while(ros::ok())
 	{
-		if(autoRobotGoal)
+		if(auto_robot_goal)
 		{
 			int i = rand()%10 + 1;
 			cout << "i= " << i << endl;
@@ -106,6 +115,74 @@ void pubGoalsRobot(ros::Publisher& pub_goal_robot)
 		}
 		loop.sleep();
 	}
+}
+
+void pubRoutineRobot(ros::Publisher& pub_goal_robot)
+{
+	ros::Rate loop(5);
+	while(ros::ok())
+	{
+		if(routine_robot)
+		{
+			if(robot_goal_done)
+			{
+				i_routine_robot = (i_routine_robot + 1)%goals_routine_robot.size();
+				pub_goal_robot.publish(getPose(goals_routine_robot[i_routine_robot].goal));
+				while(ros::ok && robot_goal_done)
+					loop.sleep();
+			}
+		}
+		loop.sleep();
+	}
+}
+
+void pubRoutineHuman(ros::Publisher& pub_goal_human)
+{
+	ros::Rate loop(2);
+	while(ros::ok())
+	{
+		if(routine_human)
+		{
+			if(human_goal_done)
+			{
+				i_routine_human = (i_routine_human + 1)%goals_routine_human.size();
+				pub_goal_human.publish(goals_routine_human[i_routine_human].goal);
+				while(ros::ok() && human_goal_done)
+					loop.sleep();
+			}
+		}
+		loop.sleep();
+	}
+}
+
+void goalStatusRobotCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg)
+{
+	if(msg->status_list.size())
+	{
+		if(msg->status_list[0].status == 1) // ACTIVE
+			robot_goal_done = false;
+		else if(msg->status_list[0].status == 0) // PENDING
+			robot_goal_done = false;
+		else if(msg->status_list[0].status == 3) // SUCCEEDED
+			robot_goal_done = true;
+		else
+			robot_goal_done = true;
+	}
+}
+
+void humanGoalStartCallback(const human_sim::Goal::ConstPtr& msg)
+{
+	human_goal_done = false;
+}
+
+void humanGoalDoneCallback(const human_sim::Goal::ConstPtr& msg)
+{
+	human_goal_done = true;
+}
+
+void threadSpin()
+{
+	ros::spin();
 }
 
 int main(int argc, char** argv)
@@ -119,18 +196,31 @@ int main(int argc, char** argv)
 	float delay;
 	geometry_msgs::PoseStamped pose;
 	current_behavior = 0;
+	auto_robot_goal = false;
+	robot_goal_done = true;
+	human_goal_done = true;
+	routine_robot = false;
+	routine_human = false;
 
 	string topic_robot = "/move_base_simple/goal";
+	string topic_goal_status_robot = "/move_base/status";
 	while(ros::ok() && (cout 	<< "1- Simple move_base" << endl 
 					<< "2- HATEB" << endl 
 					<< "Choice ? ")
 	&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
 		cleanInput();
 	if(choice == 1)
+	{
 		topic_robot = "/robot" + topic_robot;
-	ros::Publisher pub_goal_robot = nh.advertise<geometry_msgs::PoseStamped>(topic_robot, 1);
+		topic_goal_status_robot = "/robot" + topic_goal_status_robot;
+	}
+	ros::Publisher pub_goal_robot = 	nh.advertise<geometry_msgs::PoseStamped>(topic_robot, 1);
 	ros::Publisher pub_goal_human = 	nh.advertise<human_sim::Goal>("/boss/human/new_goal", 1);
 	ros::Publisher pub_set_behavior = 	nh.advertise<std_msgs::Int32>("/boss/human/set_behavior", 1);
+	ros::Subscriber sub_goal_status_robot = nh.subscribe(topic_goal_status_robot, 1, goalStatusRobotCallback);
+	ros::Subscriber sub_human_goal_done = 	nh.subscribe("/human/goal_done", 1, humanGoalDoneCallback);
+	ros::Subscriber sub_human_goal_start =	nh.subscribe("/human/new_goal", 1, humanGoalStartCallback);
+
 
 	area.goal.type="Position";
 
@@ -221,19 +311,62 @@ int main(int argc, char** argv)
 	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
 	goals.push_back(area);
 
+	// Routine robot //
+	goals_routine_robot.push_back(goals[4]);
+	goals_routine_robot.push_back(goals[2]);
+	area.goal.x=8.70; 	area.goal.y=0.0; 	area.goal.theta=0;	area.radius=0;
+	goals_routine_robot.push_back(area);
+	area.goal.x=9.30; 	area.goal.y=17.4; 	area.goal.theta=PI/2;	area.radius=0;
+	goals_routine_robot.push_back(area);
+	goals_routine_robot.push_back(goals[6]);
+
+	// Routine human //
+	goals_routine_human.push_back(goals[1]); // or 2
+	area.goal.x=7.3; 	area.goal.y=9.98; 	area.goal.theta=-PI;	area.radius=0;
+	goals_routine_human.push_back(area);
+	goals_routine_human.push_back(goals[8]);
+	area.goal.x=10.1; 	area.goal.y=2.35; 	area.goal.theta=-PI/2;	area.radius=0;
+	goals_routine_human.push_back(area);
+
+	i_routine_robot = goals_routine_robot.size()-1;
+	i_routine_human = goals_routine_human.size()-1;
+
+	// spawn thread ros spin
+	boost::thread thread_a(threadSpin);
+
 	// spawn thread to publish auto goals to robot
-	autoRobotGoal = false;
 	boost::thread thread_b(pubGoalsRobot, pub_goal_robot);
+
+	// spawn thread to publish routine robot
+	boost::thread thread_c(pubRoutineRobot, pub_goal_robot);
+	// spawn thread to publish routine human
+	boost::thread thread_d(pubRoutineHuman, pub_goal_human);
 
 	while(ros::ok())
 	{
 		for(int i=0; i<10; i++){cout << endl;}
 		cout << "current auto send robot goal : ";
-		if(autoRobotGoal)
+		if(auto_robot_goal)
 			cout << "True";
 		else
 			cout << "False";
-		cout << endl << "current behavior : ";
+		cout << endl;
+		cout << "current routine robot : ";
+		if(routine_robot)
+			cout << "True";
+		else
+			cout << "False";
+
+		cout << endl;
+		cout << "current routine human : ";
+		if(routine_human)
+			cout << "True";
+		else
+			cout << "False";
+
+		cout << endl;
+
+		cout << "current behavior : ";
 		switch(current_behavior)
 		{
 			case 0:
@@ -258,8 +391,10 @@ int main(int argc, char** argv)
 						<< "3- Scenario" << endl 
 						<< "4- Set Behavior" << endl
 						<< "5- Auto goals robot" << endl
+						<< "6- Robot routine" << endl
+						<< "7- Human routine" << endl
 						<< "Choice ? ")
-		&& (!(cin >> choice) || !(choice>=1 && choice<=5)))
+		&& (!(cin >> choice) || !(choice>=1 && choice<=7)))
 			cleanInput();
 
 		switch(choice)
@@ -414,21 +549,62 @@ int main(int argc, char** argv)
 			case 5:
 				while(ros::ok() && (cout << endl	<< "1- True" << endl
 									<< "2- False" << endl
-									<< "Choice ? ? ")
+									<< "Choice ? ")
 				&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
 					cleanInput();
 
 				switch(choice)
 				{
 					case 1:
-						autoRobotGoal = true;
+						auto_robot_goal = true;
+						routine_robot = false;
 						break;
 					case 2:
-						autoRobotGoal = false;
+						auto_robot_goal = false;
 						break;
 				}
 
 				break;
+
+			/* ROUTINE FOR ROBOT */
+			case 6:
+				while(ros::ok() && (cout << endl	<< "1- True" << endl
+									<< "2- False" << endl
+									<< "Choice ? ")
+				&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
+					cleanInput();
+
+				switch(choice)
+				{
+					case 1:
+						routine_robot = true;
+						auto_robot_goal = false;
+						break;
+					case 2:
+						routine_robot = false;
+						break;
+				}
+				break;
+
+			/* ROUTINE FOR HUMAN */
+			case 7:
+				while(ros::ok() && (cout << endl	<< "1- True" << endl
+									<< "2- False" << endl
+									<< "Choice ? ")
+				&& (!(cin >> choice) || !(choice>=1 && choice<=2)))
+					cleanInput();
+
+				switch(choice)
+				{
+					case 1:
+						routine_human = true;
+						break;
+					case 2:
+						routine_human = false;
+						break;
+				}
+				break;
+
 
 			default:
 				break;
