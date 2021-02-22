@@ -6,7 +6,6 @@
 
 ros::Publisher pub_cmd_vel;
 ros::Publisher pub_cancel_goal;
-ros::Publisher pub_goal_done;
 
 bool delay_stop_required=false;
 ros::Time time_delay_stop_required;
@@ -29,8 +28,6 @@ bool cancelGoalAndStop(human_sim::Signal::Request &req, human_sim::Signal::Respo
 	goal_id.stamp = ros::Time::now();
 	pub_cancel_goal.publish(goal_id);
 
-	pub_goal_done.publish(human_sim::Goal());
-
 	pub_cmd_vel.publish(cmd_zero);
 
 	delay_stop_required = true;
@@ -49,7 +46,6 @@ int main(int argc, char** argv)
 
 	pub_cmd_vel = 		nh.advertise<geometry_msgs::Twist>("interface/out/final_cmd", 100);
 	pub_cancel_goal =	nh.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
-	pub_goal_done = 	nh.advertise<human_sim::Goal>("goal_done", 100);
 
 	ros::ServiceServer service_cancel_goal_and_stop = nh.advertiseService("cancel_goal_and_stop", cancelGoalAndStop);
 
