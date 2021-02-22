@@ -130,7 +130,7 @@ ax2.legend([vel_h, vel_r], ['human speed', 'robot speed'])
 ax5.set_xlabel('time (s)')
 ax5.set_ylabel('TTC (s)')
 ax5.plot(list_ttc_time, list_ttc_data, 'k+')
-ax5.set_ylim(bottom=0)
+ax5.set_ylim(bottom=0, top=6)
 ax5.set_xlim(left=ax1.get_xbound()[0], right=ax1.get_xbound()[1])
 
 
