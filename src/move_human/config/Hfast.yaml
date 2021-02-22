@@ -1,8 +1,8 @@
 !!python/object/new:dynamic_reconfigure.encoding.Config
 dictitems:
-  acc_lim_theta: 4.999499999999999
+  acc_lim_theta: 10.0
   acc_lim_x: 4.0
-  acc_lim_y: 0.9998999999999999
+  acc_lim_y: 2.0
   allow_init_with_backwards_motion: false
   cmd_angle_instead_rotvel: false
   costmap_obstacles_behind_robot_dist: 0.4
@@ -137,7 +137,7 @@ dictitems:
             state: []
           Robot: !!python/object/new:dynamic_reconfigure.encoding.Config
             dictitems:
-              acc_lim_theta: 4.999499999999999
+              acc_lim_theta: 10.0
               acc_lim_x: 4.0
               groups: !!python/object/new:dynamic_reconfigure.encoding.Config
                 dictitems:
@@ -158,11 +158,11 @@ dictitems:
                     state: []
                   Omnidirectional: !!python/object/new:dynamic_reconfigure.encoding.Config
                     dictitems:
-                      acc_lim_y: 0.9998999999999999
+                      acc_lim_y: 2.0
                       groups: !!python/object/new:dynamic_reconfigure.encoding.Config
                         state: []
                       id: 5
-                      max_vel_y: 0.5
+                      max_vel_y: 1.5
                       name: Omnidirectional
                       parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
                         state: []
@@ -174,7 +174,7 @@ dictitems:
               id: 3
               is_footprint_dynamic: false
               max_vel_theta: 2.0
-              max_vel_x: 0.7
+              max_vel_x: 2.0
               max_vel_x_backwards: 0.7
               name: Robot
               parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
@@ -240,9 +240,9 @@ dictitems:
   max_global_plan_lookahead_dist: 1.0
   max_number_classes: 4
   max_vel_theta: 2.0
-  max_vel_x: 0.7
+  max_vel_x: 2.0
   max_vel_x_backwards: 0.7
-  max_vel_y: 0.5
+  max_vel_y: 1.5
   min_obstacle_dist: 0.4
   min_turning_radius: 0.0
   no_inner_iterations: 4

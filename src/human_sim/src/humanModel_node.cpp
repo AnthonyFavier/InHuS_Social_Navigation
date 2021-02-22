@@ -176,7 +176,7 @@ human_sim::Goal HumanModel::chooseGoal(bool random)
 	{
 		do
 		{
-			i=rand()%known_goals_.size();
+			i=rand()%10 +1 ;
 		}while(known_goals_[i].goal.x==previous_goal_.x && known_goals_[i].goal.y==previous_goal_.y);
 	}
 	// follow list of known goals
@@ -235,7 +235,7 @@ void HumanModel::nonStop()
 	if(!executing_plan_)
 	{
 		ROS_INFO("CHOOSED");
-		human_sim::Goal goal = chooseGoal(false);
+		human_sim::Goal goal = chooseGoal(true);
 	
 		this->publishGoal(goal);
 	}

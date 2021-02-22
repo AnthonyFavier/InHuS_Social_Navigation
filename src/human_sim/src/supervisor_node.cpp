@@ -627,7 +627,7 @@ bool Supervisor::checkBlocked()
 	}
 
 	// Check if trajectory not feasible, thus if not moving for too long
-	if(ros::Time::now() - last_check_human_pose_ > not_feasible_check_pose_freq_.expectedCycleTime())
+	if(ros::Time::now() - last_check_human_pose_ > not_feasible_check_pose_freq_.expectedCycleTime() && false)
 	{
 		ROS_INFO("check not feasible");
 		// if current pose is close enough to previous one

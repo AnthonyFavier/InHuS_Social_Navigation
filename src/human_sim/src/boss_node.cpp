@@ -95,13 +95,13 @@ void wait(float delay)
 
 void pubGoalsRobot(ros::Publisher& pub_goal_robot)
 {
-	ros::Duration loop(10);
+	ros::Duration loop(15);
 	while(ros::ok())
 	{
 		if(autoRobotGoal)
 		{
 			int i = rand()%10 + 1;
-			cout << "plop " << i << endl;
+			cout << "i= " << i << endl;
 			pub_goal_robot.publish(getPose(goals[i].goal));
 		}
 		loop.sleep();
