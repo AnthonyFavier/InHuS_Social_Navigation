@@ -2,7 +2,7 @@
 dictitems:
   acc_lim_theta: 4.0
   acc_lim_x: 4.0
-  acc_lim_y: 0.15
+  acc_lim_y: 2.0
   allow_init_with_backwards_motion: false
   cmd_angle_instead_rotvel: false
   costmap_obstacles_behind_robot_dist: 0.4
@@ -110,13 +110,13 @@ dictitems:
               weight_dynamic_obstacle: 0.5
               weight_dynamic_obstacle_inflation: 0.1
               weight_inflation: 0.1
-              weight_kinematics_forward_drive: 1.0
+              weight_kinematics_forward_drive: 2.5
               weight_kinematics_nh: 1.0
               weight_kinematics_turning_radius: 1.0
               weight_max_vel_theta: 0.5
               weight_max_vel_x: 2.0
-              weight_max_vel_y: 4.0
-              weight_obstacle: 0.5
+              weight_max_vel_y: 2.0
+              weight_obstacle: 0.3
               weight_optimaltime: 1.0
               weight_shortest_path: 1.0
               weight_viapoint: 1.0
@@ -158,7 +158,7 @@ dictitems:
                     state: []
                   Omnidirectional: !!python/object/new:dynamic_reconfigure.encoding.Config
                     dictitems:
-                      acc_lim_y: 0.15
+                      acc_lim_y: 2.0
                       groups: !!python/object/new:dynamic_reconfigure.encoding.Config
                         state: []
                       id: 5
@@ -175,7 +175,7 @@ dictitems:
               is_footprint_dynamic: false
               max_vel_theta: 2.0
               max_vel_x: 0.7
-              max_vel_x_backwards: 0.7
+              max_vel_x_backwards: 0.4
               name: Robot
               parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
                 state: []
@@ -241,7 +241,7 @@ dictitems:
   max_number_classes: 4
   max_vel_theta: 2.0
   max_vel_x: 0.7
-  max_vel_x_backwards: 0.7
+  max_vel_x_backwards: 0.4
   max_vel_y: 0.5
   min_obstacle_dist: 0.3
   min_turning_radius: 0.0
@@ -279,13 +279,13 @@ dictitems:
   weight_dynamic_obstacle: 0.5
   weight_dynamic_obstacle_inflation: 0.1
   weight_inflation: 0.1
-  weight_kinematics_forward_drive: 1.0
+  weight_kinematics_forward_drive: 2.5
   weight_kinematics_nh: 1.0
   weight_kinematics_turning_radius: 1.0
   weight_max_vel_theta: 0.5
   weight_max_vel_x: 2.0
-  weight_max_vel_y: 4.0
-  weight_obstacle: 0.5
+  weight_max_vel_y: 2.0
+  weight_obstacle: 0.3
   weight_optimaltime: 1.0
   weight_shortest_path: 1.0
   weight_viapoint: 1.0

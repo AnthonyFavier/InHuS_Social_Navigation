@@ -166,7 +166,7 @@ void goalStatusRobotCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& ms
 		else if(msg->status_list[0].status == 3) // SUCCEEDED
 			robot_goal_done = true;
 		else
-			robot_goal_done = true;
+			robot_goal_done = false;
 	}
 }
 
@@ -312,20 +312,25 @@ int main(int argc, char** argv)
 	goals.push_back(area);
 
 	// Routine robot //
-	goals_routine_robot.push_back(goals[4]);
 	goals_routine_robot.push_back(goals[2]);
-	area.goal.x=8.70; 	area.goal.y=0.0; 	area.goal.theta=0;	area.radius=0;
+	area.goal.x=8.00; 	area.goal.y=7.60; 	area.goal.theta=0;	area.radius=0;
 	goals_routine_robot.push_back(area);
-	area.goal.x=9.30; 	area.goal.y=17.4; 	area.goal.theta=PI/2;	area.radius=0;
+	area.goal.x=7.5; 	area.goal.y=11.0; 	area.goal.theta=-PI;	area.radius=0;
 	goals_routine_robot.push_back(area);
-	goals_routine_robot.push_back(goals[6]);
+	area.goal.x=5.4; 	area.goal.y=11.3; 	area.goal.theta=PI/2;	area.radius=0;
+	goals_routine_robot.push_back(area);
+	area.goal.x=4.3; 	area.goal.y=6.3; 	area.goal.theta=-PI/2;	area.radius=0;
+	goals_routine_robot.push_back(area);
+	area.goal.x=8.00; 	area.goal.y=7.60; 	area.goal.theta=0;	area.radius=0;
+	goals_routine_robot.push_back(area);
 
 	// Routine human //
-	goals_routine_human.push_back(goals[1]); // or 2
-	area.goal.x=7.3; 	area.goal.y=9.98; 	area.goal.theta=-PI;	area.radius=0;
+	goals_routine_human.push_back(goals[4]);
+	area.goal.x=5.4; 	area.goal.y=7.3; 	area.goal.theta=-PI;	area.radius=0;
 	goals_routine_human.push_back(area);
-	goals_routine_human.push_back(goals[8]);
-	area.goal.x=10.1; 	area.goal.y=2.35; 	area.goal.theta=-PI/2;	area.radius=0;
+	area.goal.x=4.0; 	area.goal.y=9.5; 	area.goal.theta=PI/2;	area.radius=0;
+	goals_routine_human.push_back(area);
+	area.goal.x=9.0; 	area.goal.y=10.2; 	area.goal.theta=0;	area.radius=0;
 	goals_routine_human.push_back(area);
 
 	i_routine_robot = goals_routine_robot.size()-1;

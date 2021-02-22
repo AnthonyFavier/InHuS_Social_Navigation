@@ -43,10 +43,10 @@ TebLocalPlannerROS:
   #  acc_lim_theta: 10.0
   ## SLOW ##
   max_vel_x: 0.7
-  max_vel_x_backwards: 0.7
+  max_vel_x_backwards: 0.4
   max_vel_theta: 2.0
   max_vel_y: 0.5
-  acc_lim_y: 0.15
+  acc_lim_y: 2.0
   acc_lim_x: 4.0
   acc_lim_theta: 4.0
 
@@ -93,14 +93,14 @@ TebLocalPlannerROS:
   weight_max_vel_y: 2
   weight_max_vel_theta: 0.5
   weight_acc_lim_x: 1
-  weight_acc_lim_x: 1
+  weight_acc_lim_y: 1
   weight_acc_lim_theta: 0.9
   weight_kinematics_nh: 1.0
   weight_kinematics_forward_drive: 2.5
   weight_kinematics_turning_radius: 1
   weight_optimaltime: 1
   weight_shortest_path: 1
-  weight_obstacle: 0.5
+  weight_obstacle: 0.3
   weight_dynamic_obstacle: 0.5
   selection_alternative_time_cost: false
  
