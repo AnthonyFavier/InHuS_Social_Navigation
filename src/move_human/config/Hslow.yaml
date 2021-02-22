@@ -73,9 +73,9 @@ dictitems:
               id: 7
               include_costmap_obstacles: true
               include_dynamic_obstacles: false
-              inflation_dist: 0.6
+              inflation_dist: 1.0
               legacy_obstacle_association: false
-              min_obstacle_dist: 0.4
+              min_obstacle_dist: 0.3
               name: Obstacles
               obstacle_association_cutoff_factor: 1.0
               obstacle_association_force_inclusion_factor: 0.0
@@ -109,7 +109,7 @@ dictitems:
               weight_adapt_factor: 2.0
               weight_dynamic_obstacle: 0.5
               weight_dynamic_obstacle_inflation: 0.1
-              weight_inflation: 0.2
+              weight_inflation: 0.1
               weight_kinematics_forward_drive: 1.0
               weight_kinematics_nh: 1.0
               weight_kinematics_turning_radius: 1.0
@@ -234,7 +234,7 @@ dictitems:
   h_signature_threshold: 0.1
   include_costmap_obstacles: true
   include_dynamic_obstacles: false
-  inflation_dist: 0.6
+  inflation_dist: 1.0
   is_footprint_dynamic: false
   legacy_obstacle_association: false
   max_global_plan_lookahead_dist: 1.0
@@ -243,7 +243,7 @@ dictitems:
   max_vel_x: 0.7
   max_vel_x_backwards: 0.7
   max_vel_y: 0.5
-  min_obstacle_dist: 0.4
+  min_obstacle_dist: 0.3
   min_turning_radius: 0.0
   no_inner_iterations: 4
   no_outer_iterations: 3
@@ -278,7 +278,7 @@ dictitems:
   weight_adapt_factor: 2.0
   weight_dynamic_obstacle: 0.5
   weight_dynamic_obstacle_inflation: 0.1
-  weight_inflation: 0.2
+  weight_inflation: 0.1
   weight_kinematics_forward_drive: 1.0
   weight_kinematics_nh: 1.0
   weight_kinematics_turning_radius: 1.0

@@ -55,8 +55,8 @@ human_model_node: ##
     #=> delay after the last time the robot has been seen to forget the robot pose
     
 ### TTC
-  human_radius: 0.40
-  robot_radius: 0.50
+  human_radius: 0.30
+  robot_radius: 0.325
     #=> radius of both human and robot to compute TTC (Time To Collision)
 
 ### Behavior RANDOM

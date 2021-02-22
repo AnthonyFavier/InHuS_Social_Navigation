@@ -7,7 +7,7 @@ local_costmap:
   rolling_window: true
   origin_x: -5.0
   origin_y: -5.0
-  robot_radius: 0.05
+  robot_radius: 0.3
 
   plugins:
   - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
