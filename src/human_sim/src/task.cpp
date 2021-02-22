@@ -15,9 +15,11 @@ void Plan::addAction(Action action)
 
 void Plan::show()
 {
-	ROS_INFO("Plan: size=%d", (int)action_series_.size());
+	//ROS_INFO("Plan: size=%d", (int)action_series_.size());
 	for(int i=0; i<action_series_.size(); i++)
-		ROS_INFO("\tpose= (%.2f, %.2f) state=%d", action_series_[i].action.target_pose.pose.position.x, action_series_[i].action.target_pose.pose.position.y, action_series_[i].state);
+	{
+		//ROS_INFO("\tpose= (%.2f, %.2f) state=%d", action_series_[i].action.target_pose.pose.position.x, action_series_[i].action.target_pose.pose.position.y, action_series_[i].state);
+	}
 }
 
 void Plan::clear()

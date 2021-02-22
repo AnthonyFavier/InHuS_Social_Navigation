@@ -25,20 +25,20 @@ HumanModel::HumanModel()
 	private_nh.param(std::string("fov"), fov_int, int(180)); fov_ = fov_int*PI/180;
 	private_nh.param(std::string("check_see_robot_freq"), f_nb, float(2.0)); check_see_robot_freq_ = ros::Rate(f_nb);
 	private_nh.param(std::string("delay_forget_robot"), f_nb, float(1.5)); delay_forget_robot_ = ros::Duration(f_nb);
-	
-	ROS_INFO("Params:");
-	ROS_INFO("human_radius=%f", human_radius_);
-	ROS_INFO("robot_radius=%f", robot_radius_);
-	ROS_INFO("ratio_perturbation_cmd=%f", ratio_perturbation_cmd_);
-	ROS_INFO("b_random_try_freq=%f", b_random_try_freq_.expectedCycleTime().toSec());
-	ROS_INFO("b_random_chance_choose=%d", b_random_chance_choose_);
-	ROS_INFO("b_stop_look_dist_near_robot=%f", b_stop_look_dist_near_robot_);
-	ROS_INFO("b_stop_look_stop_dur=%f", b_stop_look_stop_dur_.toSec());
-	ROS_INFO("b_harass_dist_in_front=%f", b_harass_dist_in_front_);
-	ROS_INFO("b_harass_replan_freq=%f", b_harass_replan_freq_.expectedCycleTime().toSec());
-	ROS_INFO("fov_int=%d fov=%f", fov_int, fov_);
-	ROS_INFO("check_see_robot_freq=%f", check_see_robot_freq_.expectedCycleTime().toSec());
-	ROS_INFO("delay_forget_robot=%f", delay_forget_robot_.toSec());
+
+	//ROS_INFO("Params:");
+	//ROS_INFO("human_radius=%f", human_radius_);
+	//ROS_INFO("robot_radius=%f", robot_radius_);
+	//ROS_INFO("ratio_perturbation_cmd=%f", ratio_perturbation_cmd_);
+	//ROS_INFO("b_random_try_freq=%f", b_random_try_freq_.expectedCycleTime().toSec());
+	//ROS_INFO("b_random_chance_choose=%d", b_random_chance_choose_);
+	//ROS_INFO("b_stop_look_dist_near_robot=%f", b_stop_look_dist_near_robot_);
+	//ROS_INFO("b_stop_look_stop_dur=%f", b_stop_look_stop_dur_.toSec());
+	//ROS_INFO("b_harass_dist_in_front=%f", b_harass_dist_in_front_);
+	//ROS_INFO("b_harass_replan_freq=%f", b_harass_replan_freq_.expectedCycleTime().toSec());
+	//ROS_INFO("fov_int=%d fov=%f", fov_int, fov_);
+	//ROS_INFO("check_see_robot_freq=%f", check_see_robot_freq_.expectedCycleTime().toSec());
+	//ROS_INFO("delay_forget_robot=%f", delay_forget_robot_.toSec());
 
 	// Subscribers
 	sub_pose_ = 	 	nh_.subscribe("interface/in/human_pose", 100, &HumanModel::poseCallback, this);
@@ -70,7 +70,7 @@ HumanModel::HumanModel()
 	// Service server
 	server_place_robot_ = nh_.advertiseService("place_robot_hm", &HumanModel::srvPlaceRobotHM, this);
 
-	ROS_INFO("I am human");
+	//ROS_INFO("I am human");
 
 	// Init
 	geometry_msgs::Pose2D zero;
@@ -163,7 +163,7 @@ void HumanModel::publishGoal(human_sim::Goal& goal)
 {
 	executing_plan_ = true;
 	pub_new_goal_.publish(goal);
-	ROS_INFO("goal published");
+	//ROS_INFO("goal published");
 }
 
 human_sim::Goal HumanModel::chooseGoal(bool random)
@@ -186,8 +186,8 @@ human_sim::Goal HumanModel::chooseGoal(bool random)
 		i = index_list;
 	}
 
-	ROS_INFO("i=%d", i);
-	ROS_INFO("x=%f, y=%f, theta=%f, radius=%f", known_goals_[i].goal.x,known_goals_[i].goal.y,known_goals_[i].goal.theta,known_goals_[i].radius);
+	//ROS_INFO("i=%d", i);
+	//ROS_INFO("x=%f, y=%f, theta=%f, radius=%f", known_goals_[i].goal.x,known_goals_[i].goal.y,known_goals_[i].goal.theta,known_goals_[i].radius);
 
 	// if it's an area, pick a goal in it
 	if(known_goals_[i].radius!=0)
@@ -195,7 +195,7 @@ human_sim::Goal HumanModel::chooseGoal(bool random)
 		float alpha = (rand()%(2*314))/100 - PI;
 		float r = (rand()%(int(known_goals_[i].radius*100)))/100.0;
 
-		ROS_INFO("alpha=%f, r=%f", alpha, r);
+		//ROS_INFO("alpha=%f, r=%f", alpha, r);
 
 		goal.type = "Position";
 		goal.x = known_goals_[i].goal.x + r * cos(alpha);
@@ -207,8 +207,8 @@ human_sim::Goal HumanModel::chooseGoal(bool random)
 
 	current_goal_=goal;
 
-	ROS_INFO("goal choosen !");
-	ROS_INFO("%s (%f, %f, %f)", goal.type.c_str(), goal.x, goal.y, goal.theta);
+	//ROS_INFO("goal choosen !");
+	//ROS_INFO("%s (%f, %f, %f)", goal.type.c_str(), goal.x, goal.y, goal.theta);
 
 	return goal;
 }
@@ -231,12 +231,12 @@ void HumanModel::publishModelData()
 
 void HumanModel::nonStop()
 {
-	ROS_INFO("NON_STOP");
+//	ROS_INFO("NON_STOP");
 	if(!executing_plan_)
 	{
-		ROS_INFO("CHOOSED");
+		//ROS_INFO("CHOOSED new goal in NON STOP");
 		human_sim::Goal goal = chooseGoal(true);
-	
+
 		this->publishGoal(goal);
 	}
 }
@@ -246,19 +246,19 @@ void HumanModel::newRandomGoalGeneration()
 	if(ros::Time::now()-last_time_> b_random_try_freq_.expectedCycleTime())
 	{
 		int nb = rand()%100 + 1;
-		ROS_INFO("Tirage %d/%d", nb, b_random_chance_choose_);
+		//ROS_INFO("Tirage %d/%d", nb, b_random_chance_choose_);
 		if(nb < b_random_chance_choose_)
 		{
-			ROS_INFO("DECIDE NEW GOAL ! ");
+			//ROS_INFO("DECIDE NEW GOAL ! ");
 			human_sim::Goal previous_goal = current_goal_;
 			human_sim::Goal new_goal = this->chooseGoal(true);
 			if(new_goal.x != previous_goal.x || new_goal.y != previous_goal.y)
 			{
 				this->publishGoal(new_goal);
-				ROS_INFO("published");
+				//ROS_INFO("published");
 			}
 			else
-				ROS_INFO("ALREADY GOING!");
+				//ROS_INFO("ALREADY GOING!");
 		}
 		last_time_=ros::Time::now();
 	}
@@ -271,7 +271,7 @@ void HumanModel::stopLookRobot()
 		case WAIT_ROBOT:
 			{
 				float dist = sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2));
-				ROS_INFO("threshold=%f dist=%f", b_stop_look_dist_near_robot_, dist);
+				//ROS_INFO("threshold=%f dist=%f", b_stop_look_dist_near_robot_, dist);
 				if(dist<b_stop_look_dist_near_robot_)
 					sub_stop_look_=STOP;
 				break;
@@ -279,11 +279,11 @@ void HumanModel::stopLookRobot()
 
 		case STOP:
 			{
-				ROS_INFO("current_goal = %f,%f", current_goal_.x, current_goal_.y);
-				ROS_INFO("previous_goal = %f,%f", previous_goal_.x, previous_goal_.y);
+				//ROS_INFO("current_goal = %f,%f", current_goal_.x, current_goal_.y);
+				//ROS_INFO("previous_goal = %f,%f", previous_goal_.x, previous_goal_.y);
 
 				// Stop goal and motion
-				ROS_INFO("Stopped !");
+				//ROS_INFO("Stopped !");
 				human_sim::Signal srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
 
@@ -336,7 +336,7 @@ void HumanModel::stopLookRobot()
 				if(abs(alpha-model_pose_.theta)>0.1)
 				{
 					cmd.angular.z=2;
-					if(alpha-model_pose_.theta<0) 	
+					if(alpha-model_pose_.theta<0)
 						cmd.angular.z=-cmd.angular.z;
 
 					if(abs(alpha-model_pose_.theta)>PI)
@@ -350,17 +350,17 @@ void HumanModel::stopLookRobot()
 			}
 
 		case RESUME_GOAL:
-			ROS_INFO("Resume Goal");
+			//ROS_INFO("Resume Goal");
 			if(executing_plan_)
 			{
 				// resume current goal
 				pub_new_goal_.publish(current_goal_);
-				ROS_INFO("sent");
+				//ROS_INFO("sent");
 				sub_stop_look_=OVER;
 			}
 			else
 			{
-				ROS_INFO("No previous goal");
+				//ROS_INFO("No previous goal");
 				sub_stop_look_=OVER;
 			}
 			break;
@@ -371,7 +371,7 @@ void HumanModel::stopLookRobot()
 				float dist = sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2));
 				if(dist>b_stop_look_dist_near_robot_)
 				{
-					ROS_INFO("Reset STOP_LOOK");
+					//ROS_INFO("Reset STOP_LOOK");
 					sub_stop_look_=WAIT_ROBOT;
 				}
 				break;
@@ -468,7 +468,7 @@ void HumanModel::computeTTC()
 {
 	ttc_ = -1.0; // ttc infinite
 
-	geometry_msgs::Pose2D C; // robot to human distance 
+	geometry_msgs::Pose2D C; // robot to human distance
 	C.x = model_pose_.x - model_robot_pose_.x;
 	C.y = model_pose_.y - model_robot_pose_.y;
 	double C_sq = C.x*C.x + C.y*C.y; // dot product C.C
@@ -496,7 +496,7 @@ void HumanModel::computeTTC()
 
 	if(ttc_ != -1)
 	{
-		ROS_INFO("TTC = %f", ttc_);
+	//	ROS_INFO("TTC = %f", ttc_);
 		msg_log_.data = "HUMAN_MODEL TTC " + std::to_string(ttc_) + " " + std::to_string(ros::Time::now().toSec());
 		pub_log_.publish(msg_log_);
 	}
@@ -517,7 +517,7 @@ bool HumanModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_huma
 bool HumanModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real)
 {
 	// check if there are obstacles preventing A from seeing B
-	
+
 	PoseInt A_map;
 	A_map.x = (int)(A_real.x / resol_pov_map_); A_map.y = (int)(A_real.y / resol_pov_map_);
 	PoseInt B_map;
@@ -532,14 +532,14 @@ bool HumanModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::P
 	// if one of the poses is an obstacle
 	if(g_map_[A_map.y][A_map.x] == 1 || g_map_[B_map.y][B_map.x] == 1)
 		return false;
-	else if(A_map.x == B_map.x || A_map.y == B_map.y) 
+	else if(A_map.x == B_map.x || A_map.y == B_map.y)
 	{
 		// same place
 		if(A_map.x == B_map.x && A_map.y == B_map.y)
 			return true;
 
 		// vertical
-		else if(A_map.x == B_map.x) 
+		else if(A_map.x == B_map.x)
 		{
 			for(int i=0; A_map.y + i != B_map.y;)
 			{
@@ -579,7 +579,7 @@ bool HumanModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::P
 		}
 	}
 	// general cases
-	else 
+	else
 	{
 		float m = (float)(B_map.y - A_map.y)/(float)(B_map.x - A_map.x);
 		float b = A_map.y - m * A_map.x;
@@ -681,20 +681,20 @@ void HumanModel::testSeeRobot()
 			if(this->testObstacleView(human_pose_offset, robot_pose_offset))
 			{
 				// the human sees the robot
-				ROS_INFO("I SEE");
+				//ROS_INFO("I SEE");
 				see = true;
 				last_seen_robot_ = ros::Time::now();
 			}
 			else
 			{
 				// human can't see the robot
-				ROS_INFO("VIEW IS BLOCKED");
+				//ROS_INFO("VIEW IS BLOCKED");
 				see = false;
 			}
 		}
 		else
 		{
-			ROS_INFO("NOT IN FOV");
+			//ROS_INFO("NOT IN FOV");
 			see = false;
 		}
 
@@ -705,7 +705,7 @@ void HumanModel::testSeeRobot()
 			{
 				if(!know_robot_pose_) // rising edge
 				{
-					ROS_INFO("place_robot true");
+					//ROS_INFO("place_robot true");
 					know_robot_pose_ = true;
 					srv_place_robot_.request.data = true;
 					client_place_robot_.call(srv_place_robot_);
@@ -715,7 +715,7 @@ void HumanModel::testSeeRobot()
 			{
 				if(know_robot_pose_) // falling edge
 				{
-					ROS_INFO("place_robot false");
+					//ROS_INFO("place_robot false");
 					know_robot_pose_ = false;
 					srv_place_robot_.request.data = false;
 					client_place_robot_.call(srv_place_robot_);
@@ -733,7 +733,7 @@ void HumanModel::testSeeRobot()
 				{
 					if(know_robot_pose_) // falling edge
 					{
-						ROS_INFO("place_robot false");
+						//ROS_INFO("place_robot false");
 						know_robot_pose_ = false;
 						srv_place_robot_.request.data = false;
 						client_place_robot_.call(srv_place_robot_);
@@ -744,7 +744,7 @@ void HumanModel::testSeeRobot()
 			{
 				if(know_robot_pose_) // falling edge
 				{
-					ROS_INFO("place_robot false");
+					//ROS_INFO("place_robot false");
 					know_robot_pose_ = false;
 					srv_place_robot_.request.data = false;
 					client_place_robot_.call(srv_place_robot_);
@@ -767,7 +767,7 @@ void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 
 	if(!hcb_)
 	{
-		ROS_INFO("hcb");
+		//ROS_INFO("hcb");
 		hcb_=true;
 	}
 }
@@ -785,7 +785,7 @@ void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 
 	if(!rcb_)
 	{
-		ROS_INFO("rcb");
+		//ROS_INFO("rcb");
 		rcb_=true;
 	}
 }
@@ -817,7 +817,7 @@ void HumanModel::stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 
 void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 {
-	ROS_INFO("goal done !!");
+	//ROS_INFO("goal done !!!!!!!");
 	previous_goal_ = current_goal_;
 	executing_plan_ = false;
 }
@@ -832,8 +832,8 @@ void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 	current_goal_.y = 	goal->y;
 	current_goal_.theta = 	goal->theta;
 
-	ROS_INFO("CB current_goal = %.2f,%.2f", current_goal_.x, current_goal_.y);
-	ROS_INFO("CB previous_goal = %.2f,%.2f", previous_goal_.x, previous_goal_.y);
+	//ROS_INFO("CB current_goal = %.2f,%.2f", current_goal_.x, current_goal_.y);
+	//ROS_INFO("CB previous_goal = %.2f,%.2f", previous_goal_.x, previous_goal_.y);
 
 	this->publishGoal(current_goal_);
 }
@@ -844,23 +844,23 @@ void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 	switch(msg->data)
 	{
 		case NONE: //0
-			ROS_INFO("Behavior set : NONE");
+			//ROS_INFO("Behavior set : NONE");
 			changed=true;
-			break;	
+			break;
 		case NON_STOP: //1
-			ROS_INFO("Behavior set : NON_STOP");
+			//ROS_INFO("Behavior set : NON_STOP");
 			changed=true;
 			break;
 		case RANDOM: //2
-			ROS_INFO("Behavior set : RANDOM");
+			//ROS_INFO("Behavior set : RANDOM");
 			changed=true;
 			break;
 		case STOP_LOOK: //3
-			ROS_INFO("Behavior set : STOP_LOOK");
+			//ROS_INFO("Behavior set : STOP_LOOK");
 			changed=true;
 			break;
 		case HARASS: //4
-			ROS_INFO("Behavior set : HARASS");
+			//ROS_INFO("Behavior set : HARASS");
 			changed=true;
 			break;
 
@@ -903,7 +903,7 @@ void HumanModel::povMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& map)
 
 	if(!pmcb_)
 	{
-		ROS_INFO("pmcb");
+		//ROS_INFO("pmcb");
 		pmcb_ = true;
 	}
 }
@@ -918,13 +918,13 @@ int main(int argc, char** argv)
 
 	ros::Rate rate(15);
 
-	ROS_INFO("Waiting for init ...");
+	//ROS_INFO("Waiting for init ...");
 	while(ros::ok() && !human_model.initDone())
 	{
 		ros::spinOnce();
 		rate.sleep();
 	}
-	ROS_INFO("LETS_GO");
+	//ROS_INFO("LETS_GO");
 
 	while(ros::ok())
 	{
