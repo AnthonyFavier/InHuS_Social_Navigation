@@ -258,7 +258,9 @@ void HumanModel::newRandomGoalGeneration()
 				//ROS_INFO("published");
 			}
 			else
+			{
 				//ROS_INFO("ALREADY GOING!");
+			}
 		}
 		last_time_=ros::Time::now();
 	}
