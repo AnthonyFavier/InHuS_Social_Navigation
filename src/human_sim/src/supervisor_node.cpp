@@ -135,7 +135,7 @@ void Supervisor::FSM()
 	{
 		case GET_GOAL:
 			//ROS_INFO("\t => GET_GOAL <=");
-			// Wait for goal from HumanModel
+			// Wait for goal from HumanBehaviorModel
 			if(goal_received_)
 			{
 				goal_received_ = false;

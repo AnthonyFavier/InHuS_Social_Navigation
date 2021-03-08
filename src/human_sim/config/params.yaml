@@ -33,7 +33,7 @@ supervisor_node: ##
     #=> when blocked, get close until this distance to the robot by ignoring it
   approach_freq: 2.0
     #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
-    
+
 ### PlaceRobot
   place_robot_delay: 0.4
     #=> duration waited after calling place_robot service to "be sure" it's effective
@@ -59,18 +59,18 @@ human_model_node: ##
   robot_radius: 0.325
     #=> radius of both human and robot to compute TTC (Time To Collision)
 
-### Behavior RANDOM
+### Attitude RANDOM
   b_random_chance_choose: 30
   b_random_try_freq: 0.5
     #=> b_random_chance_choose% chance every 1/b_random_try_freq seconds to choose a new goal
 
-### Behavior STOP_LOOK
+### Attitude STOP_LOOK
   b_stop_look_dist_near_robot: 2.0
     #=> distance from which stop goal and look at robot for some time
   b_stop_look_stop_dur: 2.0
     #=> duration look at robot before resuming goal
 
-### Behavior HARASS
+### Attitude HARASS
   b_harass_dist_in_front: 2.0
     #=> distance in front of robot as goal
   b_harass_replan_freq: 2.0

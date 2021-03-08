@@ -1,5 +1,0 @@
-geometry_msgs/Pose2D A_pose
-geometry_msgs/Pose2D B_pose
----
-bool see
-

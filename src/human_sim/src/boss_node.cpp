@@ -24,7 +24,7 @@ struct GoalArea
 bool auto_robot_goal;
 GoalArea area;
 vector<GoalArea> goals;
-int current_behavior;
+int current_attitude;
 bool robot_goal_done;
 bool human_goal_done;
 vector<GoalArea> goals_routine_robot;
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
 	int choice_init = 0;
 	float delay;
 	geometry_msgs::PoseStamped pose;
-	current_behavior = 0;
+	current_attitude = 0;
 	auto_robot_goal = false;
 	robot_goal_done = true;
 	human_goal_done = true;
@@ -216,7 +216,7 @@ int main(int argc, char** argv)
 	}
 	ros::Publisher pub_goal_robot = 	nh.advertise<geometry_msgs::PoseStamped>(topic_robot, 1);
 	ros::Publisher pub_goal_human = 	nh.advertise<human_sim::Goal>("/boss/human/new_goal", 1);
-	ros::Publisher pub_set_behavior = 	nh.advertise<std_msgs::Int32>("/boss/human/set_behavior", 1);
+	ros::Publisher pub_set_attitude = 	nh.advertise<std_msgs::Int32>("/boss/human/set_attitude", 1);
 	ros::Subscriber sub_goal_status_robot = nh.subscribe(topic_goal_status_robot, 1, goalStatusRobotCallback);
 	ros::Subscriber sub_human_goal_done = 	nh.subscribe("/human/goal_done", 1, humanGoalDoneCallback);
 	ros::Subscriber sub_human_goal_start =	nh.subscribe("/human/new_goal", 1, humanGoalStartCallback);
@@ -371,8 +371,8 @@ int main(int argc, char** argv)
 
 		cout << endl;
 
-		cout << "current behavior : ";
-		switch(current_behavior)
+		cout << "current attitude : ";
+		switch(current_attitude)
 		{
 			case 0:
 				cout << "NONE" << endl;
@@ -394,7 +394,7 @@ int main(int argc, char** argv)
 		while(ros::ok() && (cout	<< "1- Human goal" << endl 
 						<< "2- Robot goal" << endl 
 						<< "3- Scenario" << endl 
-						<< "4- Set Behavior" << endl
+						<< "4- Set Attitude" << endl
 						<< "5- Auto goals robot" << endl
 						<< "6- Robot routine" << endl
 						<< "7- Human routine" << endl
@@ -513,7 +513,7 @@ int main(int argc, char** argv)
 				break;
 			}
 
-			/* SET BEHAVIOR */
+			/* SET ATTITUDE */
 			case 4:
 			{
 				while(ros::ok() && (cout <<  endl 	<< "1- NONE" << endl
@@ -525,28 +525,28 @@ int main(int argc, char** argv)
 				&& (!(cin >> choice) || !(choice>=1 && choice<=5)))
 					cleanInput();
 
-				std_msgs::Int32 set_behavior;
+				std_msgs::Int32 set_attitude;
 
 				switch(choice)
 				{
 					case 1:
-						current_behavior = 0;
+						current_attitude = 0;
 						break;
 					case 2:
-						current_behavior = 1;
+						current_attitude = 1;
 						break;
 					case 3:
-						current_behavior = 2;
+						current_attitude = 2;
 						break;
 					case 4:
-						current_behavior = 3;
+						current_attitude = 3;
 						break;
 					case 5:
-						current_behavior = 4;
+						current_attitude = 4;
 						break;
 				}
-				set_behavior.data = current_behavior;
-				pub_set_behavior.publish(set_behavior);
+				set_attitude.data = current_attitude;
+				pub_set_attitude.publish(set_attitude);
 				break;
 			}
 
@@ -616,4 +616,3 @@ int main(int argc, char** argv)
 		}
 	}
 }
-

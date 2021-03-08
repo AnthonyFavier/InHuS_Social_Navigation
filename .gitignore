@@ -1,9 +1,8 @@
 build/
 devel/
 *.swp
-src/human_sim/logs/log.txt
-src/human_sim/logs/poseLog.txt
-videos/
+src/human_sim/logs/log_data/log.txt
+src/human_sim/logs/log_data/poseLog.txt
 
 src/navigation/
 src/hanp_msgs/

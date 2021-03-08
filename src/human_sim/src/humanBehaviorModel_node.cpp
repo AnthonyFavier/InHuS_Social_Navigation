@@ -1,11 +1,11 @@
-#include "humanModel.h"
+#include "humanBehaviorModel.h"
 
 /////////////////////// HUMAN MODEL ///////////////////////
 
-HumanModel::HumanModel()
+HumanBehaviorModel::HumanBehaviorModel()
 : b_stop_look_stop_dur_(1)
 , b_harass_replan_freq_(1)
-, b_random_try_freq_(1) 
+, b_random_try_freq_(1)
 , check_see_robot_freq_(1)
 {
 	srand(time(NULL));
@@ -41,16 +41,16 @@ HumanModel::HumanModel()
 	//ROS_INFO("delay_forget_robot=%f", delay_forget_robot_.toSec());
 
 	// Subscribers
-	sub_pose_ = 	 	nh_.subscribe("interface/in/human_pose", 100, &HumanModel::poseCallback, this);
-	sub_vel_ = 	 	nh_.subscribe("interface/in/human_vel", 100, &HumanModel::velCallback, this);
-	sub_robot_pose_ =	nh_.subscribe("interface/in/robot_pose", 100, &HumanModel::robotPoseCallback, this);
-	sub_robot_vel_ =	nh_.subscribe("interface/in/robot_vel", 100, &HumanModel::robotVelCallback, this);
-	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanModel::cmdGeoCallback, this);
-	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanModel::goalDoneCallback, this);
-	sub_set_behavior_ = 	nh_.subscribe("/boss/human/set_behavior", 100, &HumanModel::setBehaviorCallback, this);
-	sub_new_goal_ =		nh_.subscribe("/boss/human/new_goal", 100, &HumanModel::newGoalCallback, this);
-	sub_stop_cmd_ = 	nh_.subscribe("stop_cmd", 100, &HumanModel::stopCmdCallback, this);
-	sub_pov_map_ = 		nh_.subscribe("pov_map", 1, &HumanModel::povMapCallback, this);
+	sub_pose_ = 	 	nh_.subscribe("interface/in/human_pose", 100, &HumanBehaviorModel::poseCallback, this);
+	sub_vel_ = 	 	nh_.subscribe("interface/in/human_vel", 100, &HumanBehaviorModel::velCallback, this);
+	sub_robot_pose_ =	nh_.subscribe("interface/in/robot_pose", 100, &HumanBehaviorModel::robotPoseCallback, this);
+	sub_robot_vel_ =	nh_.subscribe("interface/in/robot_vel", 100, &HumanBehaviorModel::robotVelCallback, this);
+	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanBehaviorModel::cmdGeoCallback, this);
+	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanBehaviorModel::goalDoneCallback, this);
+	sub_set_attitude_ = 	nh_.subscribe("/boss/human/set_attitude", 100, &HumanBehaviorModel::setAttitudeCallback, this);
+	sub_new_goal_ =		nh_.subscribe("/boss/human/new_goal", 100, &HumanBehaviorModel::newGoalCallback, this);
+	sub_stop_cmd_ = 	nh_.subscribe("stop_cmd", 100, &HumanBehaviorModel::stopCmdCallback, this);
+	sub_pov_map_ = 		nh_.subscribe("pov_map", 1, &HumanBehaviorModel::povMapCallback, this);
 
 	// Publishers
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("known/human_pose", 100);
@@ -68,7 +68,7 @@ HumanModel::HumanModel()
 	client_place_robot_ = 		nh_.serviceClient<move_human::PlaceRobot>("place_robot");
 
 	// Service server
-	server_place_robot_ = nh_.advertiseService("place_robot_hm", &HumanModel::srvPlaceRobotHM, this);
+	server_place_robot_ = nh_.advertiseService("place_robot_hm", &HumanBehaviorModel::srvPlaceRobotHM, this);
 
 	//ROS_INFO("I am human");
 
@@ -108,8 +108,8 @@ HumanModel::HumanModel()
 	know_robot_pose_ = false;
 	supervisor_wants_robot_ = true;
 
-	// BEHAVIORS //
-	behavior_ = NONE;
+	// ATTITUDES //
+	attitude_ = NONE;
 	sub_stop_look_ = WAIT_ROBOT;
 	sub_harass_ = INIT;
 
@@ -159,14 +159,14 @@ HumanModel::HumanModel()
 	known_goals_.push_back(area);
 }
 
-void HumanModel::publishGoal(human_sim::Goal& goal)
+void HumanBehaviorModel::publishGoal(human_sim::Goal& goal)
 {
 	executing_plan_ = true;
 	pub_new_goal_.publish(goal);
 	//ROS_INFO("goal published");
 }
 
-human_sim::Goal HumanModel::chooseGoal(bool random)
+human_sim::Goal HumanBehaviorModel::chooseGoal(bool random)
 {
 	human_sim::Goal goal;
 	static int index_list=-1;
@@ -213,7 +213,7 @@ human_sim::Goal HumanModel::chooseGoal(bool random)
 	return goal;
 }
 
-void HumanModel::processSimData()
+void HumanBehaviorModel::processSimData()
 {
 	model_pose_ = 		sim_pose_;
 	model_vel_ = 		sim_vel_;
@@ -221,7 +221,7 @@ void HumanModel::processSimData()
 	model_robot_vel_ = 	sim_robot_vel_;
 }
 
-void HumanModel::publishModelData()
+void HumanBehaviorModel::publishModelData()
 {
 	pub_human_pose_.publish(model_pose_);
 	pub_human_vel_.publish(model_vel_);
@@ -229,7 +229,7 @@ void HumanModel::publishModelData()
 	pub_robot_vel_.publish(model_robot_vel_);
 }
 
-void HumanModel::nonStop()
+void HumanBehaviorModel::nonStop()
 {
 //	ROS_INFO("NON_STOP");
 	if(!executing_plan_)
@@ -241,7 +241,7 @@ void HumanModel::nonStop()
 	}
 }
 
-void HumanModel::newRandomGoalGeneration()
+void HumanBehaviorModel::newRandomGoalGeneration()
 {
 	if(ros::Time::now()-last_time_> b_random_try_freq_.expectedCycleTime())
 	{
@@ -266,7 +266,7 @@ void HumanModel::newRandomGoalGeneration()
 	}
 }
 
-void HumanModel::stopLookRobot()
+void HumanBehaviorModel::stopLookRobot()
 {
 	switch(sub_stop_look_)
 	{
@@ -385,7 +385,7 @@ void HumanModel::stopLookRobot()
 	}
 }
 
-void HumanModel::harassRobot()
+void HumanBehaviorModel::harassRobot()
 {
 	switch(sub_harass_)
 	{
@@ -430,9 +430,9 @@ void HumanModel::harassRobot()
 	}
 }
 
-void HumanModel::behaviors()
+void HumanBehaviorModel::attitudes()
 {
-	switch(behavior_)
+	switch(attitude_)
 	{
 		case NONE:
 			break;
@@ -454,19 +454,19 @@ void HumanModel::behaviors()
 			break;
 
 		default:
-			behavior_=NONE;
+			attitude_=NONE;
 			break;
 	}
 }
 
-void HumanModel::pubDist()
+void HumanBehaviorModel::pubDist()
 {
 	float dist = sqrt(pow(model_robot_pose_.x-model_pose_.x,2) + pow(model_robot_pose_.y-model_pose_.y,2));
 	msg_log_.data = "HUMAN_MODEL DIST " + std::to_string(dist) + " " + std::to_string(ros::Time::now().toSec());
 	pub_log_.publish(msg_log_);
 }
 
-void HumanModel::computeTTC()
+void HumanBehaviorModel::computeTTC()
 {
 	ttc_ = -1.0; // ttc infinite
 
@@ -504,19 +504,19 @@ void HumanModel::computeTTC()
 	}
 }
 
-bool HumanModel::initDone()
+bool HumanBehaviorModel::initDone()
 {
 	return hcb_ && rcb_ && pmcb_;
 }
 
-bool HumanModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
+bool HumanBehaviorModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
 {
 	supervisor_wants_robot_ = req.data;
 
 	return true;
 }
 
-bool HumanModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real)
+bool HumanBehaviorModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real)
 {
 	// check if there are obstacles preventing A from seeing B
 
@@ -617,7 +617,7 @@ bool HumanModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::P
 	return true;
 }
 
-bool HumanModel::testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov)
+bool HumanBehaviorModel::testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov)
 {
 	// check if A is in the specified field of view of B (w/o obstacle)
 	float alpha;
@@ -663,7 +663,7 @@ bool HumanModel::testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float
 	return diff < fov/2;
 }
 
-void HumanModel::testSeeRobot()
+void HumanBehaviorModel::testSeeRobot()
 {
 	if(ros::Time::now() - last_check_see_robot_ > check_see_robot_freq_.expectedCycleTime())
 	{
@@ -761,7 +761,7 @@ void HumanModel::testSeeRobot()
 
 ////////////////////// Callbacks//////////////////////////
 
-void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+void HumanBehaviorModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
 	sim_pose_.x=msg->x;
 	sim_pose_.y=msg->y;
@@ -774,12 +774,12 @@ void HumanModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 	}
 }
 
-void HumanModel::velCallback(const geometry_msgs::Twist::ConstPtr& msg)
+void HumanBehaviorModel::velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 	sim_vel_ = *msg;
 }
 
-void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+void HumanBehaviorModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
 	sim_robot_pose_.x=msg->x;
 	sim_robot_pose_.y=msg->y;
@@ -792,12 +792,12 @@ void HumanModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 	}
 }
 
-void HumanModel::robotVelCallback(const geometry_msgs::Twist::ConstPtr& msg)
+void HumanBehaviorModel::robotVelCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 	sim_robot_vel_ = *msg;
 }
 
-void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
+void HumanBehaviorModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 	geometry_msgs::Twist perturbed_cmd;
 
@@ -811,20 +811,20 @@ void HumanModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 	pub_perturbed_cmd_.publish(perturbed_cmd);
 }
 
-void HumanModel::stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd)
+void HumanBehaviorModel::stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 {
-	if((behavior_ != HARASS) && (behavior_ != STOP_LOOK || sub_stop_look_ != LOOK_AT_ROBOT))
+	if((attitude_ != HARASS) && (attitude_ != STOP_LOOK || sub_stop_look_ != LOOK_AT_ROBOT))
 		pub_perturbed_cmd_.publish(*cmd);
 }
 
-void HumanModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
+void HumanBehaviorModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 {
 	//ROS_INFO("goal done !!!!!!!");
 	previous_goal_ = current_goal_;
 	executing_plan_ = false;
 }
 
-void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
+void HumanBehaviorModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 {
 	previous_goal_.x = 	current_goal_.x;
 	previous_goal_.y = 	current_goal_.y;
@@ -840,29 +840,29 @@ void HumanModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 	this->publishGoal(current_goal_);
 }
 
-void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
+void HumanBehaviorModel::setAttitudeCallback(const std_msgs::Int32::ConstPtr& msg)
 {
 	bool changed=false;
 	switch(msg->data)
 	{
 		case NONE: //0
-			//ROS_INFO("Behavior set : NONE");
+			//ROS_INFO("Attitude set : NONE");
 			changed=true;
 			break;
 		case NON_STOP: //1
-			//ROS_INFO("Behavior set : NON_STOP");
+			//ROS_INFO("Attitude set : NON_STOP");
 			changed=true;
 			break;
 		case RANDOM: //2
-			//ROS_INFO("Behavior set : RANDOM");
+			//ROS_INFO("Attitude set : RANDOM");
 			changed=true;
 			break;
 		case STOP_LOOK: //3
-			//ROS_INFO("Behavior set : STOP_LOOK");
+			//ROS_INFO("Attitude set : STOP_LOOK");
 			changed=true;
 			break;
 		case HARASS: //4
-			//ROS_INFO("Behavior set : HARASS");
+			//ROS_INFO("Attitude set : HARASS");
 			changed=true;
 			break;
 
@@ -872,13 +872,13 @@ void HumanModel::setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg)
 
 	if(changed)
 	{
-		behavior_ = (Behavior)msg->data;
+		attitude_ = (Attitude)msg->data;
 		sub_stop_look_ = WAIT_ROBOT;
 		sub_harass_ = INIT;
 	}
 }
 
-void HumanModel::povMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& map)
+void HumanBehaviorModel::povMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& map)
 {
 	offset_pov_map_x_ = map->info.origin.position.x;
 	offset_pov_map_y_ = map->info.origin.position.y;
@@ -916,7 +916,7 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "human_model");
 
-	HumanModel human_model;
+	HumanBehaviorModel human_model;
 
 	ros::Rate rate(15);
 
@@ -942,8 +942,8 @@ int main(int argc, char** argv)
 		// Publish data as perceived by the human model
 		human_model.publishModelData();
 
-		// Add perturbation in human behaviors
-		human_model.behaviors();
+		// Add perturbation in human attitudes
+		human_model.attitudes();
 
 		// Publish human/robot distance to log
 		human_model.pubDist();

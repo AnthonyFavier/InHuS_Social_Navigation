@@ -38,7 +38,7 @@ bool cancelGoalAndStop(human_sim::Signal::Request &req, human_sim::Signal::Respo
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "controller");
+	ros::init(argc, argv, "low level controller");
 	ros::NodeHandle nh;
 
 	ros::Subscriber sub_teleop = 		nh.subscribe("/boss/human/teleoperation", 100, teleopCmdCallback);

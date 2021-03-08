@@ -31,14 +31,14 @@ struct PoseInt
 	int y;
 };
 
-class HumanModel
+class HumanBehaviorModel
 {
 public:
-	HumanModel();
+	HumanBehaviorModel();
 
 	void processSimData();
 	void publishModelData();
-	void behaviors();
+	void attitudes();
 	void pubDist();
 	void computeTTC();
 	void testSeeRobot();
@@ -47,7 +47,7 @@ public:
 
 private:
 
-////////// METHODS ////////// 
+////////// METHODS //////////
 
 	human_sim::Goal chooseGoal(bool random);
 	void nonStop();
@@ -58,17 +58,17 @@ private:
 	bool testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real);
 	bool testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov);
 
-////////// ATTRIBUTES ////////// 
+////////// ATTRIBUTES //////////
 
-	// Behaviors //
-	enum Behavior{NONE=0, NON_STOP, RANDOM, STOP_LOOK, HARASS};
-	Behavior behavior_;
+	// Attitudes //
+	enum Attitude{NONE=0, NON_STOP, RANDOM, STOP_LOOK, HARASS};
+	Attitude attitude_;
 
-	// Sub state behaviors //
-	enum SubBehaviorStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, RESUME_GOAL, OVER};
-	SubBehaviorStopLook sub_stop_look_;
-	enum SubBehaviorHarass{INIT, HARASSING};
-	SubBehaviorHarass sub_harass_;
+	// Sub state attitudes //
+	enum SubAttitudeStopLook{WAIT_ROBOT, STOP, LOOK_AT_ROBOT, RESUME_GOAL, OVER};
+	SubAttitudeStopLook sub_stop_look_;
+	enum SubAttitudeHarass{INIT, HARASSING};
+	SubAttitudeHarass sub_harass_;
 
 	// Subscribers //
 	ros::Subscriber sub_pose_;
@@ -83,8 +83,8 @@ private:
 	void cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_goal_done_;
 	void goalDoneCallback(const human_sim::Goal::ConstPtr& msg);
-	ros::Subscriber sub_set_behavior_;
-	void setBehaviorCallback(const std_msgs::Int32::ConstPtr& msg);
+	ros::Subscriber sub_set_attitude_;
+	void setAttitudeCallback(const std_msgs::Int32::ConstPtr& msg);
 	ros::Subscriber sub_new_goal_;
 	void newGoalCallback(const human_sim::Goal::ConstPtr& goal);
 	ros::Subscriber sub_stop_cmd_;

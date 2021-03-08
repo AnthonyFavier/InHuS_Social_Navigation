@@ -5,7 +5,7 @@
 PoseLog::PoseLog()
 {
 	path_ = ros::package::getPath("human_sim");
-	log_file_.open(path_ + "/logs/poseLog.txt");
+	log_file_.open(path_ + "/logs/log_data/poseLog.txt");
 	log_file_ << "LOG STARTS : " << ros::Time::now() << endl;
 
 	sub_pose_H_ = nh_.subscribe("/morse/human_pose", 100, &PoseLog::poseHCallback, this);
