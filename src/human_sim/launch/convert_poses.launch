@@ -1,7 +1,0 @@
-<launch>
-
-	<node pkg="topic_tools" type="transform" name="pose_h" args="bag_pose_h /morse/tp_human geometry_msgs/Pose 'm.pose' --import geometry_msgs"/>
-	<node pkg="topic_tools" type="transform" name="pose_r" args="bag_pose_r /pr2_teleport_pose geometry_msgs/Pose 'm.pose' --import geometry_msgs"/>
-
-
-</launch>

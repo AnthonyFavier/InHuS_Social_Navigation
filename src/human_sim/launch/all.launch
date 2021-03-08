@@ -1,0 +1,11 @@
+<launch>
+
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find human_sim)/config.rviz"/>
+
+	<rosparam command="load" file="$(find human_sim)/config/params.yaml" ns="human"/>
+	<include file="$(find move_human)/launch/all.launch"/>
+	<include file="$(find human_sim)/launch/human_controller.launch"/>
+
+	<include file="$(find human_sim)/launch/boss.launch"/>
+
+</launch>
