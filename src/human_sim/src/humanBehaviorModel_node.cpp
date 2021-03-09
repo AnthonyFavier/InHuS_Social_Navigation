@@ -520,39 +520,39 @@ bool HumanBehaviorModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry
 {
 	// check if there are obstacles preventing A from seeing B
 
-	PoseInt A_map;
-	A_map.x = (int)(A_real.x / resol_pov_map_); A_map.y = (int)(A_real.y / resol_pov_map_);
-	PoseInt B_map;
-	B_map.x = (int)(B_real.x / resol_pov_map_); B_map.y = (int)(B_real.y / resol_pov_map_);
+	int A_map_x; int A_map_y;
+	A_map_x = (int)(A_real.x / resol_pov_map_); A_map_y = (int)(A_real.y / resol_pov_map_);
+	int B_map_x; int B_map_y;
+	B_map_x = (int)(B_real.x / resol_pov_map_); B_map_y = (int)(B_real.y / resol_pov_map_);
 
 	// if outside the map
-	if(A_map.x < 0 || A_map.x >= g_map_[0].size() || A_map.y < 0 || A_map.x >= g_map_.size()
-	|| B_map.x < 0 || B_map.x >= g_map_[0].size() || B_map.y < 0 || B_map.x >= g_map_.size())
+	if(A_map_x < 0 || A_map_x >= g_map_[0].size() || A_map_y < 0 || A_map_x >= g_map_.size()
+	|| B_map_x < 0 || B_map_x >= g_map_[0].size() || B_map_y < 0 || B_map_x >= g_map_.size())
 		return false;
 
 	// particular cases
 	// if one of the poses is an obstacle
-	if(g_map_[A_map.y][A_map.x] == 1 || g_map_[B_map.y][B_map.x] == 1)
+	if(g_map_[A_map_y][A_map_x] == 1 || g_map_[B_map_y][B_map_x] == 1)
 		return false;
-	else if(A_map.x == B_map.x || A_map.y == B_map.y)
+	else if(A_map_x == B_map_x || A_map_y == B_map_y)
 	{
 		// same place
-		if(A_map.x == B_map.x && A_map.y == B_map.y)
+		if(A_map_x == B_map_x && A_map_y == B_map_y)
 			return true;
 
 		// vertical
-		else if(A_map.x == B_map.x)
+		else if(A_map_x == B_map_x)
 		{
-			for(int i=0; A_map.y + i != B_map.y;)
+			for(int i=0; A_map_y + i != B_map_y;)
 			{
-				int xi = A_map.x;
-				int yi = A_map.y + i;
+				int xi = A_map_x;
+				int yi = A_map_y + i;
 
 				if(g_map_[yi][xi]==1) // if obstacle
 					return false;
 
 				// up
-				if(B_map.y > A_map.y)
+				if(B_map_y > A_map_y)
 					i++;
 				// down
 				else
@@ -561,18 +561,18 @@ bool HumanBehaviorModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry
 		}
 
 		// horizontal
-		else if(A_map.y == B_map.y)
+		else if(A_map_y == B_map_y)
 		{
-			for(int i=0; A_map.x + i != B_map.x;)
+			for(int i=0; A_map_x + i != B_map_x;)
 			{
-				int xi = A_map.x + i;
-				int yi = A_map.y;
+				int xi = A_map_x + i;
+				int yi = A_map_y;
 
 				if(g_map_[yi][xi]==1)
 					return false;
 
 				// right
-				if(B_map.x > A_map.x)
+				if(B_map_x > A_map_x)
 					i++;
 				// left
 				else
@@ -583,21 +583,21 @@ bool HumanBehaviorModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry
 	// general cases
 	else
 	{
-		float m = (float)(B_map.y - A_map.y)/(float)(B_map.x - A_map.x);
-		float b = A_map.y - m * A_map.x;
+		float m = (float)(B_map_y - A_map_y)/(float)(B_map_x - A_map_x);
+		float b = A_map_y - m * A_map_x;
 
 		float marge = 0.9;
 		float delta_x = std::min(marge/abs(m), marge);
 
 		// sign
-		if(B_map.x < A_map.x)
+		if(B_map_x < A_map_x)
 			delta_x = -delta_x;
 
 		int i=1;
 		bool cond = true;
 		while(cond)
 		{
-			float xi_f = A_map.x + i * delta_x;
+			float xi_f = A_map_x + i * delta_x;
 			float yi_f = m * xi_f + b;
 
 			int xi = (int)(xi_f);
@@ -608,9 +608,9 @@ bool HumanBehaviorModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry
 
 			i++;
 			if(delta_x > 0)
-				cond = i*delta_x + A_map.x < B_map.x;
+				cond = i*delta_x + A_map_x < B_map_x;
 			else
-				cond = i*delta_x + A_map.x > B_map.x;
+				cond = i*delta_x + A_map_x > B_map_x;
 		}
 	}
 

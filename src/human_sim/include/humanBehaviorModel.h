@@ -16,20 +16,7 @@
 #include "move_base_msgs/MoveBaseActionGoal.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include "move_human/PlaceRobot.h"
-
-#define PI 3.1415926535897932384626433832795
-
-struct GoalArea
-{
-	human_sim::Goal goal;
-	float radius;
-};
-
-struct PoseInt
-{
-	int x;
-	int y;
-};
+#include "types.h"
 
 class HumanBehaviorModel
 {
