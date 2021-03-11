@@ -1,231 +1,5 @@
 #include "humanBehaviorModel.h"
 
-
-//////////////////// CONFLICT MANAGER /////////////////////
-
-ConflictManager::ConflictManager(ros::NodeHandle nh)
-//: client_move_base_("move_base", true)
-{
-	nh_ = nh;
-
-	conflict_ = false;
-	absolute_path_length_diff_ = 	1.0;
-	ratio_path_length_diff_ =		1.5;
-
-	// Publishers
-	pub_log_ = nh_.advertise<std_msgs::String>("log", 100);
-	pub_cancel_goal_ =	nh.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
-
-	// Subscribers
-	sub_path_ =	nh_.subscribe("move_base/GlobalPlanner/plan", 100, &ConflictManager::pathCB, this);
-	sub_status_move_base_ = nh_.subscribe("move_base/status", 100, &ConflictManager::stateMoveBaseCB, this);
-
-	// Service servers
-	server_check_conflict_ =	nh_.advertiseService("check_conflict", &ConflictManager::srvCheckConflict, this);
-	server_init_conflict_ = 		nh_.advertiseService("init_check_conflict", &ConflictManager::srvInitCheckConflict, this);
-
-	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
-
-	/*client_move_base_.waitForServer();
-	if(client_move_base_.isServerConnected())
-		ROS_INFO("Connected !!!!");*/
-}
-
-bool ConflictManager::srvCheckConflict(human_sim::ActionBool::Request &req, human_sim::ActionBool::Response &res)
-{
-	res.conflict = 	false;
-	conflict_ = 	false;
-
-	// Check NO PATH
-	switch(goal_status_.status)
-	{
-		case 0:
-			ROS_INFO("CLIENT STATE : PENDING");
-			break;
-		case 1:
-			ROS_INFO("CLIENT STATE : ACTIVE");
-			break;
-		case 2:
-			ROS_INFO("CLIENT STATE : PREEMPTED");
-			break;
-		case 3:
-			ROS_INFO("CLIENT STATE : SUCCEEDED");
-			break;
-		case 4:
-			ROS_INFO("CLIENT STATE : ABORTED");
-			break;
-		case 5:
-			ROS_INFO("CLIENT STATE : REJECTED");
-			break;
-		case 6:
-			ROS_INFO("CLIENT STATE : PREEMPTING");
-			break;
-		case 7:
-			ROS_INFO("CLIENT STATE : RECALLING");
-			break;
-		case 8:
-			ROS_INFO("CLIENT STATE : RECALLED");
-			break;
-		case 9:
-			ROS_INFO("CLIENT STATE : LOST");
-			break;
-	}
-	if(goal_status_.status==actionlib::SimpleClientGoalState::ABORTED)
-	{
-		ROS_INFO("Checked NO_PATH");
-		state_blocked_ = NO_PATH;
-
-		//actionlib_msgs::GoalID goal_id;
-		//pub_cancel_goal_.publish(goal_id);
-		//human_sim::Signal srv_cancel;
-		//client_cancel_goal_and_stop_.call(srv_cancel);
-
-		current_path_.poses.clear();
-		res.conflict = 	true;
-		conflict_ = 	true;
-	}
-
-	// Check if path changed too much
-	ROS_INFO("check : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
-	if((int)previous_path_.poses.size() != 0 && (int)current_path_.poses.size() != 0)
-	{
-		float current_path_length = this->computePathLength(&current_path_);
-		float previous_path_length = this->computePathLength(&previous_path_);
-
-		if(abs(current_path_length-previous_path_length) > absolute_path_length_diff_ 	// if difference big enough in absolute
-		&& current_path_length > ratio_path_length_diff_*previous_path_length)   		// and if difference big enough relatively
-		{
-			ROS_INFO("Checked CHANGED TOO MUCH");
-			state_blocked_ = LONGER;
-
-			actionlib_msgs::GoalID goal_id;
-			pub_cancel_goal_.publish(goal_id);
-
-			current_path_.poses.clear();
-			res.conflict = 	true;
-			conflict_ = 	true;
-		}
-	}
-
-	return true;
-}
-
-bool ConflictManager::srvInitCheckConflict(human_sim::Signal::Request &req, human_sim::Signal::Response &res)
-{
-	ROS_INFO("Check conflict init");
-	current_path_.poses.clear();
-	previous_path_.poses.clear();
-
-	return true;
-}
-
-void ConflictManager::updateData(geometry_msgs::Pose2D h_pose, geometry_msgs::Twist h_vel, geometry_msgs::Pose2D r_pose, geometry_msgs::Twist r_vel)
-{
-	h_pose_ = 	h_pose;
-	h_vel_  = 	h_vel;
-	r_pose_ = 	r_pose;
-	r_vel_  = 	r_vel;
-}
-
-void ConflictManager::loop()
-{
-	if(conflict_)
-	{
-		//ROS_INFO("plop");
-	}
-}
-
-float ConflictManager::computePathLength(const nav_msgs::Path* path)
-{
-	float length=0;
-
-	int path_size = (int)path->poses.size();
-	for(int i=0; i<path_size-1; i++)
-		length += sqrt( pow(path->poses[i+1].pose.position.x-path->poses[i].pose.position.x,2) + pow(path->poses[i+1].pose.position.y-path->poses[i].pose.position.y,2) );
-
-	return length;
-}
-
-void ConflictManager::pathCB(const nav_msgs::Path::ConstPtr& path)
-{
-	ROS_INFO("path CB = %d", (int)path->poses.size());
-
-	float path_length = this->computePathLength(path.get());
-
-	std_msgs::String msg;
-	msg.data = "CONFLICTMANAGER " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
-	pub_log_.publish(msg);
-
-	if(state_global_ != BLOCKED && state_global_ != APPROACH)
-	{
-		//ROS_INFO("pathCallback %d length %f ! current %d previous %d", (int)path->poses.size(), path_length,(int)current_path_.poses.size(), (int)previous_path_.poses.size());
-
-		// in order to always have a valid path stored in previous_path_
-		// the current_path is always uptaded but the previous is only
-		// updated if the current one wasn't empty
-
-		if((int)previous_path_.poses.size()==0)
-		{
-			//ROS_INFO("FIRST !");
-			// first w/o robot
-			previous_path_ = *path;
-			msg.data = "CONFLICTMANAGER FIRST " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
-			pub_log_.publish(msg);
-		}
-		else
-		{
-			if((int)current_path_.poses.size()!=0)
-			{
-				// seek pose closest to current_pose from current_path
-				// only keep path from current_pose to the end store to previous
-				this->cutPath(current_path_, previous_path_);
-			}
-		}
-		// update current_path
-		current_path_ = *path;
-
-		//ROS_INFO("after CB : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
-	}
-}
-
-int ConflictManager::cutPath(const nav_msgs::Path& path1, nav_msgs::Path& path2)
-{
-	int i_min = -1;
-
-	if((int)path1.poses.size()>0)
-	{
-		float dist = sqrt(pow(path1.poses[0].pose.position.x-h_pose_.x,2) + pow(path1.poses[0].pose.position.y-h_pose_.y,2));
-		float dist_min = dist;
-		i_min = 0;
-		for(int i=1; i<(int)path1.poses.size(); i++)
-		{
-			dist = sqrt(pow(path1.poses[i].pose.position.x-h_pose_.x,2) + pow(path1.poses[i].pose.position.y-h_pose_.y,2));
-			if(dist < dist_min)
-			{
-				dist_min = dist;
-				i_min = i;
-			}
-		}
-
-		path2.poses.clear();
-		for(int i=i_min; i<(int)path1.poses.size(); i++)
-			path2.poses.push_back(path1.poses[i]);
-	}
-
-	return i_min;
-}
-
-void ConflictManager::stateMoveBaseCB(const actionlib_msgs::GoalStatusArray::ConstPtr& status)
-{
-	if(!status->status_list.empty())
-	{
-		goal_status_.status = status->status_list.back().status;
-	}
-}
-
-
-///////////////////////////////////////////////////////////
-
 /////////////////////// HUMAN MODEL ///////////////////////
 
 HumanBehaviorModel::HumanBehaviorModel()
@@ -233,7 +7,6 @@ HumanBehaviorModel::HumanBehaviorModel()
 , b_harass_replan_freq_(1)
 , b_random_try_freq_(1)
 , check_see_robot_freq_(1)
-, conflict_manager_(nh_)
 {
 	srand(time(NULL));
 
@@ -333,7 +106,7 @@ HumanBehaviorModel::HumanBehaviorModel()
 
 	pmcb_ = false;
 	know_robot_pose_ = false;
-	want_robot_placed_ = true;
+	supervisor_wants_robot_ = true;
 
 	// ATTITUDES //
 	attitude_ = NONE;
@@ -738,7 +511,7 @@ bool HumanBehaviorModel::initDone()
 
 bool HumanBehaviorModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
 {
-	want_robot_placed_ = req.data;
+	supervisor_wants_robot_ = req.data;
 
 	return true;
 }
@@ -930,7 +703,7 @@ void HumanBehaviorModel::testSeeRobot()
 		// Update robot on map if needed
 		if(see)
 		{
-			if(want_robot_placed_)
+			if(supervisor_wants_robot_)
 			{
 				if(!know_robot_pose_) // rising edge
 				{
@@ -956,7 +729,7 @@ void HumanBehaviorModel::testSeeRobot()
 		}
 		else
 		{
-			if(want_robot_placed_)
+			if(supervisor_wants_robot_)
 			{
 				if(ros::Time::now() - last_seen_robot_ > ros::Duration(1.5)) // delay see robot, memory/prediction
 				{
@@ -984,16 +757,6 @@ void HumanBehaviorModel::testSeeRobot()
 
 		last_check_see_robot_ = ros::Time::now();
 	}
-}
-
-void HumanBehaviorModel::updateConflictManager()
-{
-	conflict_manager_.updateData(sim_pose_, sim_vel_, sim_robot_pose_, sim_robot_vel_);
-}
-
-void HumanBehaviorModel::conflictManager()
-{
-	conflict_manager_.loop();
 }
 
 ////////////////////// Callbacks//////////////////////////
@@ -1167,29 +930,20 @@ int main(int argc, char** argv)
 
 	while(ros::ok())
 	{
-		/* DATA */
 		// Process data from simu
 		human_model.processSimData();
-
-		// Publish data as perceived by the human model
-		human_model.publishModelData();
 
 		// Update robot pose knowledge
 		human_model.testSeeRobot();
 
-		// Update data of Conflict Manager
-		human_model.updateConflictManager();
-
-		/* BEHAVIOR */
-		// Conflict Manager
-		human_model.conflictManager();
-
-		// Attitudes
-		human_model.attitudes();
-
-		/* LOGS */
 		// Compute TTC
 		human_model.computeTTC();
+
+		// Publish data as perceived by the human model
+		human_model.publishModelData();
+
+		// Add perturbation in human attitudes
+		human_model.attitudes();
 
 		// Publish human/robot distance to log
 		human_model.pubDist();

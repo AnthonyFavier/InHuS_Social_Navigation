@@ -26,10 +26,12 @@ add_service_files(
   FILES
   ComputePlan.srv
   Signal.srv
+  Bool.srv
+  ActionBool.srv
 )
 
 generate_messages(
-  DEPENDENCIES 
+  DEPENDENCIES
   actionlib_msgs
   geometry_msgs
   move_base_msgs

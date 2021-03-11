@@ -8,15 +8,82 @@
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/OccupancyGrid.h"
+#include "nav_msgs/Path.h"
 #include "human_sim/Goal.h"
 #include "human_sim/Signal.h"
+#include "human_sim/ActionBool.h"
+#include "move_human/PlaceRobot.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Bool.h"
-#include "move_base_msgs/MoveBaseActionGoal.h"
 #include <tf2/LinearMath/Quaternion.h>
-#include "move_human/PlaceRobot.h"
+#include <move_base_msgs/MoveBaseAction.h>
+#include "move_base_msgs/MoveBaseActionGoal.h"
+#include <actionlib_msgs/GoalStatusArray.h>
+#include <actionlib/client/simple_action_client.h>
 #include "types.h"
+
+class ConflictManager
+{
+public:
+	ConflictManager(ros::NodeHandle nh);
+
+	void updateData(geometry_msgs::Pose2D h_pose, geometry_msgs::Twist h_vel,
+			geometry_msgs::Pose2D r_pose, geometry_msgs::Twist r_vel);
+	bool checkConflict();
+	void loop();
+
+private:
+	ros::NodeHandle nh_;
+
+	// Params config
+	float absolute_path_length_diff_;
+	float ratio_path_length_diff_;
+
+	// Service servers
+	ros::ServiceServer server_check_conflict_;
+	bool srvCheckConflict(human_sim::ActionBool::Request &req, human_sim::ActionBool::Response &res);
+	ros::ServiceServer server_init_conflict_;
+	bool srvInitCheckConflict(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
+
+	//actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client_move_base_;
+
+	ros::ServiceClient client_cancel_goal_and_stop_;
+
+	// Publishers
+	ros::Publisher pub_log_;
+	ros::Publisher pub_cancel_goal_;
+
+	// Subscribers
+	ros::Subscriber sub_path_;
+	void pathCB(const nav_msgs::Path::ConstPtr& path);
+	ros::Subscriber sub_status_move_base_;
+	void stateMoveBaseCB(const actionlib_msgs::GoalStatusArray::ConstPtr& status);
+
+	// Other
+	enum StateGlobal{IDLE, APPROACH, BLOCKED};
+	StateGlobal state_global_;
+	enum StateApproach{CHECKING, REPLANNING};
+	StateApproach state_approach_;
+	enum StateBlocked{NO_PATH, LONGER};
+	StateBlocked state_blocked_;
+
+	actionlib_msgs::GoalStatus goal_status_;
+
+	geometry_msgs::Pose2D h_pose_;
+	geometry_msgs::Twist h_vel_;
+	geometry_msgs::Pose2D r_pose_;
+	geometry_msgs::Twist r_vel_;
+
+	float computePathLength(const nav_msgs::Path* path);
+	int cutPath(const nav_msgs::Path& path1, nav_msgs::Path& path2);
+	nav_msgs::Path current_path_;
+	nav_msgs::Path previous_path_;
+
+	bool conflict_;
+};
+
+///////////////////////////////////////////////////////////
 
 class HumanBehaviorModel
 {
@@ -29,6 +96,8 @@ public:
 	void pubDist();
 	void computeTTC();
 	void testSeeRobot();
+	void updateConflictManager();
+	void conflictManager();
 
 	bool initDone();
 
@@ -144,7 +213,7 @@ private:
 	float offset_pov_map_y_;
 	ros::Time last_seen_robot_;
 	ros::Duration delay_forget_robot_;
-	bool supervisor_wants_robot_;
+	bool want_robot_placed_;
 
 	// ratio perturbation
 	float ratio_perturbation_cmd_;
@@ -163,6 +232,9 @@ private:
 	float b_harass_dist_in_front_;
 	ros::Rate b_harass_replan_freq_;
 	ros::Time last_harass_;
+
+	// Conflict Manager
+	ConflictManager conflict_manager_;
 };
 
 #endif
