@@ -228,14 +228,7 @@ void Supervisor::FSM()
 							move_base_msgs::MoveBaseActionGoal goal;
 							goal.goal.target_pose.header.frame_id = "map";
 							goal.goal.target_pose.header.stamp = ros::Time::now();
-							goal.goal.target_pose.pose.position.x = (*curr_action).action.target_pose.pose.position.x;
-							goal.goal.target_pose.pose.position.y = (*curr_action).action.target_pose.pose.position.y;
-							tf2::Quaternion q;
-							q.setRPY(0,0,0);
-							goal.goal.target_pose.pose.orientation.x = q.x();
-							goal.goal.target_pose.pose.orientation.y = q.y();
-							goal.goal.target_pose.pose.orientation.z = q.z();
-							goal.goal.target_pose.pose.orientation.w = q.w();
+							goal.goal = (*curr_action).action;
 							pub_goal_move_base_.publish(goal);
 
 							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x,
@@ -259,13 +252,13 @@ void Supervisor::FSM()
 
 							// check postconditions
 							// for now : if geometric planner tells action is done
-							if(goal_status_.status == actionlib::SimpleClientGoalState::SUCCEEDED)
+							if(goal_status_.status == 3) // SUCCEEDED
 							{
 								ROS_INFO("Client succeeded");
 								this->updateMarkerPose(0, 0, 0);
 								(*curr_action).state = DONE;
 							}
-							else if(goal_status_.status == actionlib::SimpleClientGoalState::PREEMPTED)
+							else if(goal_status_.status == 2) // PREEMPTED
 							{
 								//ROS_INFO("PREEMPTED");
 								this->updateMarkerPose(0, 0, 0);
@@ -284,14 +277,7 @@ void Supervisor::FSM()
 									move_base_msgs::MoveBaseActionGoal goal;
 									goal.goal.target_pose.header.frame_id = "map";
 									goal.goal.target_pose.header.stamp = ros::Time::now();
-									goal.goal.target_pose.pose.position.x = (*curr_action).action.target_pose.pose.position.x;
-									goal.goal.target_pose.pose.position.y = (*curr_action).action.target_pose.pose.position.y;
-									tf2::Quaternion q;
-									q.setRPY(0,0,0);
-									goal.goal.target_pose.pose.orientation.x = q.x();
-									goal.goal.target_pose.pose.orientation.y = q.y();
-									goal.goal.target_pose.pose.orientation.z = q.z();
-									goal.goal.target_pose.pose.orientation.w = q.w();
+									goal.goal = (*curr_action).action;
 									pub_goal_move_base_.publish(goal);
 
 									this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x,
@@ -309,8 +295,6 @@ void Supervisor::FSM()
 							if(srv.response.conflict)
 							{
 								ROS_INFO("CONFLICT !");
-								//client_move_base_.stopTrackingGoal();
-								//client_move_base_.cancelGoal();
 								global_state_ = SUSPENDED;
 							}
 
@@ -836,9 +820,7 @@ void Supervisor::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 void Supervisor::stateMoveBaseCB(const actionlib_msgs::GoalStatusArray::ConstPtr& status)
 {
 	if(!status->status_list.empty())
-	{
 		goal_status_.status = status->status_list.back().status;
-	}
 }
 
 /////////////////////////////// MAIN /////////////////////////////////////

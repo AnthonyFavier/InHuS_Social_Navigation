@@ -3,12 +3,14 @@
 
 #include "ros/ros.h"
 #include <vector>
+#include <boost/thread/thread.hpp>
 #include <time.h>
 #include <math.h>
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Path.h"
+#include "nav_msgs/GetPlan.h"
 #include "human_sim/Goal.h"
 #include "human_sim/Signal.h"
 #include "human_sim/ActionBool.h"
@@ -26,7 +28,7 @@
 class ConflictManager
 {
 public:
-	ConflictManager(ros::NodeHandle nh);
+	ConflictManager(ros::NodeHandle nh, bool* want_robot_placed);
 
 	void updateData(geometry_msgs::Pose2D h_pose, geometry_msgs::Twist h_vel,
 			geometry_msgs::Pose2D r_pose, geometry_msgs::Twist r_vel);
@@ -39,6 +41,11 @@ private:
 	// Params config
 	float absolute_path_length_diff_;
 	float ratio_path_length_diff_;
+	ros::Duration place_robot_delay_;
+	ros::Rate approach_freq_;
+	float replan_dist_stop_;
+	float approach_dist_;
+	ros::Rate blocked_ask_path_freq_;
 
 	// Service servers
 	ros::ServiceServer server_check_conflict_;
@@ -46,13 +53,20 @@ private:
 	ros::ServiceServer server_init_conflict_;
 	bool srvInitCheckConflict(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
 
-	//actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client_move_base_;
-
+	// Service clients
 	ros::ServiceClient client_cancel_goal_and_stop_;
+	ros::ServiceClient client_make_plan_;
+	ros::ServiceClient client_update_robot_map_;
+
+	// srv
+	move_human::PlaceRobot srv_place_robot_hm_;
+	nav_msgs::GetPlan srv_get_plan_;
 
 	// Publishers
 	ros::Publisher pub_log_;
 	ros::Publisher pub_cancel_goal_;
+	ros::Publisher pub_goal_move_base_;
+	ros::Publisher pub_stop_cmd_;
 
 	// Subscribers
 	ros::Subscriber sub_path_;
@@ -63,12 +77,16 @@ private:
 	// Other
 	enum StateGlobal{IDLE, APPROACH, BLOCKED};
 	StateGlobal state_global_;
-	enum StateApproach{CHECKING, REPLANNING};
+	enum StateApproach{FIRST, CHECKING, REPLANNING};
 	StateApproach state_approach_;
 	enum StateBlocked{NO_PATH, LONGER};
 	StateBlocked state_blocked_;
 
 	actionlib_msgs::GoalStatus goal_status_;
+
+	std_msgs::String msg_;
+
+	ros::Time last_replan_;
 
 	geometry_msgs::Pose2D h_pose_;
 	geometry_msgs::Twist h_vel_;
@@ -80,7 +98,9 @@ private:
 	nav_msgs::Path current_path_;
 	nav_msgs::Path previous_path_;
 
-	bool conflict_;
+	move_base_msgs::MoveBaseGoal current_action_;
+
+	bool* want_robot_placed_;
 };
 
 ///////////////////////////////////////////////////////////
@@ -88,7 +108,7 @@ private:
 class HumanBehaviorModel
 {
 public:
-	HumanBehaviorModel();
+	HumanBehaviorModel(ros::NodeHandle nh);
 
 	void processSimData();
 	void publishModelData();
@@ -97,9 +117,12 @@ public:
 	void computeTTC();
 	void testSeeRobot();
 	void updateConflictManager();
-	void conflictManager();
+	void initConflictManager(ConflictManager* conflict_manager);
+	void conflictManagerLoop();
 
 	bool initDone();
+
+	bool want_robot_placed_;
 
 private:
 
@@ -113,6 +136,7 @@ private:
 	void publishGoal(human_sim::Goal& goal);
 	bool testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real);
 	bool testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov);
+	void updateRobotOnMap();
 
 ////////// ATTRIBUTES //////////
 
@@ -167,6 +191,8 @@ private:
 	// Service Server //
 	ros::ServiceServer server_place_robot_;
 	bool srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res);
+	ros::ServiceServer server_update_robot_map_;
+	bool srvUpdateRobotMap(human_sim::Signal::Request& req, human_sim::Signal::Response& res);
 
 	// Services //
 	move_human::PlaceRobot srv_place_robot_;
@@ -213,7 +239,7 @@ private:
 	float offset_pov_map_y_;
 	ros::Time last_seen_robot_;
 	ros::Duration delay_forget_robot_;
-	bool want_robot_placed_;
+	bool see_;
 
 	// ratio perturbation
 	float ratio_perturbation_cmd_;
@@ -234,7 +260,7 @@ private:
 	ros::Time last_harass_;
 
 	// Conflict Manager
-	ConflictManager conflict_manager_;
+	ConflictManager* conflict_manager_;
 };
 
 #endif

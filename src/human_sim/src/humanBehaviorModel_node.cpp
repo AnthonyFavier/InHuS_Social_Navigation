@@ -3,18 +3,31 @@
 
 //////////////////// CONFLICT MANAGER /////////////////////
 
-ConflictManager::ConflictManager(ros::NodeHandle nh)
-//: client_move_base_("move_base", true)
+ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
+: place_robot_delay_(0.4)
+, approach_freq_(2.0)
+, blocked_ask_path_freq_(2.0)
 {
 	nh_ = nh;
+	want_robot_placed_ = want_robot_placed;
 
-	conflict_ = false;
+	// params
 	absolute_path_length_diff_ = 	1.0;
-	ratio_path_length_diff_ =		1.5;
+	ratio_path_length_diff_ =		1.3;
+	replan_dist_stop_ = 0.5;
+	approach_dist_ = 1.5;
+
+	state_global_ = IDLE;
+
+	srv_get_plan_.request.start.header.frame_id = 	"map";
+	srv_get_plan_.request.goal.header.frame_id = 	"map";
+	srv_get_plan_.request.tolerance = 		0.1;
 
 	// Publishers
 	pub_log_ = nh_.advertise<std_msgs::String>("log", 100);
 	pub_cancel_goal_ =	nh.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
+	pub_goal_move_base_ = nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
+	pub_stop_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("stop_cmd", 100);
 
 	// Subscribers
 	sub_path_ =	nh_.subscribe("move_base/GlobalPlanner/plan", 100, &ConflictManager::pathCB, this);
@@ -24,20 +37,18 @@ ConflictManager::ConflictManager(ros::NodeHandle nh)
 	server_check_conflict_ =	nh_.advertiseService("check_conflict", &ConflictManager::srvCheckConflict, this);
 	server_init_conflict_ = 		nh_.advertiseService("init_check_conflict", &ConflictManager::srvInitCheckConflict, this);
 
+	// Service clients
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
-
-	/*client_move_base_.waitForServer();
-	if(client_move_base_.isServerConnected())
-		ROS_INFO("Connected !!!!");*/
+	client_make_plan_ =				nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
+	client_update_robot_map_ = nh_.serviceClient<human_sim::Signal>("update_robot_map");
 }
 
 bool ConflictManager::srvCheckConflict(human_sim::ActionBool::Request &req, human_sim::ActionBool::Response &res)
 {
 	res.conflict = 	false;
-	conflict_ = 	false;
 
 	// Check NO PATH
-	switch(goal_status_.status)
+	/*switch(goal_status_.status)
 	{
 		case 0:
 			ROS_INFO("CLIENT STATE : PENDING");
@@ -69,24 +80,16 @@ bool ConflictManager::srvCheckConflict(human_sim::ActionBool::Request &req, huma
 		case 9:
 			ROS_INFO("CLIENT STATE : LOST");
 			break;
-	}
+	}*/
 	if(goal_status_.status==actionlib::SimpleClientGoalState::ABORTED)
 	{
 		ROS_INFO("Checked NO_PATH");
 		state_blocked_ = NO_PATH;
-
-		//actionlib_msgs::GoalID goal_id;
-		//pub_cancel_goal_.publish(goal_id);
-		//human_sim::Signal srv_cancel;
-		//client_cancel_goal_and_stop_.call(srv_cancel);
-
-		current_path_.poses.clear();
 		res.conflict = 	true;
-		conflict_ = 	true;
 	}
 
 	// Check if path changed too much
-	ROS_INFO("check : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
+	//ROS_INFO("check : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	if((int)previous_path_.poses.size() != 0 && (int)current_path_.poses.size() != 0)
 	{
 		float current_path_length = this->computePathLength(&current_path_);
@@ -97,14 +100,33 @@ bool ConflictManager::srvCheckConflict(human_sim::ActionBool::Request &req, huma
 		{
 			ROS_INFO("Checked CHANGED TOO MUCH");
 			state_blocked_ = LONGER;
-
-			actionlib_msgs::GoalID goal_id;
-			pub_cancel_goal_.publish(goal_id);
-
-			current_path_.poses.clear();
 			res.conflict = 	true;
-			conflict_ = 	true;
 		}
+	}
+
+	if(res.conflict)
+	{
+		// remove robot
+		ROS_INFO("remove robot in checked");
+		*want_robot_placed_ = false;
+		human_sim::Signal srv;
+		client_update_robot_map_.call(srv);
+		ROS_INFO("removed");
+
+		// stop human nav goal
+		actionlib_msgs::GoalID goal_id;
+		pub_cancel_goal_.publish(goal_id);
+
+		// stop human
+		pub_stop_cmd_.publish(geometry_msgs::Twist());
+
+		current_action_ = req.action;
+		current_path_.poses.clear();
+		state_global_ = APPROACH;
+		state_approach_ = FIRST;
+		ROS_INFO("switch to APPROACH");
+
+		last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
 	}
 
 	return true;
@@ -129,9 +151,143 @@ void ConflictManager::updateData(geometry_msgs::Pose2D h_pose, geometry_msgs::Tw
 
 void ConflictManager::loop()
 {
-	if(conflict_)
+	switch (state_global_)
 	{
-		//ROS_INFO("plop");
+		case IDLE:
+			break;
+
+		case APPROACH:
+		{
+			msg_.data = "CONFLICTMANAGER STATE APPROACH " + std::to_string(ros::Time::now().toSec());
+			pub_log_.publish(msg_);
+
+			// if close enough => BLOCKED
+			float dist_to_robot = sqrt(pow(h_pose_.x - r_pose_.x,2) + pow(h_pose_.y - r_pose_.y,2));
+			if(dist_to_robot <= approach_dist_)
+			{
+				ROS_INFO("close enough => switch to BLOCKED");
+
+				// switch to BLOCKED
+				state_global_ = BLOCKED;
+
+				// place back robot
+				ROS_INFO("robot back for blocked");
+				*want_robot_placed_ = true;
+				human_sim::Signal srv;
+				client_update_robot_map_.call(srv);
+				ROS_INFO("back");
+
+				// stop human
+				human_sim::Signal srv_cancel_stop;
+				client_cancel_goal_and_stop_.call(srv_cancel_stop);
+
+				last_replan_ = ros::Time::now() - blocked_ask_path_freq_.expectedCycleTime();
+				place_robot_delay_.sleep();
+			}
+			else
+			{
+				switch(state_approach_)
+				{
+					case FIRST:
+						place_robot_delay_.sleep();
+						state_approach_ = REPLANNING;
+						break;
+
+					// Replan without the robot
+					case REPLANNING:
+						if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
+						{
+							ROS_INFO("\t => APPROACH <=");
+							ROS_INFO("REPLANNING");
+							//ROS_INFO("dist=%f", dist_to_robot);
+
+							// if not too close from approach_dist
+							if(dist_to_robot > approach_dist_ + replan_dist_stop_)
+							{
+								move_base_msgs::MoveBaseActionGoal goal;
+								goal.goal.target_pose.header.frame_id = "map";
+								goal.goal.target_pose.header.stamp = ros::Time::now();
+								goal.goal = current_action_;
+								pub_goal_move_base_.publish(goal);
+								ROS_INFO("replanned");
+							}
+							else
+								ROS_INFO("replan_dist_stop");
+
+							// put the robot back on the map to check if still blocked in next approach loop
+							ROS_INFO("robot back for next checking");
+							*want_robot_placed_ = true;
+							human_sim::Signal srv;
+							client_update_robot_map_.call(srv);
+							state_approach_ = CHECKING;
+
+							last_replan_ = ros::Time::now();
+						}
+						break;
+
+					// check, with the robot, if the human is still blocked
+					case CHECKING:
+						if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
+						{
+							ROS_INFO("\t => APPROACH <=");
+							ROS_INFO("CHECKING");
+							//ROS_INFO("dist=%f", dist_to_robot);
+
+							// check if still blocked
+							bool still_blocked = true;
+							srv_get_plan_.request.start.pose.position.x = 	h_pose_.x;
+							srv_get_plan_.request.start.pose.position.y = 	h_pose_.y;
+							srv_get_plan_.request.goal.pose.position.x = 	current_action_.target_pose.pose.position.x;
+							srv_get_plan_.request.goal.pose.position.y = 	current_action_.target_pose.pose.position.y;
+							if(client_make_plan_.call(srv_get_plan_))
+							{
+								//ROS_INFO("make_plan %d", (int)srv_get_plan_.response.plan.poses.size());
+								if((int)srv_get_plan_.response.plan.poses.size()!=0) // path found
+								{
+									float response_path_length = this->computePathLength(&(srv_get_plan_.response.plan));
+									float previous_path_length = this->computePathLength(&previous_path_);
+
+									// check if the path found is 'good'
+									if(previous_path_length == 0								// if no path was found before
+									|| abs(response_path_length-previous_path_length)<absolute_path_length_diff_		// if close enough in absolute
+									|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if clone enough relatively
+										still_blocked = false;
+								}
+							}
+							else
+								ROS_ERROR("Failed to call service make_plan");
+
+							if(still_blocked)
+							{
+								ROS_INFO("Still blocked, rm R");
+
+								// remove the robot from the map for replanning in next approach loop
+								ROS_INFO("robot removed for next replanning");
+								*want_robot_placed_ = false;
+								human_sim::Signal srv;
+								client_update_robot_map_.call(srv);
+								last_replan_ = ros::Time::now();
+								state_approach_ = REPLANNING;
+							}
+							else
+							{
+								// since the human isn't blocked anymore, switch back to EXEC_PLAN
+								ROS_INFO("NOT blocked");
+								state_global_ = IDLE;
+								// put supervisor in normal EXEC_PLAN
+								// init its replan timing
+								//last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
+							}
+						}
+						break;
+				}
+			}
+			break;
+		}
+
+		case BLOCKED:
+			ROS_INFO("blocked");
+			break;
 	}
 }
 
@@ -148,7 +304,7 @@ float ConflictManager::computePathLength(const nav_msgs::Path* path)
 
 void ConflictManager::pathCB(const nav_msgs::Path::ConstPtr& path)
 {
-	ROS_INFO("path CB = %d", (int)path->poses.size());
+	ROS_INFO("path CB=%d curr=%d prev=%d", (int)path->poses.size(), (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 
 	float path_length = this->computePathLength(path.get());
 
@@ -228,13 +384,14 @@ void ConflictManager::stateMoveBaseCB(const actionlib_msgs::GoalStatusArray::Con
 
 /////////////////////// HUMAN MODEL ///////////////////////
 
-HumanBehaviorModel::HumanBehaviorModel()
+HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 : b_stop_look_stop_dur_(1)
 , b_harass_replan_freq_(1)
 , b_random_try_freq_(1)
 , check_see_robot_freq_(1)
-, conflict_manager_(nh_)
 {
+	nh_ = nh;
+
 	srand(time(NULL));
 
 	// Ros Params
@@ -296,6 +453,7 @@ HumanBehaviorModel::HumanBehaviorModel()
 
 	// Service server
 	server_place_robot_ = nh_.advertiseService("place_robot_hm", &HumanBehaviorModel::srvPlaceRobotHM, this);
+	server_update_robot_map_ = nh_.advertiseService("update_robot_map", &HumanBehaviorModel::srvUpdateRobotMap, this);
 
 	//ROS_INFO("I am human");
 
@@ -323,6 +481,8 @@ HumanBehaviorModel::HumanBehaviorModel()
 	last_time_ = 		ros::Time::now();
 	last_harass_ = 		ros::Time::now();
 	time_stopped_=		ros::Time::now();
+
+	see_ = false;
 
 	radius_sum_sq_ = human_radius_ + robot_radius_;
 	radius_sum_sq_ *= radius_sum_sq_;
@@ -736,6 +896,7 @@ bool HumanBehaviorModel::initDone()
 	return hcb_ && rcb_ && pmcb_;
 }
 
+// should be removed
 bool HumanBehaviorModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
 {
 	want_robot_placed_ = req.data;
@@ -890,6 +1051,69 @@ bool HumanBehaviorModel::testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D 
 	return diff < fov/2;
 }
 
+bool HumanBehaviorModel::srvUpdateRobotMap(human_sim::Signal::Request& req, human_sim::Signal::Response& res)
+{
+	this->updateRobotOnMap();
+	return true;
+}
+
+void HumanBehaviorModel::updateRobotOnMap()
+{
+	if(see_)
+	{
+		if(want_robot_placed_)
+		{
+			if(!know_robot_pose_) // rising edge
+			{
+				//ROS_INFO("place_robot true");
+				know_robot_pose_ = true;
+				srv_place_robot_.request.data = true;
+				client_place_robot_.call(srv_place_robot_);
+			}
+		}
+		else
+		{
+			if(know_robot_pose_) // falling edge
+			{
+				//ROS_INFO("place_robot false");
+				know_robot_pose_ = false;
+				srv_place_robot_.request.data = false;
+				client_place_robot_.call(srv_place_robot_);
+			}
+
+		}
+
+
+	}
+	else
+	{
+		if(want_robot_placed_)
+		{
+			if(ros::Time::now() - last_seen_robot_ > ros::Duration(1.5)) // delay see robot, memory/prediction
+			{
+				if(know_robot_pose_) // falling edge
+				{
+					//ROS_INFO("place_robot false");
+					know_robot_pose_ = false;
+					srv_place_robot_.request.data = false;
+					client_place_robot_.call(srv_place_robot_);
+				}
+			}
+		}
+		else
+		{
+			if(know_robot_pose_) // falling edge
+			{
+				//ROS_INFO("place_robot false");
+				know_robot_pose_ = false;
+				srv_place_robot_.request.data = false;
+				client_place_robot_.call(srv_place_robot_);
+			}
+
+		}
+	}
+}
+
 void HumanBehaviorModel::testSeeRobot()
 {
 	if(ros::Time::now() - last_check_see_robot_ > check_see_robot_freq_.expectedCycleTime())
@@ -903,7 +1127,6 @@ void HumanBehaviorModel::testSeeRobot()
 
 		// check if the robot is in the field of view of the human
 		// (without obstacles)
-		bool see;
 		if(this->testFOV(robot_pose_offset, human_pose_offset, fov_))
 		{
 			// check if there are obstacles blocking the human view of the robot
@@ -911,89 +1134,42 @@ void HumanBehaviorModel::testSeeRobot()
 			{
 				// the human sees the robot
 				//ROS_INFO("I SEE");
-				see = true;
+				see_ = true;
 				last_seen_robot_ = ros::Time::now();
 			}
 			else
 			{
 				// human can't see the robot
 				//ROS_INFO("VIEW IS BLOCKED");
-				see = false;
+				see_ = false;
 			}
 		}
 		else
 		{
 			//ROS_INFO("NOT IN FOV");
-			see = false;
+			see_ = false;
 		}
 
 		// Update robot on map if needed
-		if(see)
-		{
-			if(want_robot_placed_)
-			{
-				if(!know_robot_pose_) // rising edge
-				{
-					//ROS_INFO("place_robot true");
-					know_robot_pose_ = true;
-					srv_place_robot_.request.data = true;
-					client_place_robot_.call(srv_place_robot_);
-				}
-			}
-			else
-			{
-				if(know_robot_pose_) // falling edge
-				{
-					//ROS_INFO("place_robot false");
-					know_robot_pose_ = false;
-					srv_place_robot_.request.data = false;
-					client_place_robot_.call(srv_place_robot_);
-				}
-
-			}
-
-
-		}
-		else
-		{
-			if(want_robot_placed_)
-			{
-				if(ros::Time::now() - last_seen_robot_ > ros::Duration(1.5)) // delay see robot, memory/prediction
-				{
-					if(know_robot_pose_) // falling edge
-					{
-						//ROS_INFO("place_robot false");
-						know_robot_pose_ = false;
-						srv_place_robot_.request.data = false;
-						client_place_robot_.call(srv_place_robot_);
-					}
-				}
-			}
-			else
-			{
-				if(know_robot_pose_) // falling edge
-				{
-					//ROS_INFO("place_robot false");
-					know_robot_pose_ = false;
-					srv_place_robot_.request.data = false;
-					client_place_robot_.call(srv_place_robot_);
-				}
-
-			}
-		}
+		this->updateRobotOnMap();
 
 		last_check_see_robot_ = ros::Time::now();
 	}
 }
 
-void HumanBehaviorModel::updateConflictManager()
+void HumanBehaviorModel::initConflictManager(ConflictManager* conflict_manager)
 {
-	conflict_manager_.updateData(sim_pose_, sim_vel_, sim_robot_pose_, sim_robot_vel_);
+	conflict_manager_ = conflict_manager;
 }
 
-void HumanBehaviorModel::conflictManager()
+void HumanBehaviorModel::updateConflictManager()
 {
-	conflict_manager_.loop();
+	conflict_manager_->updateData(sim_pose_, sim_vel_, sim_robot_pose_, sim_robot_vel_);
+}
+
+void HumanBehaviorModel::conflictManagerLoop()
+{
+	conflict_manager_->loop();
 }
 
 ////////////////////// Callbacks//////////////////////////
@@ -1149,11 +1325,23 @@ void HumanBehaviorModel::povMapCallback(const nav_msgs::OccupancyGrid::ConstPtr&
 
 ////////////////////////// MAIN ///////////////////////////
 
+void threadSpin()
+{
+	ros::spin();
+}
+
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "human_model");
 
-	HumanBehaviorModel human_model;
+	ros::NodeHandle nh;
+
+	HumanBehaviorModel human_model(nh);
+	ConflictManager conflict_manager(nh, &human_model.want_robot_placed_);
+	human_model.initConflictManager(&conflict_manager);
+
+	// spawn thread ros spin
+	boost::thread thread_a(threadSpin);
 
 	ros::Rate rate(15);
 
@@ -1182,7 +1370,7 @@ int main(int argc, char** argv)
 
 		/* BEHAVIOR */
 		// Conflict Manager
-		human_model.conflictManager();
+		human_model.conflictManagerLoop();
 
 		// Attitudes
 		human_model.attitudes();
