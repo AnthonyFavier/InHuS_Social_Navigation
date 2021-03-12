@@ -5,6 +5,7 @@
 
 ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 : place_robot_delay_(0.4)
+, replan_freq_(1)
 , approach_freq_(2.0)
 , blocked_ask_path_freq_(2.0)
 {
@@ -286,7 +287,64 @@ void ConflictManager::loop()
 		}
 
 		case BLOCKED:
-			ROS_INFO("blocked");
+			msg_.data = "CONFLICTMANAGER STATE BLOCKED " + std::to_string(ros::Time::now().toSec());
+			pub_log_.publish(msg_);
+
+			// back to APPROACH if too far
+			float dist_to_robot = sqrt(pow(h_pose_.x - r_pose_.x,2) + pow(h_pose_.y - r_pose_.y,2));
+			//ROS_INFO("dist=%f", dist_to_robot);
+			if(dist_to_robot > approach_dist_)
+			{
+				ROS_INFO("back to APPROACH");
+
+				// remove robot
+				*want_robot_placed_ = true;
+				human_sim::Signal srv;
+				client_update_robot_map_.call(srv);
+
+				last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
+
+				// switch to APPROACH
+				state_global_ = APPROACH;
+				state_approach_ = FIRST;
+			}
+			else if(ros::Time::now() - last_replan_ > blocked_ask_path_freq_.expectedCycleTime())
+			{
+
+				ROS_INFO("\t => BLOCKED <=");
+				ROS_INFO("try to replan");
+
+				srv_get_plan_.request.start.pose.position.x = 	h_pose_.x;
+				srv_get_plan_.request.start.pose.position.y = 	h_pose_.y;
+				srv_get_plan_.request.goal.pose.position.x = 	current_action_.target_pose.pose.position.x;
+				srv_get_plan_.request.goal.pose.position.y = 	current_action_.target_pose.pose.position.y;
+
+				// make plan
+				if(client_make_plan_.call(srv_get_plan_))
+				{
+					//ROS_INFO("BLOCK : srv.plan=%d previous=%d", (int)srv_get_plan_.response.plan.poses.size(), (int)previous_path_.poses.size());
+					last_replan_ = ros::Time::now();
+					if(!srv_get_plan_.response.plan.poses.empty()) // successfully planned once
+					{
+						float response_path_length = this->computePathLength(&(srv_get_plan_.response.plan));
+						float previous_path_length = this->computePathLength(&previous_path_);
+
+						// If new path is 'good'
+						if(previous_path_length == 0								// if no path was found before
+						|| abs(response_path_length-previous_path_length)<absolute_path_length_diff_		// if close enough in absolute
+						|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if clone enough relatively
+						{
+							ROS_INFO("NOT blocked");
+							state_global_ = IDLE;
+							// put supervisor in normal EXEC_PLAN
+							// init its replan timing
+							//last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
+						}
+					}
+				}
+				else
+					ROS_ERROR("Failed to call service make_plan");
+			}
 			break;
 	}
 }

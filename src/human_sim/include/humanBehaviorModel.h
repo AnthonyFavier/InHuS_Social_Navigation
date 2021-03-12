@@ -46,6 +46,7 @@ private:
 	float replan_dist_stop_;
 	float approach_dist_;
 	ros::Rate blocked_ask_path_freq_;
+	ros::Rate replan_freq_;
 
 	// Service servers
 	ros::ServiceServer server_check_conflict_;

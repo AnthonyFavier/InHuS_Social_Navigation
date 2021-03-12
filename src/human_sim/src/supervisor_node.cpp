@@ -113,7 +113,6 @@ Supervisor::Supervisor()
 
 void Supervisor::init()
 {
-	first_not_feasible_ = 	true;
 	replan_success_nb_ = 	0;
 	last_replan_ = 		ros::Time::now();
 	this->initCheckBlocked();
