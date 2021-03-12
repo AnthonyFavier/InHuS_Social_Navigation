@@ -1,7 +1,8 @@
 global_costmap:
   global_frame: map
   robot_base_frame: human_human_base
-  update_frequency: 10.0
+  update_frequency: 20.0
+  publish_frequency: 20.0
   width: 15.0
   height: 30.0
   origin_x: -2.0
@@ -12,4 +13,3 @@ global_costmap:
   - {name: static_layer, type: "costmap_2d::StaticLayer"}
   - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
   - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
-
