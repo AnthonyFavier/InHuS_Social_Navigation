@@ -35,7 +35,7 @@ supervisor_node: ##
     #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
 
 ### PlaceRobot
-  place_robot_delay: 0.4
+  place_robot_delay: 0.5
     #=> duration waited after calling place_robot service to "be sure" it's effective
 
 
@@ -53,7 +53,7 @@ human_model_node: ##
     #=> frequence at which the human checks if he sees the robot
   delay_forget_robot: 1.5
     #=> delay after the last time the robot has been seen to forget the robot pose
-    
+
 ### TTC
   human_radius: 0.30
   robot_radius: 0.325

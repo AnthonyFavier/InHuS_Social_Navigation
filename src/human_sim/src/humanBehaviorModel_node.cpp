@@ -42,6 +42,7 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
 	client_make_plan_ =				nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
 	client_update_robot_map_ = nh_.serviceClient<human_sim::Signal>("update_robot_map");
+	client_back_exec_plan_ = nh_.serviceClient<human_sim::Signal>("back_exec_plan");
 }
 
 bool ConflictManager::srvCheckConflict(human_sim::ActionBool::Request &req, human_sim::ActionBool::Response &res)
@@ -138,7 +139,6 @@ bool ConflictManager::srvInitCheckConflict(human_sim::Signal::Request &req, huma
 	ROS_INFO("Check conflict init");
 	current_path_.poses.clear();
 	previous_path_.poses.clear();
-
 	return true;
 }
 
@@ -273,11 +273,10 @@ void ConflictManager::loop()
 							else
 							{
 								// since the human isn't blocked anymore, switch back to EXEC_PLAN
-								ROS_INFO("NOT blocked");
+								ROS_INFO("NOT blocked approach");
 								state_global_ = IDLE;
-								// put supervisor in normal EXEC_PLAN
-								// init its replan timing
-								//last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
+								human_sim::Signal srv;
+								client_back_exec_plan_.call(srv);
 							}
 						}
 						break;
@@ -336,9 +335,8 @@ void ConflictManager::loop()
 						{
 							ROS_INFO("NOT blocked");
 							state_global_ = IDLE;
-							// put supervisor in normal EXEC_PLAN
-							// init its replan timing
-							//last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
+							human_sim::Signal srv;
+							client_back_exec_plan_.call(srv);
 						}
 					}
 				}
@@ -436,7 +434,6 @@ void ConflictManager::stateMoveBaseCB(const actionlib_msgs::GoalStatusArray::Con
 		goal_status_.status = status->status_list.back().status;
 	}
 }
-
 
 ///////////////////////////////////////////////////////////
 
@@ -608,7 +605,6 @@ void HumanBehaviorModel::publishGoal(human_sim::Goal& goal)
 {
 	executing_plan_ = true;
 	pub_new_goal_.publish(goal);
-	//ROS_INFO("goal published");
 }
 
 human_sim::Goal HumanBehaviorModel::chooseGoal(bool random)
@@ -800,7 +796,7 @@ void HumanBehaviorModel::stopLookRobot()
 			//ROS_INFO("Resume Goal");
 			if(executing_plan_)
 			{
-				// resume current goal
+				// resume current goal (suspend => exec_plan)
 				pub_new_goal_.publish(current_goal_);
 				//ROS_INFO("sent");
 				sub_stop_look_=OVER;
@@ -836,6 +832,7 @@ void HumanBehaviorModel::harassRobot()
 	{
 		case INIT:
 			{
+				// suspend cancel stop
 				human_sim::Signal srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
 
@@ -1440,8 +1437,8 @@ int main(int argc, char** argv)
 		// Publish human/robot distance to log
 		human_model.pubDist();
 
-		rate.sleep();
 		ros::spinOnce();
+		rate.sleep();
 	}
 }
 

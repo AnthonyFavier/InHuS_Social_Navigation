@@ -58,6 +58,7 @@ private:
 	ros::ServiceClient client_cancel_goal_and_stop_;
 	ros::ServiceClient client_make_plan_;
 	ros::ServiceClient client_update_robot_map_;
+	ros::ServiceClient client_back_exec_plan_;
 
 	// srv
 	move_human::PlaceRobot srv_place_robot_hm_;

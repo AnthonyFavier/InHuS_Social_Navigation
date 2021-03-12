@@ -87,10 +87,12 @@ private:
 	human_sim::Signal srv_cancel_stop_;
 
 	// Service servers //
-	ros::ServiceServer service_set_get_goal_;
+	ros::ServiceServer server_set_get_goal_;
 	bool setGetGoal(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
-	ros::ServiceServer service_suspend_;
+	ros::ServiceServer server_suspend_;
 	bool srvSuspend(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
+	ros::ServiceServer server_back_exec_plan_;
+	bool srvBackExecPlan(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
 
 	//// Variables ////
 	ros::NodeHandle nh_;

@@ -55,6 +55,11 @@ Supervisor::Supervisor()
 	srv_get_plan_.request.goal.header.frame_id = 	"map";
 	srv_get_plan_.request.tolerance = 		0.1;
 
+	// Service servers
+	server_set_get_goal_ =		nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
+	server_suspend_ =			nh_.advertiseService("suspend", &Supervisor::srvSuspend, this);
+	server_back_exec_plan_ =	nh_.advertiseService("back_exec_plan", &Supervisor::srvBackExecPlan, this);
+
 	// Subscribers
 	sub_human_pose_ = 		nh_.subscribe("known/human_pose", 100, &Supervisor::humanPoseCallback, this);
 	sub_robot_pose_ = 		nh_.subscribe("known/robot_pose", 100, &Supervisor::robotPoseCallback, this);
@@ -69,10 +74,6 @@ Supervisor::Supervisor()
 	pub_log_ =			nh_.advertise<std_msgs::String>("log", 100);
 	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
 	pub_stop_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("stop_cmd", 100);
-
-	// Service servers
-	service_set_get_goal_ =		nh_.advertiseService("set_get_goal", &Supervisor::setGetGoal, this);
-	service_suspend_ =			nh_.advertiseService("suspend", &Supervisor::srvSuspend, this);
 
 	// Init
 	marker_rviz_.header.frame_id = 		"map";
@@ -118,17 +119,6 @@ void Supervisor::init()
 	this->initCheckBlocked();
 }
 
-/*{
-	current_path_.poses.clear();
-	previous_path_.poses.clear();
-
-	goal_aborted_count_ = 	0;
-
-	same_human_pose_count_ = 0;
-	last_human_pose_ = human_pose_;
-	last_check_human_pose_ = ros::Time::now();
-}*/
-
 void Supervisor::FSM()
 {
 	switch(global_state_)
@@ -139,8 +129,6 @@ void Supervisor::FSM()
 			if(goal_received_)
 			{
 				goal_received_ = false;
-				srv_place_robot_hm_.request.data = true;
-				client_place_robot_hm_.call(srv_place_robot_hm_);
 				global_state_ = ASK_PLAN;
 			}
 			else
@@ -161,8 +149,6 @@ void Supervisor::FSM()
 			{
 				goal_received_ = false;
 				global_state_ = ASK_PLAN;
-				srv_place_robot_hm_.request.data = true;
-				client_place_robot_hm_.call(srv_place_robot_hm_);
 			}
 			else
 			{
@@ -257,13 +243,13 @@ void Supervisor::FSM()
 								this->updateMarkerPose(0, 0, 0);
 								(*curr_action).state = DONE;
 							}
-							else if(goal_status_.status == 2) // PREEMPTED
+							/*else if(goal_status_.status == 2) // PREEMPTED
 							{
-								//ROS_INFO("PREEMPTED");
+								ROS_INFO("PREEMPTED");
 								this->updateMarkerPose(0, 0, 0);
-								global_state_=GET_GOAL;
+								global_state_ = GET_GOAL;
 
-							}
+							}*/
 							// If not too close, try to replan
 							else if((int)current_path_.poses.size()==0 || computePathLength(&current_path_) > replan_dist_stop_)
 							{
@@ -296,26 +282,6 @@ void Supervisor::FSM()
 								ROS_INFO("CONFLICT !");
 								global_state_ = SUSPENDED;
 							}
-
-
-							/*if(this->checkBlocked())
-							{
-								// stop human
-								client_cancel_goal_and_stop_.call(srv_cancel_stop_);
-								client_move_base_.stopTrackingGoal();
-
-								// remove robot
-								srv_place_robot_hm_.request.data = false;
-								client_place_robot_hm_.call(srv_place_robot_hm_);
-								place_robot_delay_.sleep();
-
-								last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
-								// wait before replanning to be sure the robot has actually been removed from the map
-
-								// switch to APPROACH
-								global_state_ = APPROACH;
-								approach_state_ = REPLANNING;
-							}*/
 							break;
 					}
 
@@ -324,276 +290,13 @@ void Supervisor::FSM()
 			}
 			break;
 
-		/*case APPROACH:
-			msg_.data = "SUPERVISOR STATE APPROACH " + std::to_string(ros::Time::now().toSec());
-			pub_log_.publish(msg_);
-
-			if(goal_received_)
-			{
-				//ROS_INFO("APPROACH new goal");
-				goal_received_ = false;
-				global_state_ = ASK_PLAN;
-
-				// be sure robot is on the map
-				srv_place_robot_hm_.request.data = true;
-				client_place_robot_hm_.call(srv_place_robot_hm_);
-			}
-			else
-			{
-				// if close enough => BLOCKED
-				float dist_to_robot = sqrt(pow(human_pose_.x - robot_pose_.x,2) + pow(human_pose_.y - robot_pose_.y,2));
-				if(dist_to_robot <= approach_dist_)
-				{
-					//ROS_INFO("close enough");
-
-					// switch to BLOCKED
-					global_state_ = BLOCKED;
-
-					// place back robot
-					srv_place_robot_hm_.request.data = true;
-					client_place_robot_hm_.call(srv_place_robot_hm_);
-					place_robot_delay_.sleep();
-
-					// stop human
-					client_cancel_goal_and_stop_.call(srv_cancel_stop_);
-					client_move_base_.stopTrackingGoal();
-
-					last_replan_ = ros::Time::now() - blocked_ask_path_freq_.expectedCycleTime();
-				}
-				else
-				{
-					// get current action
-					plan_.updateCurrentAction();
-					std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
-
-					switch(approach_state_)
-					{
-						// Replan without the robot
-						case REPLANNING:
-							if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
-							{
-								//ROS_INFO("\t => APPROACH <=");
-								//ROS_INFO("REPLANNING");
-								//ROS_INFO("dist=%f", dist_to_robot);
-
-								// if not too close from approach_dist
-								if(dist_to_robot > approach_dist_ + replan_dist_stop_)
-								{
-									client_move_base_.sendGoal((*curr_action).action);
-									this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
-								}
-
-								// put the robot back on the map to check if still blocked in next approach loop
-								srv_place_robot_hm_.request.data = true;
-								client_place_robot_hm_.call(srv_place_robot_hm_);
-								approach_state_ = CHECKING;
-
-								last_replan_ = ros::Time::now();
-							}
-							break;
-
-						// check, with the robot, if the human is still blocked
-						case CHECKING:
-							if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
-							{
-								//ROS_INFO("\t => APPROACH <=");
-								//ROS_INFO("CHECKING");
-								//ROS_INFO("dist=%f", dist_to_robot);
-
-								// check if still blocked
-								bool still_blocked = true;
-								srv_get_plan_.request.start.pose.position.x = 	human_pose_.x;
-								srv_get_plan_.request.start.pose.position.y = 	human_pose_.y;
-								srv_get_plan_.request.goal.pose.position.x = 	(*curr_action).action.target_pose.pose.position.x;
-								srv_get_plan_.request.goal.pose.position.y = 	(*curr_action).action.target_pose.pose.position.y;
-								if(client_make_plan_.call(srv_get_plan_))
-								{
-									//ROS_INFO("make_plan %d", (int)srv_get_plan_.response.plan.poses.size());
-									if((int)srv_get_plan_.response.plan.poses.size()!=0) // path found
-									{
-										float response_path_length = this->computePathLength(&(srv_get_plan_.response.plan));
-										float previous_path_length = this->computePathLength(&previous_path_);
-
-										// check if the path found is 'good'
-										if(previous_path_length == 0								// if no path was found before
-										|| abs(response_path_length-previous_path_length)<absolute_path_length_diff_		// if close enough in absolute
-										|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if clone enough relatively
-											still_blocked = false;
-									}
-								}
-								else
-									ROS_ERROR("Failed to call service make_plan");
-
-								if(still_blocked)
-								{
-									//ROS_INFO("Still blocked, rm R");
-
-									// remove the robot from the map for replanning in next approach loop
-									srv_place_robot_hm_.request.data = false;
-									client_place_robot_hm_.call(srv_place_robot_hm_);
-									last_replan_ = ros::Time::now();
-									approach_state_ = REPLANNING;
-								}
-								else
-								{
-									// since the human isn't blocked anymore, switch back to EXEC_PLAN
-									last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
-									global_state_ = EXEC_PLAN;
-								}
-							}
-							break;
-					}
-				}
-			}
-			break;
-
-		case BLOCKED:
-			msg_.data = "SUPERVISOR STATE BLOCKED " + std::to_string(ros::Time::now().toSec());
-			pub_log_.publish(msg_);
-
-			if(goal_received_)
-			{
-				goal_received_ = false;
-				global_state_ = ASK_PLAN;
-				srv_place_robot_hm_.request.data = true;
-				client_place_robot_hm_.call(srv_place_robot_hm_);
-			}
-			else
-			{
-				// if too far, back to APPROACH
-				float dist_to_robot = sqrt(pow(human_pose_.x - robot_pose_.x,2) + pow(human_pose_.y - robot_pose_.y,2));
-				//ROS_INFO("dist=%f", dist_to_robot);
-				if(dist_to_robot > approach_dist_)
-				{
-					// remove robot
-					srv_place_robot_hm_.request.data = false;
-					client_place_robot_hm_.call(srv_place_robot_hm_);
-
-					last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
-					// wait before replanning to be sure the robot has actually been removed from the map
-
-					// switch to APPROACH
-					global_state_ = APPROACH;
-					approach_state_ = REPLANNING;
-				}
-				else
-				{
-					switch(blocked_state_)
-					{
-						case ABORTED:
-						case LONGER:
-							if(ros::Time::now() - last_replan_ > blocked_ask_path_freq_.expectedCycleTime())
-							{
-								//ROS_INFO("\t => BLOCKED <=");
-								//ROS_INFO("try to replan");
-
-								plan_.updateCurrentAction();
-								std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
-
-								srv_get_plan_.request.start.pose.position.x = 	human_pose_.x;
-								srv_get_plan_.request.start.pose.position.y = 	human_pose_.y;
-								srv_get_plan_.request.goal.pose.position.x = 	(*curr_action).action.target_pose.pose.position.x;
-								srv_get_plan_.request.goal.pose.position.y = 	(*curr_action).action.target_pose.pose.position.y;
-
-								// make plan
-								if(client_make_plan_.call(srv_get_plan_))
-								{
-									//ROS_INFO("BLOCK : srv.plan=%d previous=%d", (int)srv_get_plan_.response.plan.poses.size(), (int)previous_path_.poses.size());
-									last_replan_ = ros::Time::now();
-									if((int)srv_get_plan_.response.plan.poses.size()!=0) // successfully planned once
-									{
-
-										float response_path_length = this->computePathLength(&(srv_get_plan_.response.plan));
-										float previous_path_length = this->computePathLength(&previous_path_);
-
-										// If new path is 'good'
-										if(previous_path_length == 0								// if no path was found before
-										|| abs(response_path_length-previous_path_length)<absolute_path_length_diff_		// if close enough in absolute
-										|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if clone enough relatively
-										{
-											replan_success_nb_++;
-											//ROS_INFO("One success ! replan_success_nb = %d", replan_success_nb_);
-
-											if(replan_success_nb_ >= blocked_nb_ask_success_unblock_)
-											{
-												//ROS_INFO("replan successfully !");
-												replan_success_nb_ = 0;
-												last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
-												global_state_ = EXEC_PLAN;
-											}
-										}
-										else
-										{
-											replan_success_nb_ = 0;
-											//ROS_INFO("still blocked ..");
-										}
-									}
-									else
-									{
-										//ROS_INFO("Failed to plan ...");
-										replan_success_nb_ = 0;
-									}
-								}
-								else
-									ROS_ERROR("Failed to call service make_plan");
-							}
-							break;
-
-						case NOT_FEASIBLE:
-						{
-							// try to move, check if actually moving
-							// if moving switch to exec plan
-							// else keep trying to move as blocked
-
-							plan_.updateCurrentAction();
-							std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
-
-							static geometry_msgs::Pose2D last_human_pose = human_pose_;
-
-							if(first_not_feasible_)
-							{
-								last_human_pose = human_pose_;
-								first_not_feasible_=false;
-							}
-
-							if(ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime())
-							{
-								//ROS_INFO("\t => BLOCKED <=");
-								//ROS_INFO("not feasible, send goal");
-								client_move_base_.sendGoal((*curr_action).action);
-								this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x, (*curr_action).action.target_pose.pose.position.y, 1);
-								last_replan_ = ros::Time::now();
-
-								if(abs(human_pose_.x-last_human_pose.x) > not_feasible_dist_threshold_unblock_
-								|| abs(human_pose_.y-last_human_pose.y) > not_feasible_dist_threshold_unblock_
-								|| abs(human_pose_.theta-last_human_pose.theta) > not_feasible_theta_threshold_unblock_)
-								{
-									//ROS_INFO("We moved !");
-									first_not_feasible_ = true;
-									global_state_ = EXEC_PLAN;
-								}
-							}
-							break;
-						}
-
-						default:
-							blocked_state_ = ABORTED;
-							break;
-					}
-				}
-			}
-			break;*/
-
 		case SUSPENDED:
 			ROS_INFO("\t => SUSPENDED <=");
-			break;
-
-		default:
-			global_state_=GET_GOAL;
 			break;
 	}
 }
 
+// remove
 bool Supervisor::checkBlocked()
 {
 	//ROS_INFO("checkBlocked");
@@ -747,8 +450,8 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 
 bool Supervisor::setGetGoal(human_sim::Signal::Request &req, human_sim::Signal::Response &res)
 {
-	//ROS_INFO("GET_GOAL_SET !!!");
-	global_state_=GET_GOAL;
+	ROS_INFO("GET_GOAL_SET !!!");
+	global_state_ = GET_GOAL;
 
 	this->init();
 
@@ -757,9 +460,14 @@ bool Supervisor::setGetGoal(human_sim::Signal::Request &req, human_sim::Signal::
 
 bool Supervisor::srvSuspend(human_sim::Signal::Request &req, human_sim::Signal::Response &res)
 {
-	//ROS_INFO("GET_GOAL_SET !!!");
 	global_state_=SUSPENDED;
+	return true;
+}
 
+bool Supervisor::srvBackExecPlan(human_sim::Signal::Request& req, human_sim::Signal::Response& res)
+{
+	global_state_=EXEC_PLAN;
+	last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
 	return true;
 }
 
