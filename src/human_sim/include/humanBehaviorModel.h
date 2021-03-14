@@ -127,10 +127,10 @@ private:
 ////////// METHODS //////////
 
 	human_sim::Goal chooseGoal(bool random);
-	void nonStop();
-	void newRandomGoalGeneration();
-	void stopLookRobot();
-	void harassRobot();
+	void attNonStop();
+	void attStopLook();
+	void attStopLook();
+	void attHarass();
 	void publishGoal(human_sim::Goal& goal);
 	bool testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real);
 	bool testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov);
@@ -185,6 +185,7 @@ private:
 	ros::ServiceClient client_set_wait_goal_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
 	ros::ServiceClient client_place_robot_;
+	ros::ServiceClient client_suspend_supervisor_;
 
 	// Service Server //
 	ros::ServiceServer server_place_robot_;
@@ -194,6 +195,7 @@ private:
 
 	// Services //
 	move_human::PlaceRobot srv_place_robot_;
+	human_sim::Signal srv_signal_;
 
 	//// Variables ////
 	ros::NodeHandle nh_;

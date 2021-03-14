@@ -125,8 +125,7 @@ bool ConflictManager::srvCheckConflict(human_sim::ActionBool::Request &req, huma
 		// remove robot
 		ROS_INFO("remove robot in checked");
 		*want_robot_placed_ = false;
-		human_sim::Signal srv;
-		client_update_robot_map_.call(srv);
+		client_update_robot_map_.call(srv_signal_);
 		ROS_INFO("removed");
 
 		// stop human nav goal
@@ -188,13 +187,11 @@ void ConflictManager::loop()
 				// place back robot
 				ROS_INFO("robot back for blocked");
 				*want_robot_placed_ = true;
-				human_sim::Signal srv;
-				client_update_robot_map_.call(srv);
+				client_update_robot_map_.call(srv_signal_);
 				ROS_INFO("back");
 
 				// stop human
-				human_sim::Signal srv_cancel_stop;
-				client_cancel_goal_and_stop_.call(srv_cancel_stop);
+				client_cancel_goal_and_stop_.call(srv_signal_);
 
 				last_replan_ = ros::Time::now() - blocked_ask_path_freq_.expectedCycleTime();
 				place_robot_delay_.sleep();
@@ -232,8 +229,7 @@ void ConflictManager::loop()
 							// put the robot back on the map to check if still blocked in next approach loop
 							ROS_INFO("robot back for next checking");
 							*want_robot_placed_ = true;
-							human_sim::Signal srv;
-							client_update_robot_map_.call(srv);
+							client_update_robot_map_.call(srv_signal_);
 							state_approach_ = CHECKING;
 
 							last_replan_ = ros::Time::now();
@@ -279,8 +275,7 @@ void ConflictManager::loop()
 								// remove the robot from the map for replanning in next approach loop
 								ROS_INFO("robot removed for next replanning");
 								*want_robot_placed_ = false;
-								human_sim::Signal srv;
-								client_update_robot_map_.call(srv);
+								client_update_robot_map_.call(srv_signal_);
 								last_replan_ = ros::Time::now();
 								state_approach_ = REPLANNING;
 							}
@@ -289,8 +284,7 @@ void ConflictManager::loop()
 								// since the human isn't blocked anymore, switch back to EXEC_PLAN
 								ROS_INFO("NOT blocked approach");
 								state_global_ = IDLE;
-								human_sim::Signal srv;
-								client_back_exec_plan_.call(srv);
+								client_back_exec_plan_.call(srv_signal_);
 							}
 						}
 						break;
@@ -312,8 +306,7 @@ void ConflictManager::loop()
 
 				// remove robot
 				*want_robot_placed_ = true;
-				human_sim::Signal srv;
-				client_update_robot_map_.call(srv);
+				client_update_robot_map_.call(srv_signal_);
 
 				last_replan_ = ros::Time::now() - approach_freq_.expectedCycleTime();
 
@@ -349,8 +342,7 @@ void ConflictManager::loop()
 						{
 							ROS_INFO("NOT blocked");
 							state_global_ = IDLE;
-							human_sim::Signal srv;
-							client_back_exec_plan_.call(srv);
+							client_back_exec_plan_.call(srv_signal_);
 						}
 					}
 				}
@@ -479,6 +471,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	client_set_wait_goal_ = 		nh_.serviceClient<human_sim::Signal>("set_wait_goal");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
 	client_place_robot_ = 		nh_.serviceClient<move_human::PlaceRobot>("place_robot");
+	client_suspend_supervisor_ = nh_.serviceClient<human_sim::Signal>("suspend");
 
 	// Service server
 	server_place_robot_ = nh_.advertiseService("place_robot_hm", &HumanBehaviorModel::srvPlaceRobotHM, this);
@@ -945,7 +938,7 @@ human_sim::Goal HumanBehaviorModel::chooseGoal(bool random)
 	return goal;
 }
 
-void HumanBehaviorModel::nonStop()
+void HumanBehaviorModel::attNonStop()
 {
 //	ROS_INFO("NON_STOP");
 	if(!executing_plan_)
@@ -957,7 +950,7 @@ void HumanBehaviorModel::nonStop()
 	}
 }
 
-void HumanBehaviorModel::newRandomGoalGeneration()
+void HumanBehaviorModel::attRandom()
 {
 	if(ros::Time::now()-last_time_> b_random_try_freq_.expectedCycleTime())
 	{
@@ -982,7 +975,7 @@ void HumanBehaviorModel::newRandomGoalGeneration()
 	}
 }
 
-void HumanBehaviorModel::stopLookRobot()
+void HumanBehaviorModel::attStopLook()
 {
 	switch(sub_stop_look_)
 	{
@@ -997,17 +990,11 @@ void HumanBehaviorModel::stopLookRobot()
 
 		case STOP:
 			{
-				//ROS_INFO("current_goal = %f,%f", current_goal_.x, current_goal_.y);
-				//ROS_INFO("previous_goal = %f,%f", previous_goal_.x, previous_goal_.y);
-
 				// Stop goal and motion
-				//ROS_INFO("Stopped !");
-				human_sim::Signal srv_cancel;
-				client_cancel_goal_and_stop_.call(srv_cancel);
+				client_cancel_goal_and_stop_.call(srv_signal_);
 
-				// Set global FSM to WAIT_GOAL
-				human_sim::Signal srv_set;
-				client_set_wait_goal_.call(srv_set);
+				// Set global FSM to SUSPENDED
+				client_set_wait_goal_.call(srv_signal_);
 
 				// Get time
 				time_stopped_ = ros::Time::now();
@@ -1101,18 +1088,15 @@ void HumanBehaviorModel::stopLookRobot()
 	}
 }
 
-void HumanBehaviorModel::harassRobot()
+void HumanBehaviorModel::attHarass()
 {
 	switch(sub_harass_)
 	{
 		case INIT:
 			{
 				// suspend cancel stop
-				human_sim::Signal srv_cancel;
-				client_cancel_goal_and_stop_.call(srv_cancel);
-
-				human_sim::Signal srv_set;
-				client_set_wait_goal_.call(srv_set);
+				client_cancel_goal_and_stop_.call(srv_signal_);
+				client_set_wait_goal_.call(srv_signal_);
 				sub_harass_=HARASSING;
 				break;
 			}
@@ -1155,19 +1139,19 @@ void HumanBehaviorModel::attitudes()
 			break;
 
 		case NON_STOP:
-			this->nonStop();
+			this->attNonStop();
 			break;
 
 		case RANDOM:
-			this->newRandomGoalGeneration();
+			this->attRandom();
 			break;
 
 		case STOP_LOOK:
-			this->stopLookRobot();
+			this->attStopLook();
 			break;
 
 		case HARASS:
-			this->harassRobot();
+			this->attHarass();
 			break;
 
 		default:
