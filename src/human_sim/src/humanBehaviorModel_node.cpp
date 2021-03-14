@@ -581,6 +581,323 @@ void HumanBehaviorModel::publishGoal(human_sim::Goal& goal)
 	pub_new_goal_.publish(goal);
 }
 
+void HumanBehaviorModel::processSimData()
+{
+	model_pose_ = 		sim_pose_;
+	model_vel_ = 		sim_vel_;
+	model_robot_pose_ = 	sim_robot_pose_;
+	model_robot_vel_ = 	sim_robot_vel_;
+}
+
+void HumanBehaviorModel::publishModelData()
+{
+	pub_human_pose_.publish(model_pose_);
+	pub_human_vel_.publish(model_vel_);
+	pub_robot_pose_.publish(model_robot_pose_);
+	pub_robot_vel_.publish(model_robot_vel_);
+}
+
+void HumanBehaviorModel::pubDist()
+{
+	float dist = sqrt(pow(model_robot_pose_.x-model_pose_.x,2) + pow(model_robot_pose_.y-model_pose_.y,2));
+	msg_log_.data = "HUMAN_MODEL DIST " + std::to_string(dist) + " " + std::to_string(ros::Time::now().toSec());
+	pub_log_.publish(msg_log_);
+}
+
+void HumanBehaviorModel::computeTTC()
+{
+	ttc_ = -1.0; // ttc infinite
+
+	geometry_msgs::Pose2D C; // robot to human distance
+	C.x = model_pose_.x - model_robot_pose_.x;
+	C.y = model_pose_.y - model_robot_pose_.y;
+	double C_sq = C.x*C.x + C.y*C.y; // dot product C.C
+
+	if(C_sq <= radius_sum_sq_) // already touching
+		ttc_ = 0.0;
+	else
+	{
+		geometry_msgs::Twist V; // relative velocity human to robot
+		V.linear.x = model_robot_vel_.linear.x - model_vel_.linear.x;
+		V.linear.y = model_robot_vel_.linear.y - model_vel_.linear.y;
+
+		//V.linear.x = model_vel_.linear.x - model_robot_vel_.linear.x;
+		//V.linear.y = model_vel_.linear.y - model_robot_vel_.linear.y;
+		double C_dot_V = C.x*V.linear.x + C.y*V.linear.y;
+
+		if(C_dot_V > 0) // otherwise ttc infinite
+		{
+			double V_sq = V.linear.x*V.linear.x + V.linear.y*V.linear.y;
+			double f = (C_dot_V * C_dot_V) - (V_sq * (C_sq - radius_sum_sq_));
+			if(f > 0) // otherwise ttc infinite
+				ttc_ = (C_dot_V - sqrt(f)) / V_sq;
+		}
+	}
+
+	if(ttc_ != -1)
+	{
+	//	ROS_INFO("TTC = %f", ttc_);
+		msg_log_.data = "HUMAN_MODEL TTC " + std::to_string(ttc_) + " " + std::to_string(ros::Time::now().toSec());
+		pub_log_.publish(msg_log_);
+	}
+}
+
+bool HumanBehaviorModel::initDone()
+{
+	return hcb_ && rcb_ && pmcb_;
+}
+
+///////////////////// Visibility //////////////////////////
+
+bool HumanBehaviorModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real)
+{
+	// check if there are obstacles preventing A from seeing B
+
+	int A_map_x; int A_map_y;
+	A_map_x = (int)(A_real.x / resol_pov_map_); A_map_y = (int)(A_real.y / resol_pov_map_);
+	int B_map_x; int B_map_y;
+	B_map_x = (int)(B_real.x / resol_pov_map_); B_map_y = (int)(B_real.y / resol_pov_map_);
+
+	// if outside the map
+	if(A_map_x < 0 || A_map_x >= g_map_[0].size() || A_map_y < 0 || A_map_x >= g_map_.size()
+	|| B_map_x < 0 || B_map_x >= g_map_[0].size() || B_map_y < 0 || B_map_x >= g_map_.size())
+		return false;
+
+	// particular cases
+	// if one of the poses is an obstacle
+	if(g_map_[A_map_y][A_map_x] == 1 || g_map_[B_map_y][B_map_x] == 1)
+		return false;
+	else if(A_map_x == B_map_x || A_map_y == B_map_y)
+	{
+		// same place
+		if(A_map_x == B_map_x && A_map_y == B_map_y)
+			return true;
+
+		// vertical
+		else if(A_map_x == B_map_x)
+		{
+			for(int i=0; A_map_y + i != B_map_y;)
+			{
+				int xi = A_map_x;
+				int yi = A_map_y + i;
+
+				if(g_map_[yi][xi]==1) // if obstacle
+					return false;
+
+				// up
+				if(B_map_y > A_map_y)
+					i++;
+				// down
+				else
+					i--;
+			}
+		}
+
+		// horizontal
+		else if(A_map_y == B_map_y)
+		{
+			for(int i=0; A_map_x + i != B_map_x;)
+			{
+				int xi = A_map_x + i;
+				int yi = A_map_y;
+
+				if(g_map_[yi][xi]==1)
+					return false;
+
+				// right
+				if(B_map_x > A_map_x)
+					i++;
+				// left
+				else
+					i--;
+			}
+		}
+	}
+	// general cases
+	else
+	{
+		float m = (float)(B_map_y - A_map_y)/(float)(B_map_x - A_map_x);
+		float b = A_map_y - m * A_map_x;
+
+		float marge = 0.9;
+		float delta_x = std::min(marge/abs(m), marge);
+
+		// sign
+		if(B_map_x < A_map_x)
+			delta_x = -delta_x;
+
+		int i=1;
+		bool cond = true;
+		while(cond)
+		{
+			float xi_f = A_map_x + i * delta_x;
+			float yi_f = m * xi_f + b;
+
+			int xi = (int)(xi_f);
+			int yi = (int)(yi_f);
+
+			if(g_map_[yi][xi]==1) // if obstacle
+				return false;
+
+			i++;
+			if(delta_x > 0)
+				cond = i*delta_x + A_map_x < B_map_x;
+			else
+				cond = i*delta_x + A_map_x > B_map_x;
+		}
+	}
+
+	return true;
+}
+
+bool HumanBehaviorModel::testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov)
+{
+	// check if A is in the specified field of view of B (w/o obstacle)
+	float alpha;
+	float qy = A.y - B.y;
+	float qx = A.x - B.x;
+	if(qx==0)
+	{
+		if(qy>0)
+			alpha = PI/2;
+		else
+			alpha = -PI/2;
+	}
+	else
+	{
+		float q = abs(qy/qx);
+		if(qx>0)
+		{
+			if(qy>0)
+				alpha = atan(q);
+			else
+				alpha = -atan(q);
+		}
+		else
+		{
+			if(qy>0)
+				alpha = PI - atan(q);
+			else
+				alpha = atan(q) - PI;
+		}
+	}
+
+	float diff;
+	if(alpha * B.theta > 0) // same sign
+		diff = abs(alpha - B.theta);
+	else
+	{
+		if(alpha < 0)
+			diff = std::min(abs(alpha - B.theta), abs((alpha+2*PI) - B.theta));
+		else
+			diff = std::min(abs(alpha - B.theta), abs(alpha - (B.theta+2*PI)));
+	}
+
+	return diff < fov/2;
+}
+
+void HumanBehaviorModel::updateRobotOnMap()
+{
+	if(see_)
+	{
+		if(want_robot_placed_)
+		{
+			if(!know_robot_pose_) // rising edge
+			{
+				//ROS_INFO("place_robot true");
+				know_robot_pose_ = true;
+				srv_place_robot_.request.data = true;
+				client_place_robot_.call(srv_place_robot_);
+			}
+		}
+		else
+		{
+			if(know_robot_pose_) // falling edge
+			{
+				//ROS_INFO("place_robot false");
+				know_robot_pose_ = false;
+				srv_place_robot_.request.data = false;
+				client_place_robot_.call(srv_place_robot_);
+			}
+
+		}
+
+
+	}
+	else
+	{
+		if(want_robot_placed_)
+		{
+			if(ros::Time::now() - last_seen_robot_ > ros::Duration(1.5)) // delay see robot, memory/prediction
+			{
+				if(know_robot_pose_) // falling edge
+				{
+					//ROS_INFO("place_robot false");
+					know_robot_pose_ = false;
+					srv_place_robot_.request.data = false;
+					client_place_robot_.call(srv_place_robot_);
+				}
+			}
+		}
+		else
+		{
+			if(know_robot_pose_) // falling edge
+			{
+				//ROS_INFO("place_robot false");
+				know_robot_pose_ = false;
+				srv_place_robot_.request.data = false;
+				client_place_robot_.call(srv_place_robot_);
+			}
+
+		}
+	}
+}
+
+void HumanBehaviorModel::testSeeRobot()
+{
+	if(ros::Time::now() - last_check_see_robot_ > check_see_robot_freq_.expectedCycleTime())
+	{
+		geometry_msgs::Pose2D human_pose_offset = model_pose_;
+		human_pose_offset.x -= offset_pov_map_x_;
+		human_pose_offset.y -= offset_pov_map_y_;
+		geometry_msgs::Pose2D robot_pose_offset = model_robot_pose_;
+		robot_pose_offset.x -= offset_pov_map_x_;
+		robot_pose_offset.y -= offset_pov_map_y_;
+
+		// check if the robot is in the field of view of the human
+		// (without obstacles)
+		if(this->testFOV(robot_pose_offset, human_pose_offset, fov_))
+		{
+			// check if there are obstacles blocking the human view of the robot
+			if(this->testObstacleView(human_pose_offset, robot_pose_offset))
+			{
+				// the human sees the robot
+				//ROS_INFO("I SEE");
+				see_ = true;
+				last_seen_robot_ = ros::Time::now();
+			}
+			else
+			{
+				// human can't see the robot
+				//ROS_INFO("VIEW IS BLOCKED");
+				see_ = false;
+			}
+		}
+		else
+		{
+			//ROS_INFO("NOT IN FOV");
+			see_ = false;
+		}
+
+		// Update robot on map if needed
+		this->updateRobotOnMap();
+
+		last_check_see_robot_ = ros::Time::now();
+	}
+}
+
+////////////////////// Attitudes //////////////////////////
+
 human_sim::Goal HumanBehaviorModel::chooseGoal(bool random)
 {
 	human_sim::Goal goal;
@@ -626,22 +943,6 @@ human_sim::Goal HumanBehaviorModel::chooseGoal(bool random)
 	//ROS_INFO("%s (%f, %f, %f)", goal.type.c_str(), goal.x, goal.y, goal.theta);
 
 	return goal;
-}
-
-void HumanBehaviorModel::processSimData()
-{
-	model_pose_ = 		sim_pose_;
-	model_vel_ = 		sim_vel_;
-	model_robot_pose_ = 	sim_robot_pose_;
-	model_robot_vel_ = 	sim_robot_vel_;
-}
-
-void HumanBehaviorModel::publishModelData()
-{
-	pub_human_pose_.publish(model_pose_);
-	pub_human_vel_.publish(model_vel_);
-	pub_robot_pose_.publish(model_robot_pose_);
-	pub_robot_vel_.publish(model_robot_vel_);
 }
 
 void HumanBehaviorModel::nonStop()
@@ -875,316 +1176,7 @@ void HumanBehaviorModel::attitudes()
 	}
 }
 
-void HumanBehaviorModel::pubDist()
-{
-	float dist = sqrt(pow(model_robot_pose_.x-model_pose_.x,2) + pow(model_robot_pose_.y-model_pose_.y,2));
-	msg_log_.data = "HUMAN_MODEL DIST " + std::to_string(dist) + " " + std::to_string(ros::Time::now().toSec());
-	pub_log_.publish(msg_log_);
-}
-
-void HumanBehaviorModel::computeTTC()
-{
-	ttc_ = -1.0; // ttc infinite
-
-	geometry_msgs::Pose2D C; // robot to human distance
-	C.x = model_pose_.x - model_robot_pose_.x;
-	C.y = model_pose_.y - model_robot_pose_.y;
-	double C_sq = C.x*C.x + C.y*C.y; // dot product C.C
-
-	if(C_sq <= radius_sum_sq_) // already touching
-		ttc_ = 0.0;
-	else
-	{
-		geometry_msgs::Twist V; // relative velocity human to robot
-		V.linear.x = model_robot_vel_.linear.x - model_vel_.linear.x;
-		V.linear.y = model_robot_vel_.linear.y - model_vel_.linear.y;
-
-		//V.linear.x = model_vel_.linear.x - model_robot_vel_.linear.x;
-		//V.linear.y = model_vel_.linear.y - model_robot_vel_.linear.y;
-		double C_dot_V = C.x*V.linear.x + C.y*V.linear.y;
-
-		if(C_dot_V > 0) // otherwise ttc infinite
-		{
-			double V_sq = V.linear.x*V.linear.x + V.linear.y*V.linear.y;
-			double f = (C_dot_V * C_dot_V) - (V_sq * (C_sq - radius_sum_sq_));
-			if(f > 0) // otherwise ttc infinite
-				ttc_ = (C_dot_V - sqrt(f)) / V_sq;
-		}
-	}
-
-	if(ttc_ != -1)
-	{
-	//	ROS_INFO("TTC = %f", ttc_);
-		msg_log_.data = "HUMAN_MODEL TTC " + std::to_string(ttc_) + " " + std::to_string(ros::Time::now().toSec());
-		pub_log_.publish(msg_log_);
-	}
-}
-
-bool HumanBehaviorModel::initDone()
-{
-	return hcb_ && rcb_ && pmcb_;
-}
-
-// should be removed
-bool HumanBehaviorModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
-{
-	want_robot_placed_ = req.data;
-
-	return true;
-}
-
-bool HumanBehaviorModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real)
-{
-	// check if there are obstacles preventing A from seeing B
-
-	int A_map_x; int A_map_y;
-	A_map_x = (int)(A_real.x / resol_pov_map_); A_map_y = (int)(A_real.y / resol_pov_map_);
-	int B_map_x; int B_map_y;
-	B_map_x = (int)(B_real.x / resol_pov_map_); B_map_y = (int)(B_real.y / resol_pov_map_);
-
-	// if outside the map
-	if(A_map_x < 0 || A_map_x >= g_map_[0].size() || A_map_y < 0 || A_map_x >= g_map_.size()
-	|| B_map_x < 0 || B_map_x >= g_map_[0].size() || B_map_y < 0 || B_map_x >= g_map_.size())
-		return false;
-
-	// particular cases
-	// if one of the poses is an obstacle
-	if(g_map_[A_map_y][A_map_x] == 1 || g_map_[B_map_y][B_map_x] == 1)
-		return false;
-	else if(A_map_x == B_map_x || A_map_y == B_map_y)
-	{
-		// same place
-		if(A_map_x == B_map_x && A_map_y == B_map_y)
-			return true;
-
-		// vertical
-		else if(A_map_x == B_map_x)
-		{
-			for(int i=0; A_map_y + i != B_map_y;)
-			{
-				int xi = A_map_x;
-				int yi = A_map_y + i;
-
-				if(g_map_[yi][xi]==1) // if obstacle
-					return false;
-
-				// up
-				if(B_map_y > A_map_y)
-					i++;
-				// down
-				else
-					i--;
-			}
-		}
-
-		// horizontal
-		else if(A_map_y == B_map_y)
-		{
-			for(int i=0; A_map_x + i != B_map_x;)
-			{
-				int xi = A_map_x + i;
-				int yi = A_map_y;
-
-				if(g_map_[yi][xi]==1)
-					return false;
-
-				// right
-				if(B_map_x > A_map_x)
-					i++;
-				// left
-				else
-					i--;
-			}
-		}
-	}
-	// general cases
-	else
-	{
-		float m = (float)(B_map_y - A_map_y)/(float)(B_map_x - A_map_x);
-		float b = A_map_y - m * A_map_x;
-
-		float marge = 0.9;
-		float delta_x = std::min(marge/abs(m), marge);
-
-		// sign
-		if(B_map_x < A_map_x)
-			delta_x = -delta_x;
-
-		int i=1;
-		bool cond = true;
-		while(cond)
-		{
-			float xi_f = A_map_x + i * delta_x;
-			float yi_f = m * xi_f + b;
-
-			int xi = (int)(xi_f);
-			int yi = (int)(yi_f);
-
-			if(g_map_[yi][xi]==1) // if obstacle
-				return false;
-
-			i++;
-			if(delta_x > 0)
-				cond = i*delta_x + A_map_x < B_map_x;
-			else
-				cond = i*delta_x + A_map_x > B_map_x;
-		}
-	}
-
-	return true;
-}
-
-bool HumanBehaviorModel::testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov)
-{
-	// check if A is in the specified field of view of B (w/o obstacle)
-	float alpha;
-	float qy = A.y - B.y;
-	float qx = A.x - B.x;
-	if(qx==0)
-	{
-		if(qy>0)
-			alpha = PI/2;
-		else
-			alpha = -PI/2;
-	}
-	else
-	{
-		float q = abs(qy/qx);
-		if(qx>0)
-		{
-			if(qy>0)
-				alpha = atan(q);
-			else
-				alpha = -atan(q);
-		}
-		else
-		{
-			if(qy>0)
-				alpha = PI - atan(q);
-			else
-				alpha = atan(q) - PI;
-		}
-	}
-
-	float diff;
-	if(alpha * B.theta > 0) // same sign
-		diff = abs(alpha - B.theta);
-	else
-	{
-		if(alpha < 0)
-			diff = std::min(abs(alpha - B.theta), abs((alpha+2*PI) - B.theta));
-		else
-			diff = std::min(abs(alpha - B.theta), abs(alpha - (B.theta+2*PI)));
-	}
-
-	return diff < fov/2;
-}
-
-bool HumanBehaviorModel::srvUpdateRobotMap(human_sim::Signal::Request& req, human_sim::Signal::Response& res)
-{
-	this->updateRobotOnMap();
-	return true;
-}
-
-void HumanBehaviorModel::updateRobotOnMap()
-{
-	if(see_)
-	{
-		if(want_robot_placed_)
-		{
-			if(!know_robot_pose_) // rising edge
-			{
-				//ROS_INFO("place_robot true");
-				know_robot_pose_ = true;
-				srv_place_robot_.request.data = true;
-				client_place_robot_.call(srv_place_robot_);
-			}
-		}
-		else
-		{
-			if(know_robot_pose_) // falling edge
-			{
-				//ROS_INFO("place_robot false");
-				know_robot_pose_ = false;
-				srv_place_robot_.request.data = false;
-				client_place_robot_.call(srv_place_robot_);
-			}
-
-		}
-
-
-	}
-	else
-	{
-		if(want_robot_placed_)
-		{
-			if(ros::Time::now() - last_seen_robot_ > ros::Duration(1.5)) // delay see robot, memory/prediction
-			{
-				if(know_robot_pose_) // falling edge
-				{
-					//ROS_INFO("place_robot false");
-					know_robot_pose_ = false;
-					srv_place_robot_.request.data = false;
-					client_place_robot_.call(srv_place_robot_);
-				}
-			}
-		}
-		else
-		{
-			if(know_robot_pose_) // falling edge
-			{
-				//ROS_INFO("place_robot false");
-				know_robot_pose_ = false;
-				srv_place_robot_.request.data = false;
-				client_place_robot_.call(srv_place_robot_);
-			}
-
-		}
-	}
-}
-
-void HumanBehaviorModel::testSeeRobot()
-{
-	if(ros::Time::now() - last_check_see_robot_ > check_see_robot_freq_.expectedCycleTime())
-	{
-		geometry_msgs::Pose2D human_pose_offset = model_pose_;
-		human_pose_offset.x -= offset_pov_map_x_;
-		human_pose_offset.y -= offset_pov_map_y_;
-		geometry_msgs::Pose2D robot_pose_offset = model_robot_pose_;
-		robot_pose_offset.x -= offset_pov_map_x_;
-		robot_pose_offset.y -= offset_pov_map_y_;
-
-		// check if the robot is in the field of view of the human
-		// (without obstacles)
-		if(this->testFOV(robot_pose_offset, human_pose_offset, fov_))
-		{
-			// check if there are obstacles blocking the human view of the robot
-			if(this->testObstacleView(human_pose_offset, robot_pose_offset))
-			{
-				// the human sees the robot
-				//ROS_INFO("I SEE");
-				see_ = true;
-				last_seen_robot_ = ros::Time::now();
-			}
-			else
-			{
-				// human can't see the robot
-				//ROS_INFO("VIEW IS BLOCKED");
-				see_ = false;
-			}
-		}
-		else
-		{
-			//ROS_INFO("NOT IN FOV");
-			see_ = false;
-		}
-
-		// Update robot on map if needed
-		this->updateRobotOnMap();
-
-		last_check_see_robot_ = ros::Time::now();
-	}
-}
+/////////////////// ConflictManager ///////////////////////
 
 void HumanBehaviorModel::initConflictManager(ConflictManager* conflict_manager)
 {
@@ -1201,7 +1193,22 @@ void HumanBehaviorModel::conflictManagerLoop()
 	conflict_manager_->loop();
 }
 
-////////////////////// Callbacks//////////////////////////
+/////////////////// Service servers ///////////////////////
+
+bool HumanBehaviorModel::srvUpdateRobotMap(human_sim::Signal::Request& req, human_sim::Signal::Response& res)
+{
+	this->updateRobotOnMap();
+	return true;
+}
+
+bool HumanBehaviorModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
+{
+	want_robot_placed_ = req.data;
+
+	return true;
+}
+
+////////////////////// Callbacks //////////////////////////
 
 void HumanBehaviorModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
