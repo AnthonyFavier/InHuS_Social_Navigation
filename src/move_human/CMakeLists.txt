@@ -31,7 +31,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(place_robot_node src/placeRobot_node.cpp)
-add_dependencies(place_robot_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(place_robot_node ${catkin_LIBRARIES})
-
+add_executable(placeRobot_node src/placeRobot_node.cpp)
+add_dependencies(placeRobot_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(placeRobot_node ${catkin_LIBRARIES})

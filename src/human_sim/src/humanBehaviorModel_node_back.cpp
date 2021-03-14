@@ -289,7 +289,7 @@ void HumanBehaviorModel::stopLookRobot()
 				human_sim::Signal srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
 
-				// Set global FSM to GET_GOAL
+				// Set global FSM to WAIT_GOAL
 				human_sim::Signal srv_set;
 				client_set_get_goal_.call(srv_set);
 

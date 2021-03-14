@@ -4,19 +4,33 @@
 //////////////////// CONFLICT MANAGER /////////////////////
 
 ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
-: place_robot_delay_(0.4)
-, replan_freq_(1)
-, approach_freq_(2.0)
+: replan_freq_(1)
+, place_robot_delay_(0.4)
 , blocked_ask_path_freq_(2.0)
+, approach_freq_(2.0)
 {
 	nh_ = nh;
 	want_robot_placed_ = want_robot_placed;
 
-	// params
-	absolute_path_length_diff_ = 	1.0;
-	ratio_path_length_diff_ =		1.3;
-	replan_dist_stop_ = 0.5;
-	approach_dist_ = 1.5;
+	// Ros Params
+	ros::NodeHandle private_nh("~"); float f_nb;
+	nh_.param(std::string("replan_freq"), f_nb, float(2.0)); replan_freq_ = ros::Rate(f_nb);
+	nh_.param(std::string("replan_dist_stop"), replan_dist_stop_, float(0.5));
+	nh_.param(std::string("place_robot_delay"), f_nb, float(0.4)); place_robot_delay_ = ros::Duration(f_nb);
+	private_nh.param(std::string("blocked_ask_path_freq"), f_nb, float(2.0)); blocked_ask_path_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("absolute_path_length_diff"), absolute_path_length_diff_, float(1.0));
+	private_nh.param(std::string("ratio_path_length_diff"), ratio_path_length_diff_, float(1.3));
+	private_nh.param(std::string("approach_dist"), approach_dist_, float(1.5));
+	private_nh.param(std::string("approach_freq"), f_nb, float(2.0)); approach_freq_ = ros::Rate(f_nb);
+	ROS_INFO("=> Params ConflictManager :");
+	ROS_INFO("replan_freq=%f", 1/replan_freq_.expectedCycleTime().toSec());
+	ROS_INFO("replan_dist_stop=%f", replan_dist_stop_);
+	ROS_INFO("place_robot_delay=%f", place_robot_delay_.toSec());
+	ROS_INFO("blocked_ask_path_freq=%f", 1/blocked_ask_path_freq_.expectedCycleTime().toSec());
+	ROS_INFO("absolute_path_length_diff=%f", absolute_path_length_diff_);
+	ROS_INFO("ratio_path_length_diff=%f", ratio_path_length_diff_);
+	ROS_INFO("approach_dist=%f", approach_dist_);
+	ROS_INFO("approach_freq=%f", 1/approach_freq_.expectedCycleTime().toSec());
 
 	state_global_ = IDLE;
 
@@ -94,8 +108,8 @@ bool ConflictManager::srvCheckConflict(human_sim::ActionBool::Request &req, huma
 	//ROS_INFO("check : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	if((int)previous_path_.poses.size() != 0 && (int)current_path_.poses.size() != 0)
 	{
-		float current_path_length = this->computePathLength(&current_path_);
-		float previous_path_length = this->computePathLength(&previous_path_);
+		float current_path_length = computePathLength(&current_path_);
+		float previous_path_length = computePathLength(&previous_path_);
 
 		if(abs(current_path_length-previous_path_length) > absolute_path_length_diff_ 	// if difference big enough in absolute
 		&& current_path_length > ratio_path_length_diff_*previous_path_length)   		// and if difference big enough relatively
@@ -245,8 +259,8 @@ void ConflictManager::loop()
 								//ROS_INFO("make_plan %d", (int)srv_get_plan_.response.plan.poses.size());
 								if((int)srv_get_plan_.response.plan.poses.size()!=0) // path found
 								{
-									float response_path_length = this->computePathLength(&(srv_get_plan_.response.plan));
-									float previous_path_length = this->computePathLength(&previous_path_);
+									float response_path_length = computePathLength(&(srv_get_plan_.response.plan));
+									float previous_path_length = computePathLength(&previous_path_);
 
 									// check if the path found is 'good'
 									if(previous_path_length == 0								// if no path was found before
@@ -325,8 +339,8 @@ void ConflictManager::loop()
 					last_replan_ = ros::Time::now();
 					if(!srv_get_plan_.response.plan.poses.empty()) // successfully planned once
 					{
-						float response_path_length = this->computePathLength(&(srv_get_plan_.response.plan));
-						float previous_path_length = this->computePathLength(&previous_path_);
+						float response_path_length = computePathLength(&(srv_get_plan_.response.plan));
+						float previous_path_length = computePathLength(&previous_path_);
 
 						// If new path is 'good'
 						if(previous_path_length == 0								// if no path was found before
@@ -347,22 +361,11 @@ void ConflictManager::loop()
 	}
 }
 
-float ConflictManager::computePathLength(const nav_msgs::Path* path)
-{
-	float length=0;
-
-	int path_size = (int)path->poses.size();
-	for(int i=0; i<path_size-1; i++)
-		length += sqrt( pow(path->poses[i+1].pose.position.x-path->poses[i].pose.position.x,2) + pow(path->poses[i+1].pose.position.y-path->poses[i].pose.position.y,2) );
-
-	return length;
-}
-
 void ConflictManager::pathCB(const nav_msgs::Path::ConstPtr& path)
 {
 	ROS_INFO("path CB=%d curr=%d prev=%d", (int)path->poses.size(), (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 
-	float path_length = this->computePathLength(path.get());
+	float path_length = computePathLength(path.get());
 
 	std_msgs::String msg;
 	msg.data = "CONFLICTMANAGER " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
@@ -390,7 +393,7 @@ void ConflictManager::pathCB(const nav_msgs::Path::ConstPtr& path)
 			{
 				// seek pose closest to current_pose from current_path
 				// only keep path from current_pose to the end store to previous
-				this->cutPath(current_path_, previous_path_);
+				cutPath(current_path_, previous_path_, h_pose_);
 			}
 		}
 		// update current_path
@@ -398,33 +401,6 @@ void ConflictManager::pathCB(const nav_msgs::Path::ConstPtr& path)
 
 		//ROS_INFO("after CB : current=%d previous=%d", (int)current_path_.poses.size(), (int)previous_path_.poses.size());
 	}
-}
-
-int ConflictManager::cutPath(const nav_msgs::Path& path1, nav_msgs::Path& path2)
-{
-	int i_min = -1;
-
-	if((int)path1.poses.size()>0)
-	{
-		float dist = sqrt(pow(path1.poses[0].pose.position.x-h_pose_.x,2) + pow(path1.poses[0].pose.position.y-h_pose_.y,2));
-		float dist_min = dist;
-		i_min = 0;
-		for(int i=1; i<(int)path1.poses.size(); i++)
-		{
-			dist = sqrt(pow(path1.poses[i].pose.position.x-h_pose_.x,2) + pow(path1.poses[i].pose.position.y-h_pose_.y,2));
-			if(dist < dist_min)
-			{
-				dist_min = dist;
-				i_min = i;
-			}
-		}
-
-		path2.poses.clear();
-		for(int i=i_min; i<(int)path1.poses.size(); i++)
-			path2.poses.push_back(path1.poses[i]);
-	}
-
-	return i_min;
 }
 
 void ConflictManager::stateMoveBaseCB(const actionlib_msgs::GoalStatusArray::ConstPtr& status)
@@ -440,44 +416,42 @@ void ConflictManager::stateMoveBaseCB(const actionlib_msgs::GoalStatusArray::Con
 /////////////////////// HUMAN MODEL ///////////////////////
 
 HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
-: b_stop_look_stop_dur_(1)
-, b_harass_replan_freq_(1)
+: check_see_robot_freq_(1)
 , b_random_try_freq_(1)
-, check_see_robot_freq_(1)
+, b_stop_look_stop_dur_(1)
+, b_harass_replan_freq_(1)
 {
 	nh_ = nh;
 
 	srand(time(NULL));
 
 	// Ros Params
-	ros::NodeHandle private_nh("~");
-	std::string str; float f_nb; int fov_int;
+	ros::NodeHandle private_nh("~"); float f_nb; int fov_int;
+	private_nh.param(std::string("ratio_perturbation_cmd"), ratio_perturbation_cmd_, float(0.0));
+	private_nh.param(std::string("fov"), fov_int, int(180)); fov_ = fov_int*PI/180;
+	private_nh.param(std::string("check_see_robot_freq"), f_nb, float(5.0)); check_see_robot_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("delay_forget_robot"), f_nb, float(1.5)); delay_forget_robot_ = ros::Duration(f_nb);
 	private_nh.param(std::string("human_radius"), human_radius_, float(0.25));
 	private_nh.param(std::string("robot_radius"), robot_radius_, float(0.3));
-	private_nh.param(std::string("ratio_perturbation_cmd"), ratio_perturbation_cmd_, float(0.0));
 	private_nh.param(std::string("b_random_chance_choose"), b_random_chance_choose_, int(30));
 	private_nh.param(std::string("b_random_try_freq"), f_nb, float(0.5)); b_random_try_freq_ = ros::Rate(f_nb);
 	private_nh.param(std::string("b_stop_look_dist_near_robot"), b_stop_look_dist_near_robot_, float(2.0));
 	private_nh.param(std::string("b_stop_look_stop_dur"), f_nb, float(2.0)); b_stop_look_stop_dur_ = ros::Duration(f_nb);
 	private_nh.param(std::string("b_harass_dist_in_front"), b_harass_dist_in_front_, float(2.0));
 	private_nh.param(std::string("b_harass_replan_freq"), f_nb, float(2.0)); b_harass_replan_freq_ = ros::Rate(f_nb);
-	private_nh.param(std::string("fov"), fov_int, int(180)); fov_ = fov_int*PI/180;
-	private_nh.param(std::string("check_see_robot_freq"), f_nb, float(2.0)); check_see_robot_freq_ = ros::Rate(f_nb);
-	private_nh.param(std::string("delay_forget_robot"), f_nb, float(1.5)); delay_forget_robot_ = ros::Duration(f_nb);
-
-	//ROS_INFO("Params:");
-	//ROS_INFO("human_radius=%f", human_radius_);
-	//ROS_INFO("robot_radius=%f", robot_radius_);
-	//ROS_INFO("ratio_perturbation_cmd=%f", ratio_perturbation_cmd_);
-	//ROS_INFO("b_random_try_freq=%f", b_random_try_freq_.expectedCycleTime().toSec());
-	//ROS_INFO("b_random_chance_choose=%d", b_random_chance_choose_);
-	//ROS_INFO("b_stop_look_dist_near_robot=%f", b_stop_look_dist_near_robot_);
-	//ROS_INFO("b_stop_look_stop_dur=%f", b_stop_look_stop_dur_.toSec());
-	//ROS_INFO("b_harass_dist_in_front=%f", b_harass_dist_in_front_);
-	//ROS_INFO("b_harass_replan_freq=%f", b_harass_replan_freq_.expectedCycleTime().toSec());
-	//ROS_INFO("fov_int=%d fov=%f", fov_int, fov_);
-	//ROS_INFO("check_see_robot_freq=%f", check_see_robot_freq_.expectedCycleTime().toSec());
-	//ROS_INFO("delay_forget_robot=%f", delay_forget_robot_.toSec());
+	ROS_INFO("=> Params HBM:");
+	ROS_INFO("ratio_perturbation_cmd=%f", ratio_perturbation_cmd_);
+	ROS_INFO("fov_int=%d fov=%f", fov_int, fov_);
+	ROS_INFO("check_see_robot_freq=%f", 1/check_see_robot_freq_.expectedCycleTime().toSec());
+	ROS_INFO("delay_forget_robot=%f", delay_forget_robot_.toSec());
+	ROS_INFO("human_radius=%f", human_radius_);
+	ROS_INFO("robot_radius=%f", robot_radius_);
+	ROS_INFO("b_random_chance_choose=%d", b_random_chance_choose_);
+	ROS_INFO("b_random_try_freq=%f", 1/b_random_try_freq_.expectedCycleTime().toSec());
+	ROS_INFO("b_stop_look_dist_near_robot=%f", b_stop_look_dist_near_robot_);
+	ROS_INFO("b_stop_look_stop_dur=%f", b_stop_look_stop_dur_.toSec());
+	ROS_INFO("b_harass_dist_in_front=%f", b_harass_dist_in_front_);
+	ROS_INFO("b_harass_replan_freq=%f", 1/b_harass_replan_freq_.expectedCycleTime().toSec());
 
 	// Subscribers
 	sub_pose_ = 	 	nh_.subscribe("interface/in/human_pose", 100, &HumanBehaviorModel::poseCallback, this);
@@ -502,7 +476,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
 
 	// Service clients
-	client_set_get_goal_ = 		nh_.serviceClient<human_sim::Signal>("set_get_goal");
+	client_set_wait_goal_ = 		nh_.serviceClient<human_sim::Signal>("set_wait_goal");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
 	client_place_robot_ = 		nh_.serviceClient<move_human::PlaceRobot>("place_robot");
 
@@ -730,9 +704,9 @@ void HumanBehaviorModel::stopLookRobot()
 				human_sim::Signal srv_cancel;
 				client_cancel_goal_and_stop_.call(srv_cancel);
 
-				// Set global FSM to GET_GOAL
+				// Set global FSM to WAIT_GOAL
 				human_sim::Signal srv_set;
-				client_set_get_goal_.call(srv_set);
+				client_set_wait_goal_.call(srv_set);
 
 				// Get time
 				time_stopped_ = ros::Time::now();
@@ -837,7 +811,7 @@ void HumanBehaviorModel::harassRobot()
 				client_cancel_goal_and_stop_.call(srv_cancel);
 
 				human_sim::Signal srv_set;
-				client_set_get_goal_.call(srv_set);
+				client_set_wait_goal_.call(srv_set);
 				sub_harass_=HARASSING;
 				break;
 			}

@@ -1,48 +1,25 @@
-###################
-supervisor_node: ##
-###################
+# look for doubles
+# do not enter zero frequencies
+
+#####################################################
+# Common between supervisor and humanBehaviorModel ##
+#####################################################
 
 ### Replan global path
-  replan_freq: 2.0
-    #=> frequency to replan global path
-  replan_dist_stop: 0.5
-    #=> if distance to goal is less than this then stop replan
-
-### Not feasible
-  not_feasible_check_pose_freq: 10.0
-    #=> frequency check if moving while executing plan
-  not_feasible_nb_same_pose_block : 4
-    #=> number of concecutive times not moving required to concider blocked (not feasible)
-  not_feasible_dist_threshold_unblock: 0.05
-    #=> when blocked by not feasible, if move this distance far away from stopped position then unblock
-  not_feasible_theta_threshold_unblock: 0.02
-    #=> when blocked by not feasible, if rotate of this angle from stopped angle then unblock
-
-### Changed too much
-  blocked_ask_path_freq: 2.0
-    #=> frequency ask global path when blocked
-  blocked_nb_ask_success_unblock: 1
-    #=> when blocked, number of concecutive times required successfully getting a "good global path" to unblock
-  absolute_path_length_diff: 1.0
-    #=> if length difference between the path received and the previous stored path is less than this then concidered as "good global path"
-  ratio_path_length_diff: 1.3
-    #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good global path"
-
-### Approach
-  approach_dist: 1.5
-    #=> when blocked, get close until this distance to the robot by ignoring it
-  approach_freq: 2.0
-    #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
+replan_freq: 2.0
+  #=> frequency to replan global path
+replan_dist_stop: 0.5
+  #=> if distance to goal is less than this then stop replan
 
 ### PlaceRobot
-  place_robot_delay: 0.5
-    #=> duration waited after calling place_robot service to "be sure" it's effective
+place_robot_delay: 0.3
+  #=> duration waited after calling place_robot service to "be sure" it's effective
 
+###########################
+humanBehaviorModel_node: ##
+###########################
 
-####################
-human_model_node: ##
-####################
-
+### Cmd perturbation
   ratio_perturbation_cmd: 0.0
     #=> perturbate cmd_vel 0.2 <=> +/- 20% of cmd_vel value
 
@@ -58,6 +35,10 @@ human_model_node: ##
   human_radius: 0.30
   robot_radius: 0.325
     #=> radius of both human and robot to compute TTC (Time To Collision)
+
+###############
+## Attitudes ##
+###############
 
 ### Attitude RANDOM
   b_random_chance_choose: 30
@@ -76,9 +57,26 @@ human_model_node: ##
   b_harass_replan_freq: 2.0
     #=> frequency to replan for goal in front of robot
 
+#####################
+## ConflictManager ##
+#####################
+
+### Changed too much
+  blocked_ask_path_freq: 2.0
+    #=> frequency ask global path when blocked
+  absolute_path_length_diff: 1.0
+    #=> if length difference between the path received and the previous stored path is less than this then concidered as "good global path"
+  ratio_path_length_diff: 1.3
+    #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good global path"
+
+### Approach
+  approach_dist: 1.5
+    #=> when blocked, get close until this distance to the robot by ignoring it
+  approach_freq: 2.0
+    #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
 
 ####################
-place_robot_node: ##
+placeRobot_node: ##
 ####################
 
   size_rob: 0.6

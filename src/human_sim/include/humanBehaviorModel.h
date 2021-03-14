@@ -24,6 +24,7 @@
 #include <actionlib_msgs/GoalStatusArray.h>
 #include <actionlib/client/simple_action_client.h>
 #include "types.h"
+#include "manipulate_path.hpp"
 
 class ConflictManager
 {
@@ -38,7 +39,7 @@ public:
 private:
 	ros::NodeHandle nh_;
 
-	// Params config
+	// Params
 	float absolute_path_length_diff_;
 	float ratio_path_length_diff_;
 	ros::Duration place_robot_delay_;
@@ -65,7 +66,7 @@ private:
 	nav_msgs::GetPlan srv_get_plan_;
 
 	// Publishers
-	ros::Publisher pub_log_;
+	ros::Publisher pub_log_; std_msgs::String msg_;
 	ros::Publisher pub_cancel_goal_;
 	ros::Publisher pub_goal_move_base_;
 	ros::Publisher pub_stop_cmd_;
@@ -85,9 +86,6 @@ private:
 	StateBlocked state_blocked_;
 
 	actionlib_msgs::GoalStatus goal_status_;
-
-	std_msgs::String msg_;
-
 	ros::Time last_replan_;
 
 	geometry_msgs::Pose2D h_pose_;
@@ -95,8 +93,6 @@ private:
 	geometry_msgs::Pose2D r_pose_;
 	geometry_msgs::Twist r_vel_;
 
-	float computePathLength(const nav_msgs::Path* path);
-	int cutPath(const nav_msgs::Path& path1, nav_msgs::Path& path2);
 	nav_msgs::Path current_path_;
 	nav_msgs::Path previous_path_;
 
@@ -124,7 +120,7 @@ public:
 
 	bool initDone();
 
-	bool want_robot_placed_;
+	bool want_robot_placed_; // enable conflictManager to write it
 
 private:
 
@@ -186,7 +182,7 @@ private:
 	ros::Publisher pub_log_;
 
 	// Service Clients //
-	ros::ServiceClient client_set_get_goal_;
+	ros::ServiceClient client_set_wait_goal_;
 	ros::ServiceClient client_cancel_goal_and_stop_;
 	ros::ServiceClient client_place_robot_;
 

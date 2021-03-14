@@ -87,7 +87,7 @@ Supervisor::Supervisor()
 	marker_rviz_.color.b = 			0;
 	marker_rviz_.color.a = 			0;
 
-	global_state_ = GET_GOAL;
+	global_state_ = WAIT_GOAL;
 
 	goal_received_ = false;
 
@@ -133,8 +133,8 @@ void Supervisor::FSM()
 	// modified only in : here
 	switch(global_state_)
 	{
-		case GET_GOAL:
-			//ROS_INFO("\t => GET_GOAL <=");
+		case WAIT_GOAL:
+			//ROS_INFO("\t => WAIT_GOAL <=");
 			// Wait for goal from HumanBehaviorModel
 			if(goal_received_)
 			{
@@ -174,7 +174,7 @@ void Supervisor::FSM()
 					plan_.clear();
 					current_path_.poses.clear();
 					previous_path_.poses.clear();
-					global_state_ = GET_GOAL;
+					global_state_ = WAIT_GOAL;
 				}
 				else
 				{
@@ -260,7 +260,7 @@ void Supervisor::FSM()
 								this->updateMarkerPose(0, 0, 0);
 								current_path_.poses.clear();
 								previous_path_.poses.clear();
-								global_state_=GET_GOAL;
+								global_state_=WAIT_GOAL;
 
 							}
 							// If not too close, try to replan
@@ -567,7 +567,7 @@ void Supervisor::FSM()
 			break;
 
 		default:
-			global_state_=GET_GOAL;
+			global_state_=WAIT_GOAL;
 			break;
 	}
 }
@@ -718,8 +718,8 @@ void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 
 bool Supervisor::setGetGoal(human_sim::Signal::Request &req, human_sim::Signal::Response &res)
 {
-	//ROS_INFO("GET_GOAL_SET !!!");
-	global_state_=GET_GOAL;
+	//ROS_INFO("WAIT_GOAL_SET !!!");
+	global_state_=WAIT_GOAL;
 
 	this->init();
 
