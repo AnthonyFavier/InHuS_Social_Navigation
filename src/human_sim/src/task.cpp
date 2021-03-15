@@ -4,7 +4,7 @@
 
 Plan::Plan()
 {
-	state_=UNKNOWN;
+	state_=DONE;
 	curr_action_=action_series_.begin();
 }
 
@@ -27,12 +27,13 @@ void Plan::clear()
 	action_series_.clear();
 	curr_action_=action_series_.begin();
 
-	state_=UNKNOWN;
+	state_=DONE;
 }
 
 void Plan::updateState()
 {
-	if(action_series_.back().state==DONE)
+	if(action_series_.back().state==DONE
+	|| action_series_.empty())
 		state_=DONE;
 	else
 		state_=PROGRESS;

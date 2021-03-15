@@ -74,8 +74,8 @@ private:
 	bool srvSetWaitGoal(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
 	ros::ServiceServer server_suspend_;
 	bool srvSuspend(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
-	ros::ServiceServer server_back_exec_plan_;
-	bool srvBackExecPlan(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
+	ros::ServiceServer server_resume_;
+	bool srvResume(human_sim::Signal::Request &req, human_sim::Signal::Response &res);
 
 	//// Variables ////
 	ros::NodeHandle nh_;

@@ -59,11 +59,12 @@ private:
 	ros::ServiceClient client_cancel_goal_and_stop_;
 	ros::ServiceClient client_make_plan_;
 	ros::ServiceClient client_update_robot_map_;
-	ros::ServiceClient client_back_exec_plan_;
+	ros::ServiceClient client_resume_supervisor_;
 
 	// srv
 	move_human::PlaceRobot srv_place_robot_hm_;
 	nav_msgs::GetPlan srv_get_plan_;
+	human_sim::Signal srv_signal_;
 
 	// Publishers
 	ros::Publisher pub_log_; std_msgs::String msg_;
@@ -128,7 +129,7 @@ private:
 
 	human_sim::Goal chooseGoal(bool random);
 	void attNonStop();
-	void attStopLook();
+	void attRandom();
 	void attStopLook();
 	void attHarass();
 	void publishGoal(human_sim::Goal& goal);
@@ -186,6 +187,7 @@ private:
 	ros::ServiceClient client_cancel_goal_and_stop_;
 	ros::ServiceClient client_place_robot_;
 	ros::ServiceClient client_suspend_supervisor_;
+	ros::ServiceClient client_resume_supervisor_;
 
 	// Service Server //
 	ros::ServiceServer server_place_robot_;

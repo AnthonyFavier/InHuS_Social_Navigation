@@ -25,8 +25,8 @@ Supervisor::Supervisor()
 
 	// Service servers
 	server_set_wait_goal_ =		nh_.advertiseService("set_wait_goal", &Supervisor::srvSetWaitGoal, this);
-	server_suspend_ =			nh_.advertiseService("suspend", &Supervisor::srvSuspend, this);
-	server_back_exec_plan_ =	nh_.advertiseService("back_exec_plan", &Supervisor::srvBackExecPlan, this);
+	server_suspend_ =			nh_.advertiseService("suspendSupervisor", &Supervisor::srvSuspend, this);
+	server_resume_ =	nh_.advertiseService("resumeSupervisor", &Supervisor::srvResume, this);
 
 	// Subscribers
 	sub_human_pose_ = 		nh_.subscribe("known/human_pose", 100, &Supervisor::humanPoseCallback, this);
@@ -300,6 +300,7 @@ bool Supervisor::srvSetWaitGoal(human_sim::Signal::Request &req, human_sim::Sign
 {
 	ROS_INFO("WAIT_GOAL SET !!!");
 	global_state_ = WAIT_GOAL;
+	goal_received_ = false;
 
 	return true;
 }
@@ -310,7 +311,7 @@ bool Supervisor::srvSuspend(human_sim::Signal::Request &req, human_sim::Signal::
 	return true;
 }
 
-bool Supervisor::srvBackExecPlan(human_sim::Signal::Request& req, human_sim::Signal::Response& res)
+bool Supervisor::srvResume(human_sim::Signal::Request& req, human_sim::Signal::Response& res)
 {
 	global_state_=EXEC_PLAN;
 	last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();

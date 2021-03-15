@@ -56,7 +56,7 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
 	client_make_plan_ =				nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
 	client_update_robot_map_ = nh_.serviceClient<human_sim::Signal>("update_robot_map");
-	client_back_exec_plan_ = nh_.serviceClient<human_sim::Signal>("back_exec_plan");
+	client_resume_supervisor_ = nh_.serviceClient<human_sim::Signal>("resumeSupervisor");
 }
 
 bool ConflictManager::srvCheckConflict(human_sim::ActionBool::Request &req, human_sim::ActionBool::Response &res)
@@ -284,7 +284,7 @@ void ConflictManager::loop()
 								// since the human isn't blocked anymore, switch back to EXEC_PLAN
 								ROS_INFO("NOT blocked approach");
 								state_global_ = IDLE;
-								client_back_exec_plan_.call(srv_signal_);
+								client_resume_supervisor_.call(srv_signal_);
 							}
 						}
 						break;
@@ -342,7 +342,7 @@ void ConflictManager::loop()
 						{
 							ROS_INFO("NOT blocked");
 							state_global_ = IDLE;
-							client_back_exec_plan_.call(srv_signal_);
+							client_resume_supervisor_.call(srv_signal_);
 						}
 					}
 				}
@@ -471,7 +471,8 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	client_set_wait_goal_ = 		nh_.serviceClient<human_sim::Signal>("set_wait_goal");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
 	client_place_robot_ = 		nh_.serviceClient<move_human::PlaceRobot>("place_robot");
-	client_suspend_supervisor_ = nh_.serviceClient<human_sim::Signal>("suspend");
+	client_suspend_supervisor_ = nh_.serviceClient<human_sim::Signal>("suspendSupervisor");
+	client_resume_supervisor_ = nh_.serviceClient<human_sim::Signal>("resumeSupervisor");
 
 	// Service server
 	server_place_robot_ = nh_.advertiseService("place_robot_hm", &HumanBehaviorModel::srvPlaceRobotHM, this);
@@ -990,11 +991,11 @@ void HumanBehaviorModel::attStopLook()
 
 		case STOP:
 			{
+				// Suspend the supervisor
+				client_suspend_supervisor_.call(srv_signal_);
+
 				// Stop goal and motion
 				client_cancel_goal_and_stop_.call(srv_signal_);
-
-				// Set global FSM to SUSPENDED
-				client_set_wait_goal_.call(srv_signal_);
 
 				// Get time
 				time_stopped_ = ros::Time::now();
@@ -1004,70 +1005,59 @@ void HumanBehaviorModel::attStopLook()
 			}
 
 		case LOOK_AT_ROBOT:
-			{
-				float qy = model_robot_pose_.y - model_pose_.y;
-				float qx = model_robot_pose_.x - model_pose_.x;
-
-				float q;
-				float alpha;
-
-				if(qx==0)
-				{
-					if(qy>0)
-						alpha = PI/2;
-					else
-						alpha = -PI/2;
-				}
-				else
-				{
-					q = abs(qy/qx);
-					if(qx>0)
-					{
-						if(qy>0)
-							alpha = atan(q);
-						else
-							alpha = -atan(q);
-					}
-					else
-					{
-						if(qy>0)
-							alpha = PI - atan(q);
-						else
-							alpha = atan(q) - PI;
-					}
-				}
-
-				geometry_msgs::Twist cmd;
-				if(abs(alpha-model_pose_.theta)>0.1)
-				{
-					cmd.angular.z=2;
-					if(alpha-model_pose_.theta<0)
-						cmd.angular.z=-cmd.angular.z;
-
-					if(abs(alpha-model_pose_.theta)>PI)
-						cmd.angular.z=-cmd.angular.z;
-				}
-				pub_perturbed_cmd_.publish(cmd);
-
 				if(ros::Time::now() - time_stopped_ > b_stop_look_stop_dur_)
 					sub_stop_look_=RESUME_GOAL;
+				else
+				{
+					float qy = model_robot_pose_.y - model_pose_.y;
+					float qx = model_robot_pose_.x - model_pose_.x;
+
+					float q;
+					float alpha;
+
+					if(qx==0)
+					{
+						if(qy>0)
+							alpha = PI/2;
+						else
+							alpha = -PI/2;
+					}
+					else
+					{
+						q = abs(qy/qx);
+						if(qx>0)
+						{
+							if(qy>0)
+								alpha = atan(q);
+							else
+								alpha = -atan(q);
+						}
+						else
+						{
+							if(qy>0)
+								alpha = PI - atan(q);
+							else
+								alpha = atan(q) - PI;
+						}
+					}
+
+					geometry_msgs::Twist cmd;
+					if(abs(alpha-model_pose_.theta)>0.1)
+					{
+						cmd.angular.z=2;
+						if(alpha-model_pose_.theta<0)
+							cmd.angular.z=-cmd.angular.z;
+
+						if(abs(alpha-model_pose_.theta)>PI)
+							cmd.angular.z=-cmd.angular.z;
+					}
+					pub_perturbed_cmd_.publish(cmd);
+				}
 				break;
-			}
 
 		case RESUME_GOAL:
-			//ROS_INFO("Resume Goal");
-			if(executing_plan_)
-			{
-				// resume current goal (suspend => exec_plan)
-				pub_new_goal_.publish(current_goal_);
-				//ROS_INFO("sent");
-				sub_stop_look_=OVER;
-			}
-			else
-			{
-				//ROS_INFO("No previous goal");
-				sub_stop_look_=OVER;
-			}
+			client_resume_supervisor_.call(srv_signal_);
+			sub_stop_look_=OVER;
 			break;
 
 		case OVER:
@@ -1095,8 +1085,8 @@ void HumanBehaviorModel::attHarass()
 		case INIT:
 			{
 				// suspend cancel stop
-				client_cancel_goal_and_stop_.call(srv_signal_);
 				client_set_wait_goal_.call(srv_signal_);
+				client_cancel_goal_and_stop_.call(srv_signal_);
 				sub_harass_=HARASSING;
 				break;
 			}
