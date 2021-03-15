@@ -152,7 +152,6 @@ Boss::Boss()
 	//24 // goal narrow corridor R
 	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
 	list_goals_.push_back(area);
-
 }
 
 void Boss::appendAgent(AgentManager* agent)
@@ -162,6 +161,7 @@ void Boss::appendAgent(AgentManager* agent)
 
 void Boss::showState()
 {
+	cout << endl;
 	cout << "==========================" << endl;
 	cout << "=========> BOSS <=========" << endl;
 	cout << "==========================" << endl;
@@ -229,7 +229,7 @@ void Boss::askSendGoal()
 		// From list
 		case 1:{
 			// Ask which goal from list to send
-			while(ros::ok() && (cout 	<< "Select a goal [1-10] " << endl
+			while(ros::ok() && (cout 	<< "[1-10] Select a goal" << endl
 																<< "0- Back" << endl
 																<< "Choice ? ")
 			&& (!(cin >> choice_) || !(choice_>=0 && choice_<=10)))
@@ -286,7 +286,118 @@ void Boss::askSendGoal()
 
 void Boss::askScenario()
 {
+	// Check if there are enough agents in the scene (at least 2)
+	if(int(agent_managers_.size())<2)
+	{
+		cout << "Not enough agents in the scene !" << endl;
+		return;
+	}
 
+	// Select agent1
+	int agent1; int agent2;
+	this->showAgents();
+	cout 	<< "0- Back" << endl;
+	cout 	<< "Which agent ? " << endl;
+	while(ros::ok()	&& (cout << "agent1 : ")
+	&& (!(cin >> agent1) || !(agent1>=0 && agent1<=int(agent_managers_.size()))))
+		cleanInput();
+	if(agent1==0){return;} // Back
+	agent1--;
+
+	// Select agent2
+	while(ros::ok()	&& (cout << "agent2 : ")
+	&& (!(cin >> agent2) || !(agent2>=0 && agent2<=int(agent_managers_.size()))))
+		cleanInput();
+	cout << endl;
+	if(agent2==0){return;} // Back
+	agent2--;
+
+	cout << "Selected agents : " << agent_managers_[agent1]->getName() << " & " << agent_managers_[agent2]->getName() << endl;
+
+	// Ask which scenario
+	int choice_scenario;
+	while(ros::ok() && (cout << endl	<< "1- Wide Area" << endl
+																		<< "2- Narrow Passage" << endl
+																		<< "3- Corridor" << endl
+																		<< "4- Narrow Corridor" << endl
+																		<< "0- Back" << endl
+																		<< "Which scenario ? ")
+	&& (!(cin >> choice_scenario) || !(choice_scenario>=0 && choice_scenario<=4)))
+		cleanInput();
+	cout << endl;
+	if(choice_scenario==0){return;} // Back
+
+	// Ask init or start the scenario
+	int choice_init;
+	while((cout << endl 	<< "1- Init" << endl
+												<< "2- Start" << endl
+												<< "0- Back" << endl
+												<< "Choice ? ")
+	&& (!(cin >> choice_init) || !(choice_init>=0 && choice_init<=2)))
+		cleanInput();
+	if(choice_scenario==0){return;} // Back
+
+	// Get delay if start
+	float delay;
+	if(choice_init == 2)
+	{
+		while(ros::ok() && (cout << "Delay ? ")
+		&& (!(cin >> delay)))
+			cleanInput();
+	}
+	else
+		delay=0;
+
+	// Get corresponding goals
+	int h_goal; int r_goal;
+	switch(choice_scenario)
+	{
+		case 1: // Wide Area
+			if(choice_init == 1)
+				{h_goal = 11; r_goal = 13;}
+			else
+				{h_goal = 12; r_goal = 14;}
+			break;
+
+		case 2: // Narrow Passage
+			if(choice_init == 1)
+				{h_goal = 15; r_goal = 16;}
+			else
+				{h_goal = 4; r_goal = 1;}
+			break;
+
+		case 3: // Corridor
+			if(choice_init == 1)
+				{h_goal = 17; r_goal = 19;}
+			else
+				{h_goal = 18; r_goal = 20;}
+			break;
+
+		case 4: // Narrow Corridor
+			if(choice_init == 1)
+				{h_goal = 21; r_goal = 23;}
+			else
+				{h_goal = 22; r_goal = 24;}
+			break;
+		}
+
+		// Publish goals
+		if(delay>=0)
+		{
+			cout << "Publish goal : " << agent_managers_[agent1]->getName() << endl;
+			agent_managers_[agent1]->publishGoal(list_goals_[h_goal]);
+			wait(delay);
+			cout << "Publish goal : " << agent_managers_[agent2]->getName() << endl;
+			agent_managers_[agent2]->publishGoal(list_goals_[h_goal]);
+		}
+		else
+		{
+			cout << "Publish goal : " << agent_managers_[agent2]->getName() << endl;
+			agent_managers_[agent2]->publishGoal(list_goals_[h_goal]);
+			wait(-delay);
+			cout << "Publish goal : " << agent_managers_[agent1]->getName() << endl;
+			agent_managers_[agent1]->publishGoal(list_goals_[h_goal]);
+		}
 }
 
 void Boss::askSetAttitude()
@@ -310,6 +421,47 @@ bool Boss::showAgents()
 	}
 
 	return true;
+}
+
+void Boss::wait(float delay)
+{
+	if(delay > 0)
+	{
+		int length = 10;
+		cout << "[";
+		for(int i=0; i<length; i++)
+			cout << "#";
+		cout << "]";
+
+		ros::Time start = ros::Time::now();
+		ros::Duration delay_d(delay);
+
+		ros::Rate rate(5);
+		bool continuer = true;
+		float speed = 10/delay;
+		int nb;
+		string str;
+
+		while(ros::ok() && continuer)
+		{
+			ros::Duration passed = ros::Time::now() - start;
+
+			nb = length - speed*passed.toSec() +1 ;
+			str = "[";
+			for(int i=0; i<nb; i++)
+				str = str + "#";
+			for(int i=nb; i<length; i++)
+				str = str + ".";
+			str = str + "]";
+			cout << "\r" << str << flush;
+
+			if(passed > delay_d)
+				continuer = false;
+			else
+				rate.sleep();
+		}
+		cout << endl;
+	}
 }
 
 /////////////////////////////////////////////////////////

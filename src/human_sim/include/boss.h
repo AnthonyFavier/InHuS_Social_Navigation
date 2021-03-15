@@ -63,6 +63,8 @@ public:
 
 	bool showAgents();
 
+	void wait(float delay);
+
 private:
 	void cleanInput();
 
