@@ -2,10 +2,9 @@
 
 //////////////////// AGENT MANAGER //////////////////////
 
-AgentManager::AgentManager(string name, string topic_goal)
+AgentManager::AgentManager(string name)
 {
 	name_ = name;
-	topic_goal_ = topic_goal;
 }
 
 string AgentManager::getName()
@@ -13,11 +12,35 @@ string AgentManager::getName()
 	 return name_;
 }
 
+Type AgentManager::getType()
+{
+	return type_;
+}
+
+bool AgentManager::isGoalDone()
+{
+	return goal_done_;
+}
+
 //////////////////// HUMAN MANAGER //////////////////////
 
-HumanManager::HumanManager(string name, string topic_goal) : AgentManager(name, topic_goal)
+HumanManager::HumanManager(string name) : AgentManager(name)
 {
-	pub_goal_ =	nh_.advertise<human_sim::Goal>(topic_goal_, 1);
+	type_ = HUMAN;
+
+	string topic_goal = "/boss/" + name_ + "/new_goal";
+	pub_goal_ =	nh_.advertise<human_sim::Goal>(topic_goal, 1);
+
+	string topic_attitude = "/boss/" + name_ + "/set_attitude";
+	pub_attitude_ = nh_.advertise<std_msgs::Int32>(topic_attitude, 1);
+
+	string topic_goal_done = "/" + name_ + "/goal_done";
+	sub_goal_done_ = 	nh_.subscribe("/human/goal_done", 1, &HumanManager::goalDoneCB, this);
+
+	string topic_goal_start = "/" + name_ + "/new_goal";
+	sub_goal_start_ =	nh_.subscribe("/human/new_goal", 1, &HumanManager::goalStartCB, this);
+
+	goal_done_ = true;
 }
 
 void HumanManager::publishGoal(GoalArea goal)
@@ -25,11 +48,32 @@ void HumanManager::publishGoal(GoalArea goal)
 	pub_goal_.publish(goal.goal);
 }
 
+void HumanManager::setAttitude(int attitude)
+{
+
+}
+
+void HumanManager::goalDoneCB(const human_sim::Goal::ConstPtr& msg)
+{
+	goal_done_ = true;
+}
+
+void HumanManager::goalStartCB(const human_sim::Goal::ConstPtr& msg)
+{
+	goal_done_ = false;
+}
+
 //////////////////// ROBOT MANAGER //////////////////////
 
-RobotManager::RobotManager(string name, string topic_goal) : AgentManager(name, topic_goal)
+RobotManager::RobotManager(string name, string topic_goal, string topic_goal_status) : AgentManager(name)
 {
-	pub_goal_ =	nh_.advertise<geometry_msgs::PoseStamped>(topic_goal_, 1);
+	type_ = ROBOT;
+
+	pub_goal_ =	nh_.advertise<geometry_msgs::PoseStamped>(topic_goal, 1);
+
+	sub_goal_status_ = nh_.subscribe(topic_goal_status, 1, &RobotManager::goalStatusCB, this);
+
+	goal_done_ = true;
 }
 
 void RobotManager::publishGoal(GoalArea goal)
@@ -55,6 +99,21 @@ geometry_msgs::PoseStamped RobotManager::getPose(human_sim::Goal goal)
 	pose.pose.orientation.w = q.w();
 
 	return pose;
+}
+
+void RobotManager::goalStatusCB(const actionlib_msgs::GoalStatusArray::ConstPtr& msg)
+{
+	if(msg->status_list.size())
+	{
+		if(msg->status_list[0].status == 1) // ACTIVE
+			goal_done_ = false;
+		else if(msg->status_list[0].status == 0) // PENDING
+			goal_done_ = false;
+		else if(msg->status_list[0].status == 3) // SUCCEEDED
+			goal_done_ = true;
+		else
+			goal_done_ = false;
+	}
 }
 
 /////////////////////////////////////////////////////////
@@ -211,7 +270,6 @@ void Boss::askSendGoal()
 		cleanInput();
 	cout << endl;
 	if(choice_==0){return;} // Back
-
 	int choice_agent = choice_-1;
 
 	// Ask goal from list or manual input
@@ -294,48 +352,47 @@ void Boss::askScenario()
 	}
 
 	// Select agent1
-	int agent1; int agent2;
 	this->showAgents();
 	cout 	<< "0- Back" << endl;
 	cout 	<< "Which agent ? " << endl;
 	while(ros::ok()	&& (cout << "agent1 : ")
-	&& (!(cin >> agent1) || !(agent1>=0 && agent1<=int(agent_managers_.size()))))
+	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=int(agent_managers_.size()))))
 		cleanInput();
-	if(agent1==0){return;} // Back
-	agent1--;
+	if(choice_==0){return;} // Back
+	int agent1 = choice_-1;
 
 	// Select agent2
 	while(ros::ok()	&& (cout << "agent2 : ")
-	&& (!(cin >> agent2) || !(agent2>=0 && agent2<=int(agent_managers_.size()))))
+	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=int(agent_managers_.size()))))
 		cleanInput();
 	cout << endl;
-	if(agent2==0){return;} // Back
-	agent2--;
+	if(choice_==0){return;} // Back
+	int agent2 = choice_-1;
 
 	cout << "Selected agents : " << agent_managers_[agent1]->getName() << " & " << agent_managers_[agent2]->getName() << endl;
 
 	// Ask which scenario
-	int choice_scenario;
 	while(ros::ok() && (cout << endl	<< "1- Wide Area" << endl
 																		<< "2- Narrow Passage" << endl
 																		<< "3- Corridor" << endl
 																		<< "4- Narrow Corridor" << endl
 																		<< "0- Back" << endl
 																		<< "Which scenario ? ")
-	&& (!(cin >> choice_scenario) || !(choice_scenario>=0 && choice_scenario<=4)))
+	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=4)))
 		cleanInput();
 	cout << endl;
-	if(choice_scenario==0){return;} // Back
+	if(choice_==0){return;} // Back
+	int choice_scenario = choice_;
 
 	// Ask init or start the scenario
-	int choice_init;
 	while((cout << endl 	<< "1- Init" << endl
 												<< "2- Start" << endl
 												<< "0- Back" << endl
 												<< "Choice ? ")
-	&& (!(cin >> choice_init) || !(choice_init>=0 && choice_init<=2)))
+	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=2)))
 		cleanInput();
-	if(choice_scenario==0){return;} // Back
+	if(choice_==0){return;} // Back
+	int choice_init = choice_;
 
 	// Get delay if start
 	float delay;
@@ -402,7 +459,32 @@ void Boss::askScenario()
 
 void Boss::askSetAttitude()
 {
+	// Ask which agent
+	do {
+	while(ros::ok() && this->showHumanAgents()
+									&& (cout 	<< "0- Back" << endl
+														<< "Which agent ? ")
+	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=int(agent_managers_.size()))))
+		cleanInput();
+	if(choice_==0){return;} // Back
+	} while(agent_managers_[choice_-1]->getType()!=HUMAN && (cout << "Not human ..." << endl << endl));
+	cout << endl;
+	int choice_agent = choice_-1;
 
+	// Ask which attitude to set
+	while(ros::ok() && (cout 	<< "1- NONE" << endl
+														<< "2- NON_STOP" << endl
+														<< "3- RANDOM" << endl
+														<< "4- STOP_LOOK" << endl
+														<< "5- HARASS" << endl
+														<< "0- Back" << endl
+														<< "Choice ? ")
+	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=5)))
+		cleanInput();
+	if(choice_==0){return;} // Back
+
+	// Set attitude
+	dynamic_cast<HumanManager*>(agent_managers_[choice_agent])->setAttitude(choice_);
 }
 
 void Boss::cleanInput()
@@ -418,6 +500,19 @@ bool Boss::showAgents()
 	for(int i=0	; i<int(agent_managers_.size()); i++)
 	{
 		cout << i+1 << "- " << agent_managers_[i]->getName() << endl;
+	}
+
+	return true;
+}
+
+bool Boss::showHumanAgents()
+{
+	for(int i=0	; i<int(agent_managers_.size()); i++)
+	{
+		if(agent_managers_[i]->getType()==HUMAN)
+		{
+			cout << i+1 << "- " << agent_managers_[i]->getName() << endl;
+		}
 	}
 
 	return true;
@@ -466,15 +561,27 @@ void Boss::wait(float delay)
 
 /////////////////////////////////////////////////////////
 
+void threadSpin()
+{
+	ros::spin();
+}
+
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "boss");
 
+	// Spawn thread ros spin
+	boost::thread thread_spin(threadSpin);
+
 	Boss boss;
-	HumanManager human_manager1("human1", "/boss/human/new_goal");
+
+	// Add agents
+	HumanManager human_manager1("human");
 	boss.appendAgent(&human_manager1);
-	RobotManager robot_manager1("robot1", "/move_base_simple/goal");
+	RobotManager robot_manager1("robot1", "/move_base_simple/goal", "/move_base/status");
 	boss.appendAgent(&robot_manager1);
+	HumanManager human_manager2("human2");
+	boss.appendAgent(&human_manager2);
 
 	while(ros::ok())
 	{
