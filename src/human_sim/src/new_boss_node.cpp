@@ -229,7 +229,7 @@ void Boss::askSendGoal()
 		// From list
 		case 1:
 		{
-			// Ask which goal to send
+			// Ask which goal from list to send
 			while(ros::ok() && (cout 	<< "Select a goal [1-10] " << endl
 																<< "0- Back" << endl
 																<< "Choice ? ")
@@ -245,7 +245,45 @@ void Boss::askSendGoal()
 
 		// Enter coordinates
 		case 2:
+		{
+			// Ask goal coordonates
+			GoalArea goal;
+			goal.radius = 0;
+			goal.goal.type = "position";
+			while(ros::ok() && (cout 	<< "Goal x : ")
+			&& (!(cin >> goal.goal.x)))
+				cleanInput();
+			while(ros::ok() && (cout 	<< "Goal y : ")
+			&& (!(cin >> goal.goal.y)))
+				cleanInput();
+			while(ros::ok() && (cout 	<< "Goal theta : ")
+			&& (!(cin >> goal.goal.theta)))
+				cleanInput();
+
+			while(ros::ok() && (cout 	<< "Send this goal : (x=" << goal.goal.x << ", y=" << goal.goal.y << ", theta=" << goal.goal.theta << ")" << endl
+																<< "1- Yes" << endl
+																<< "2- No" << endl
+																<< "0- Back" << endl
+																<< "Choice ? ")
+			&& !(cin >> choice_))
+				cleanInput();
+			cout << endl;
+			if(choice_==0){return;} // Back
+
+			switch(choice_)
+			{
+				// Yes
+				case 1:
+					agent_managers_[choice_agent]->publishGoal(goal);
+					break;
+
+				// No
+				case 2:
+					break;
+			}
+
 			break;
+		}
 
 		default:
 			break;
