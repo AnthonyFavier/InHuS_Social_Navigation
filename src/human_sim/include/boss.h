@@ -23,6 +23,20 @@ public:
 private:
 	ros::NodeHandle nh_;
 };
+
+class HumanManager : public AgentManager
+{
+public:
+	HumanManager();
+private:
+};
+
+class RobotManager : public AgentManager
+{
+public:
+	RobotManager();
+private:
+};
 //////////////////////////////////////////////////
 
 ////////////////////// BOSS //////////////////////
