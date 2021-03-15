@@ -227,8 +227,7 @@ void Boss::askSendGoal()
 	switch(choice_)
 	{
 		// From list
-		case 1:
-		{
+		case 1:{
 			// Ask which goal from list to send
 			while(ros::ok() && (cout 	<< "Select a goal [1-10] " << endl
 																<< "0- Back" << endl
@@ -240,50 +239,45 @@ void Boss::askSendGoal()
 
 			agent_managers_[choice_agent]->publishGoal(list_goals_[choice_]);
 
-			break;
-		}
+			break;}
 
 		// Enter coordinates
-		case 2:
-		{
-			// Ask goal coordonates
-			GoalArea goal;
-			goal.radius = 0;
-			goal.goal.type = "position";
-			while(ros::ok() && (cout 	<< "Goal x : ")
-			&& (!(cin >> goal.goal.x)))
-				cleanInput();
-			while(ros::ok() && (cout 	<< "Goal y : ")
-			&& (!(cin >> goal.goal.y)))
-				cleanInput();
-			while(ros::ok() && (cout 	<< "Goal theta : ")
-			&& (!(cin >> goal.goal.theta)))
-				cleanInput();
-
-			while(ros::ok() && (cout 	<< "Send this goal : (x=" << goal.goal.x << ", y=" << goal.goal.y << ", theta=" << goal.goal.theta << ")" << endl
-																<< "1- Yes" << endl
-																<< "2- No" << endl
-																<< "0- Back" << endl
-																<< "Choice ? ")
-			&& !(cin >> choice_))
-				cleanInput();
-			cout << endl;
-			if(choice_==0){return;} // Back
-
-			switch(choice_)
+		case 2:{
+			bool ok = false;
+			while(!ok)
 			{
-				// Yes
-				case 1:
-					agent_managers_[choice_agent]->publishGoal(goal);
-					break;
+				// Ask goal coordinates
+				GoalArea goal;
+				goal.radius = 0;
+				goal.goal.type = "position";
+				while(ros::ok() && (cout 	<< "Goal x : ")
+				&& (!(cin >> goal.goal.x)))
+					cleanInput();
+				while(ros::ok() && (cout 	<< "Goal y : ")
+				&& (!(cin >> goal.goal.y)))
+					cleanInput();
+				while(ros::ok() && (cout 	<< "Goal theta : ")
+				&& (!(cin >> goal.goal.theta)))
+					cleanInput();
 
-				// No
-				case 2:
-					break;
+				while(ros::ok() && (cout 	<< "Send this goal : (x=" << goal.goal.x << ", y=" << goal.goal.y << ", theta=" << goal.goal.theta << ")" << endl
+																	<< "1- Yes" << endl
+																	<< "2- No, enter coordinates again" << endl
+																	<< "0- Back" << endl
+																	<< "Choice ? ")
+				&& (!(cin >> choice_) || !(choice_>=0 && choice_<=2)))
+					cleanInput();
+				cout << endl;
+				if(choice_==0){return;} // Back
+
+				if(choice_ == 1)
+				{
+						agent_managers_[choice_agent]->publishGoal(goal);
+						ok = true;
+				}
 			}
 
-			break;
-		}
+			break;}
 
 		default:
 			break;
