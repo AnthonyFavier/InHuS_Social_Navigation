@@ -1,13 +1,65 @@
 #include "boss.h"
 
 //////////////////// AGENT MANAGER //////////////////////
-AgentManager::AgentManager(ros::NodeHandle nh)
-{
-	nh_ = nh;
-}
-/////////////////////////////////////////////////////////
 
+AgentManager::AgentManager(string name, string topic_goal)
+{
+	name_ = name;
+	topic_goal_ = topic_goal;
+}
+
+string AgentManager::getName()
+{
+	 return name_;
+}
+
+//////////////////// HUMAN MANAGER //////////////////////
+
+HumanManager::HumanManager(string name, string topic_goal) : AgentManager(name, topic_goal)
+{
+	pub_goal_ =	nh_.advertise<human_sim::Goal>(topic_goal_, 1);
+}
+
+void HumanManager::publishGoal(GoalArea goal)
+{
+	pub_goal_.publish(goal.goal);
+}
+
+//////////////////// ROBOT MANAGER //////////////////////
+
+RobotManager::RobotManager(string name, string topic_goal) : AgentManager(name, topic_goal)
+{
+	pub_goal_ =	nh_.advertise<geometry_msgs::PoseStamped>(topic_goal_, 1);
+}
+
+void RobotManager::publishGoal(GoalArea goal)
+{
+	pub_goal_.publish(this->getPose(goal.goal));
+}
+
+geometry_msgs::PoseStamped RobotManager::getPose(human_sim::Goal goal)
+{
+	geometry_msgs::PoseStamped pose;
+
+	pose.header.stamp = ros::Time::now();
+	pose.header.frame_id = "map";
+
+	pose.pose.position.x = goal.x;
+	pose.pose.position.y = goal.y;
+
+	tf2::Quaternion q;
+	q.setRPY(0,0,goal.theta);
+	pose.pose.orientation.x = q.x();
+	pose.pose.orientation.y = q.y();
+	pose.pose.orientation.z = q.z();
+	pose.pose.orientation.w = q.w();
+
+	return pose;
+}
+
+/////////////////////////////////////////////////////////
 ///////////////////////// BOSS //////////////////////////
+
 Boss::Boss()
 {
 	// init goals
@@ -103,17 +155,26 @@ Boss::Boss()
 
 }
 
+void Boss::appendAgent(AgentManager* agent)
+{
+	agent_managers_.push_back(agent);
+}
+
 void Boss::showState()
 {
+	cout << "==========================" << endl;
+	cout << "=========> BOSS <=========" << endl;
+	cout << "==========================" << endl;
+	cout << endl;
 }
 
 void Boss::askChoice()
 {
 	// Ask Main choice_
 	while(ros::ok() && (cout	<< "1- Send goal" << endl
-					<< "2- Scenario" << endl
-					<< "3- Set Attitude" << endl
-					<< "Choice ? ")
+														<< "2- Scenario" << endl
+														<< "3- Set Attitude" << endl
+														<< "Choice ? ")
 	&& (!(cin >> choice_) || !(choice_>=1 && choice_<=3)))
 		cleanInput();
 	cout << endl;
@@ -122,58 +183,83 @@ void Boss::askChoice()
 	{
 		// Send goal
 		case 1:
-			while(ros::ok() && (cout	<< "1- From List" << endl
-							<< "2- Enter coordinates" << endl
-							<< "0- Back" << endl
-							<< "Choice ? ")
-			&& (!(cin >> choice_) || !(choice_>=0 && choice_<=2)))
-				cleanInput();
-			cout << endl;
-
-			switch(choice_)
-			{
-				// From list
-				case 1:
-					while(ros::ok() && (cout << "Select a goal [1-10] " << endl
-								 << "0- Back" << endl
-								 << "Choice ? ")
-					&& (!(cin >> choice_) || !(choice_>=0 && choice_<=10)))
-						cleanInput();
-					cout << endl;
-
-					// Select agent
-					// show list agents
-					//	for agent_managers_.size()
-					//		cout << i << "- " << agent_managers_[i].showName();
-					// 	input
-					// if human goals[i].goal (human_sim::Goal)
-					// if robot getPose(goals[i].goal) (geometry_msgs::PoseStamped)
-
-					break;
-				// Enter coordinates
-				case 2:
-					break;
-				// Back
-				case 0:
-					break;
-
-				default:
-					break;
-			}
+			this->askSendGoal();
 			break;
 
 		// Scenario
 		case 2:
+			this->askScenario();
 			break;
 
 		// Set attitude
 		case 3:
+			this->askSetAttitude();
 			break;
-
 
 		default:
 			break;
 	}
+}
+
+void Boss::askSendGoal()
+{
+	// Ask which agent to send the goal
+	while(ros::ok() && this->showAgents()
+									&& (cout 	<< "0- Back" << endl
+														<< "Which agent ? ")
+	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=10)))
+		cleanInput();
+	cout << endl;
+	if(choice_==0){return;} // Back
+
+	int choice_agent = choice_-1;
+
+	// Ask goal from list or manual input
+	while(ros::ok() && (cout	<< "1- From List" << endl
+														<< "2- Enter coordinates" << endl
+														<< "0- Back" << endl
+														<< "Choice ? ")
+	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=2)))
+		cleanInput();
+	cout << endl;
+	if(choice_==0){return;} // Back
+
+	switch(choice_)
+	{
+		// From list
+		case 1:
+		{
+			// Ask which goal to send
+			while(ros::ok() && (cout 	<< "Select a goal [1-10] " << endl
+																<< "0- Back" << endl
+																<< "Choice ? ")
+			&& (!(cin >> choice_) || !(choice_>=0 && choice_<=10)))
+				cleanInput();
+			cout << endl;
+			if(choice_==0){return;} // Back
+
+			agent_managers_[choice_agent]->publishGoal(list_goals_[choice_]);
+
+			break;
+		}
+
+		// Enter coordinates
+		case 2:
+			break;
+
+		default:
+			break;
+	}
+}
+
+void Boss::askScenario()
+{
+
+}
+
+void Boss::askSetAttitude()
+{
+
 }
 
 void Boss::cleanInput()
@@ -183,6 +269,17 @@ void Boss::cleanInput()
 	cin.ignore(numeric_limits<streamsize>::max(), '\n');
 	choice_ = 0;
 }
+
+bool Boss::showAgents()
+{
+	for(int i=0	; i<int(agent_managers_.size()); i++)
+	{
+		cout << i+1 << "- " << agent_managers_[i]->getName() << endl;
+	}
+
+	return true;
+}
+
 /////////////////////////////////////////////////////////
 
 int main(int argc, char** argv)
@@ -190,6 +287,10 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "boss");
 
 	Boss boss;
+	HumanManager human_manager1("human1", "/boss/human/new_goal");
+	boss.appendAgent(&human_manager1);
+	RobotManager robot_manager1("robot1", "/move_base_simple/goal");
+	boss.appendAgent(&robot_manager1);
 
 	while(ros::ok())
 	{

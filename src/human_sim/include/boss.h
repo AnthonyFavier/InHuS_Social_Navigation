@@ -15,26 +15,37 @@
 
 using namespace std;
 
+//////////////////////////////////////////////////
+
 ////////////////// AGENT MANAGER /////////////////
 class AgentManager
 {
 public:
-	AgentManager(ros::NodeHandle nh);
-private:
+	AgentManager(string name, string topic_goal);
+	virtual void publishGoal(GoalArea goal) = 0;
+	string getName();
+
+protected:
 	ros::NodeHandle nh_;
+	ros::Publisher pub_goal_;
+	string name_;
+	string topic_goal_;
 };
 
 class HumanManager : public AgentManager
 {
 public:
-	HumanManager();
+	HumanManager(string name, string topic_goal);
+	void publishGoal(GoalArea goal);
 private:
 };
 
 class RobotManager : public AgentManager
 {
 public:
-	RobotManager();
+	RobotManager(string name, string topic_goal);
+	void publishGoal(GoalArea goal);
+	geometry_msgs::PoseStamped getPose(human_sim::Goal goal);
 private:
 };
 //////////////////////////////////////////////////
@@ -45,13 +56,22 @@ class Boss
 public:
 	Boss();
 
+	void appendAgent(AgentManager* agent);
+
 	void showState();
 	void askChoice();
-	void cleanInput();
+
+	bool showAgents();
 
 private:
+	void cleanInput();
+
+	void askSendGoal();
+	void askScenario();
+	void askSetAttitude();
+
 	ros::NodeHandle nh_;
-	vector<AgentManager> agent_managers_;
+	vector<AgentManager*> agent_managers_;
 
 	int choice_;
 
