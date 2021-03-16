@@ -10,16 +10,20 @@ ros::Publisher pub_cancel_goal;
 bool delay_stop_required=false;
 ros::Time time_delay_stop_required;
 
+ros::Time lastTeleopCmd;
+
 geometry_msgs::Twist cmd_zero;
 
 void teleopCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 	pub_cmd_vel.publish(*msg);
+	lastTeleopCmd = ros::Time::now();
 }
 
 void perturbedCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-	pub_cmd_vel.publish(*msg);
+	if(ros::Time::now() - lastTeleopCmd > ros::Duration(1))
+		pub_cmd_vel.publish(*msg);
 }
 
 bool cancelGoalAndStop(human_sim::Signal::Request &req, human_sim::Signal::Response &res)
@@ -48,6 +52,8 @@ int main(int argc, char** argv)
 	pub_cancel_goal =	nh.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 
 	ros::ServiceServer service_cancel_goal_and_stop = nh.advertiseService("cancel_goal_and_stop", cancelGoalAndStop);
+
+	lastTeleopCmd = ros::Time::now();
 
 	ros::Duration delay(0.3);
 	ros::Rate rate(15);

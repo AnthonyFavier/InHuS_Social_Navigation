@@ -7,6 +7,7 @@
 #include "move_base_msgs/MoveBaseGoal.h"
 #include "actionlib_msgs/GoalStatusArray.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/Twist.h"
 #include <std_msgs/Int32.h>
 #include <vector>
 #include <boost/thread/thread.hpp>
@@ -43,12 +44,14 @@ class HumanManager : public AgentManager
 public:
 	HumanManager(string name);
 	void publishGoal(GoalArea goal);
+	void publishManualCmd(geometry_msgs::Twist cmd);
 	void showState();
 
 	void setAttitude(int attitude);
 
 private:
 	ros::Publisher pub_attitude_;
+	ros::Publisher pub_manual_cmd_;
 
 	ros::Subscriber sub_goal_done_;
 	void goalDoneCB(const human_sim::Goal::ConstPtr& msg);

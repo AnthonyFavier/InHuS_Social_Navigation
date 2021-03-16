@@ -34,6 +34,9 @@ HumanManager::HumanManager(string name) : AgentManager(name)
 	string topic_attitude = "/boss/" + name_ + "/set_attitude";
 	pub_attitude_ = nh_.advertise<std_msgs::Int32>(topic_attitude, 1);
 
+	string topic_manual = "/boss/" + name_ + "/teleoperation";
+	pub_manual_cmd_ = nh_.advertise<geometry_msgs::Twist>(topic_manual, 1);
+
 	string topic_goal_done = "/" + name_ + "/goal_done";
 	sub_goal_done_ = 	nh_.subscribe("/human/goal_done", 1, &HumanManager::goalDoneCB, this);
 
@@ -47,6 +50,11 @@ HumanManager::HumanManager(string name) : AgentManager(name)
 void HumanManager::publishGoal(GoalArea goal)
 {
 	pub_goal_.publish(goal.goal);
+}
+
+void HumanManager::publishManualCmd(geometry_msgs::Twist cmd)
+{
+	pub_manual_cmd_.publish(cmd);
 }
 
 void HumanManager::showState()
