@@ -1,8 +1,8 @@
 <launch>
 
-	<node name="humanBehaviorModel_node" type="humanBehaviorModel_node" pkg="human_sim" ns="human" output="screen" launch-prefix="xterm -geometry '80x25+1470+0' -e"/>
-	<node name="taskPlanner_node" type="taskPlanner_node" pkg="human_sim" ns="human"/> 
-	<node name="supervisor_node" type="supervisor_node" pkg="human_sim" ns="human" output="screen" launch-prefix="xterm -geometry '156x25+0+0' -e"/>
+	<node name="humanBehaviorModel_node" type="humanBehaviorModel_node" pkg="human_sim" ns="human" output="screen"/> <!-- launch-prefix="xterm -geometry '80x25+1470+0' -e"/-->
+	<node name="taskPlanner_node" type="taskPlanner_node" pkg="human_sim" ns="human"/>
+	<node name="supervisor_node" type="supervisor_node" pkg="human_sim" ns="human" output="screen"/> <!--launch-prefix="xterm -geometry '156x25+0+0' -e"/-->
 	<node name="input_node" type="input_node" pkg="human_sim" ns="human/interface"/>
 	<node name="output_node" type="output_node" pkg="human_sim" ns="human/interface"/>
 	<node name="logManager_node" type="logManager_node" pkg="human_sim" ns="human"/>
