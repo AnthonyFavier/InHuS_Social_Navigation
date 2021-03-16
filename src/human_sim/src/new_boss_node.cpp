@@ -435,30 +435,36 @@ void Boss::askSendGoal()
 
 void Boss::askScenario()
 {
+	// Default agents (1 and 2) selected if only 2 agents in the scene
+	int agent1 = 0;
+	int agent2 = 1;
+
 	// Check if there are enough agents in the scene (at least 2)
 	if(int(agent_managers_.size())<2)
 	{
 		cout << "Not enough agents in the scene !" << endl;
 		return;
 	}
+	else if(int(agent_managers_.size())>2)
+	{
+		// Select agent1
+		this->showAgents();
+		cout 	<< "0- Back" << endl;
+		cout 	<< "Which agent ? " << endl;
+		while(ros::ok()	&& (cout << "agent1 : ")
+		&& (!(cin >> choice_) || !(choice_>=0 && choice_<=int(agent_managers_.size()))))
+			cleanInput();
+		if(choice_==0){return;} // Back
+		agent1 = choice_-1;
 
-	// Select agent1
-	this->showAgents();
-	cout 	<< "0- Back" << endl;
-	cout 	<< "Which agent ? " << endl;
-	while(ros::ok()	&& (cout << "agent1 : ")
-	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=int(agent_managers_.size()))))
-		cleanInput();
-	if(choice_==0){return;} // Back
-	int agent1 = choice_-1;
-
-	// Select agent2
-	while(ros::ok()	&& (cout << "agent2 : ")
-	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=int(agent_managers_.size()))))
-		cleanInput();
-	cout << endl;
-	if(choice_==0){return;} // Back
-	int agent2 = choice_-1;
+		// Select agent2
+		while(ros::ok()	&& (cout << "agent2 : ")
+		&& (!(cin >> choice_) || !(choice_>=0 && choice_<=int(agent_managers_.size()))))
+			cleanInput();
+		cout << endl;
+		if(choice_==0){return;} // Back
+		agent2 = choice_-1;
+	}
 
 	cout << "Selected agents : " << agent_managers_[agent1]->getName() << " & " << agent_managers_[agent2]->getName() << endl;
 
@@ -493,7 +499,7 @@ void Boss::askScenario()
 		float delay;
 		if(choice_init == 2)
 		{
-			while(ros::ok() && (cout << "Delay ? ")
+			while(ros::ok() && (cout << "Delay " << agent_managers_[agent2]->getName() << " (s) ? ")
 			&& (!(cin >> delay)))
 				cleanInput();
 		}
@@ -501,35 +507,35 @@ void Boss::askScenario()
 			delay=0;
 
 		// Get corresponding goals
-		int h_goal; int r_goal;
+		int agent1_goal; int agent2_goal;
 		switch(choice_scenario)
 		{
 			case 1: // Wide Area
 				if(choice_init == 1)
-					{h_goal = 11; r_goal = 13;}
+					{agent1_goal = 11; agent2_goal = 13;}
 				else
-					{h_goal = 12; r_goal = 14;}
+					{agent1_goal = 12; agent2_goal = 14;}
 				break;
 
 			case 2: // Narrow Passage
 				if(choice_init == 1)
-					{h_goal = 15; r_goal = 16;}
+					{agent1_goal = 15; agent2_goal = 16;}
 				else
-					{h_goal = 4; r_goal = 1;}
+					{agent1_goal = 4; agent2_goal = 1;}
 				break;
 
 			case 3: // Corridor
 				if(choice_init == 1)
-					{h_goal = 17; r_goal = 19;}
+					{agent1_goal = 17; agent2_goal = 19;}
 				else
-					{h_goal = 18; r_goal = 20;}
+					{agent1_goal = 18; agent2_goal = 20;}
 				break;
 
 			case 4: // Narrow Corridor
 				if(choice_init == 1)
-					{h_goal = 21; r_goal = 23;}
+					{agent1_goal = 21; agent2_goal = 23;}
 				else
-					{h_goal = 22; r_goal = 24;}
+					{agent1_goal = 22; agent2_goal = 24;}
 				break;
 			}
 
@@ -537,18 +543,18 @@ void Boss::askScenario()
 		if(delay>=0)
 		{
 			cout << "Publish goal : " << agent_managers_[agent1]->getName() << endl;
-			agent_managers_[agent1]->publishGoal(list_goals_[h_goal]);
+			agent_managers_[agent1]->publishGoal(list_goals_[agent1_goal]);
 			wait(delay);
 			cout << "Publish goal : " << agent_managers_[agent2]->getName() << endl;
-			agent_managers_[agent2]->publishGoal(list_goals_[h_goal]);
+			agent_managers_[agent2]->publishGoal(list_goals_[agent2_goal]);
 		}
 		else
 		{
 			cout << "Publish goal : " << agent_managers_[agent2]->getName() << endl;
-			agent_managers_[agent2]->publishGoal(list_goals_[h_goal]);
+			agent_managers_[agent2]->publishGoal(list_goals_[agent2_goal]);
 			wait(-delay);
 			cout << "Publish goal : " << agent_managers_[agent1]->getName() << endl;
-			agent_managers_[agent1]->publishGoal(list_goals_[h_goal]);
+			agent_managers_[agent1]->publishGoal(list_goals_[agent1_goal]);
 		}
 	}
 	else // endless
@@ -774,8 +780,6 @@ int main(int argc, char** argv)
 	boss.appendAgent(&human_manager1);
 	RobotManager robot_manager1("robot", "/move_base_simple/goal", "/move_base/status");
 	boss.appendAgent(&robot_manager1);
-	HumanManager human_manager2("human2");
-	boss.appendAgent(&human_manager2);
 
 	while(ros::ok())
 	{

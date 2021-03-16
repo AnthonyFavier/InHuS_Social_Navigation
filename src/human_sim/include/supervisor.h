@@ -38,6 +38,7 @@ private:
 
 	void askPlan();
 	void updateMarkerPose(float x, float y, float alpha);
+	void statePrint();
 
 ////////// ATTRIBUTES //////////
 
@@ -83,6 +84,7 @@ private:
 	// States //
 	enum StateGlobal{WAIT_GOAL, ASK_PLAN, EXEC_PLAN, SUSPENDED};
 	StateGlobal global_state_;
+	StateGlobal global_state_previous_;
 
 	// Params
 	ros::Rate replan_freq_;

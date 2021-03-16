@@ -61,6 +61,7 @@ Supervisor::Supervisor()
 	marker_rviz_.color.a = 			0;
 
 	global_state_ = WAIT_GOAL;
+	global_state_previous_ = SUSPENDED;
 	goal_received_ = false;
 	goal_status_.status = 0;
 
@@ -78,11 +79,12 @@ Supervisor::Supervisor()
 
 void Supervisor::FSM()
 {
+	this->statePrint();
 	switch(global_state_)
 	{
 		case WAIT_GOAL:
 		// Wait for goal from HumanBehaviorModel
-			ROS_INFO("\t => WAIT_GOAL <=");
+			//ROS_INFO("\t => WAIT_GOAL <=");
 			if(goal_received_)
 			{
 				goal_received_ = false;
@@ -93,14 +95,14 @@ void Supervisor::FSM()
 			break;
 
 		case ASK_PLAN:
-			ROS_INFO("\t => ASK_PLAN <=");
+			//ROS_INFO("\t => ASK_PLAN <=");
 			this->askPlan();
 			plan_.show();
 			global_state_ = EXEC_PLAN;
 			break;
 
 		case EXEC_PLAN:
-			ROS_INFO("\t => EXEC_PLAN <=");
+			//ROS_INFO("\t => EXEC_PLAN <=");
 			//ROS_INFO("current_goal : %s (%f, %f, %f)", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
 			if(goal_received_)
 			{
@@ -141,7 +143,7 @@ void Supervisor::FSM()
 					{
 						case PLANNED:
 						case NEEDED:
-							ROS_INFO("NEEDED");
+							//ROS_INFO("NEEDED");
 							// check preconditions
 							// => for now no checking
 
@@ -153,7 +155,7 @@ void Supervisor::FSM()
 
 						case READY:
 						{
-							ROS_INFO("READY");
+							//ROS_INFO("READY");
 							human_sim::Signal srv_init_conflict;
 							client_init_check_conflict_.call(srv_init_conflict);
 
@@ -186,7 +188,7 @@ void Supervisor::FSM()
 						}
 
 						case PROGRESS:
-							ROS_INFO("PROGRESS");
+							//ROS_INFO("PROGRESS");
 							msg_.data = "SUPERVISOR STATE PROGRESS " + std::to_string(ros::Time::now().toSec());
 							pub_log_.publish(msg_);
 
@@ -212,7 +214,7 @@ void Supervisor::FSM()
 								if(goal_status_.status == actionlib::SimpleClientGoalState::LOST
 								|| (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
 								{
-									ROS_INFO("=> Resend !");
+									//ROS_INFO("=> Resend !");
 
 									move_base_msgs::MoveBaseActionGoal goal;
 									goal.goal.target_pose.header.frame_id = "map";
@@ -245,9 +247,35 @@ void Supervisor::FSM()
 			break;
 
 		case SUSPENDED:
-			ROS_INFO("\t => SUSPENDED <=");
+			//ROS_INFO("\t => SUSPENDED <=");
 			break;
 	}
+}
+
+void Supervisor::statePrint()
+{
+	if(global_state_ != global_state_previous_)
+	{
+		switch(global_state_)
+		{
+			case WAIT_GOAL:
+				ROS_INFO("\t => WAIT_GOAL <=");
+				break;
+
+			case ASK_PLAN:
+				ROS_INFO("\t => ASK_PLAN <=");
+				break;
+
+			case EXEC_PLAN:
+				ROS_INFO("\t => EXEC_PLAN <=");
+				break;
+
+			case SUSPENDED:
+				ROS_INFO("\t => SUSPENDED <=");
+				break;
+		}
+	}
+	global_state_previous_ = global_state_;
 }
 
 void Supervisor::updateMarkerPose(float x, float y, float alpha)
