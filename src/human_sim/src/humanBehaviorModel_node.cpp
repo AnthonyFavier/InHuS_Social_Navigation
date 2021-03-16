@@ -171,7 +171,7 @@ void ConflictManager::loop()
 
 		case APPROACH:
 		{
-			msg_.data = "CONFLICTMANAGER STATE APPROACH " + std::to_string(ros::Time::now().toSec());
+			msg_.data = "CONFLICT_MANAGER STATE APPROACH " + std::to_string(ros::Time::now().toSec());
 			pub_log_.publish(msg_);
 
 			// if close enough => BLOCKED
@@ -286,7 +286,7 @@ void ConflictManager::loop()
 		}
 
 		case BLOCKED:
-			msg_.data = "CONFLICTMANAGER STATE BLOCKED " + std::to_string(ros::Time::now().toSec());
+			msg_.data = "CONFLICT_MANAGER STATE BLOCKED " + std::to_string(ros::Time::now().toSec());
 			pub_log_.publish(msg_);
 
 			// back to APPROACH if too far
@@ -351,7 +351,7 @@ void ConflictManager::pathCB(const nav_msgs::Path::ConstPtr& path)
 	float path_length = computePathLength(path.get());
 
 	std_msgs::String msg;
-	msg.data = "CONFLICTMANAGER " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
+	msg.data = "CONFLICT_MANAGER PATH " + std::to_string(path_length) + " " + std::to_string(path->header.stamp.toSec());
 	pub_log_.publish(msg);
 
 	if(state_global_ != BLOCKED && state_global_ != APPROACH)
@@ -367,7 +367,7 @@ void ConflictManager::pathCB(const nav_msgs::Path::ConstPtr& path)
 			//ROS_INFO("FIRST !");
 			// first w/o robot
 			previous_path_ = *path;
-			msg.data = "CONFLICTMANAGER FIRST " + std::to_string(path->header.stamp.toSec()) + " " + std::to_string(path_length);
+			msg.data = "CONFLICT_MANAGER FIRST " + std::to_string(path_length) + " " + std::to_string(path->header.stamp.toSec());
 			pub_log_.publish(msg);
 		}
 		else

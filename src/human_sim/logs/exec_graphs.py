@@ -44,14 +44,18 @@ for line in f:
         line = line.replace("\n","")
         mylist = line.split(" ")
 
-        if mylist[2] == 'SUPERVISOR' or mylist[2] == 'HUMAN_MODEL' or mylist[2] == 'LOG':
+        if mylist[2] == 'SUPERVISOR' or mylist[2] == 'HUMAN_MODEL' or mylist[2] == 'LOG' or mylist[2] == 'CONFLICT_MANAGER':
             if mylist[3] == 'DIST':
                 list_dist_data.append(float(mylist[4]))
                 list_dist_time.append(float(mylist[5]))
 
             elif mylist[3] == 'FIRST':
-                list_first_data.append(float(mylist[5]))
-                list_first_time.append(float(mylist[4]))
+                list_first_data.append(float(mylist[4]))
+                list_first_time.append(float(mylist[5]))
+
+            elif mylist[3] == "PATH":
+                list_path_data.append(float(mylist[4]))
+                list_path_time.append(float(mylist[5]))
 
             elif mylist[3] == 'STATE':
                 if mylist[4] == 'PROGRESS':
@@ -77,13 +81,6 @@ for line in f:
             elif mylist[3] == 'VEL_R':
                 list_vel_r_data.append(float(mylist[4]))
                 list_vel_r_time.append(float(mylist[0]))
-
-            else:
-                time = float(mylist[3])
-                path = float(mylist[4])
-
-                list_path_time.append(time)
-                list_path_data.append(path)
 
 f.close()
 

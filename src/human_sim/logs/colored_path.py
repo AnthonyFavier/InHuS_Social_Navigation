@@ -6,8 +6,8 @@ def convert_pose_map(pose):
     nx=int((pose[1]+8)/0.025)
     ny=int((pose[0]+2)/0.025)
     return (nx,ny)
- 
-def compute_color(time): 
+
+def compute_color(time):
     r=0
     g=0
     b=0
@@ -64,7 +64,7 @@ for line in f:
 f.close()
 
 
-im = Image.open("map.png").convert("RGBA")
+im = Image.open("log_data/map.png").convert("RGBA")
 draw = ImageDraw.Draw(im)
 
 size = 4
