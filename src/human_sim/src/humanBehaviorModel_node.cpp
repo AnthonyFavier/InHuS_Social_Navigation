@@ -1269,23 +1269,23 @@ void HumanBehaviorModel::setAttitudeCallback(const std_msgs::Int32::ConstPtr& ms
 	switch(msg->data)
 	{
 		case NONE: //0
-			//ROS_INFO("Attitude set : NONE");
+			ROS_INFO("Attitude set : NONE");
 			changed=true;
 			break;
 		case NON_STOP: //1
-			//ROS_INFO("Attitude set : NON_STOP");
+			ROS_INFO("Attitude set : NON_STOP");
 			changed=true;
 			break;
 		case RANDOM: //2
-			//ROS_INFO("Attitude set : RANDOM");
+			ROS_INFO("Attitude set : RANDOM");
 			changed=true;
 			break;
 		case STOP_LOOK: //3
-			//ROS_INFO("Attitude set : STOP_LOOK");
+			ROS_INFO("Attitude set : STOP_LOOK");
 			changed=true;
 			break;
 		case HARASS: //4
-			//ROS_INFO("Attitude set : HARASS");
+			ROS_INFO("Attitude set : HARASS");
 			changed=true;
 			break;
 

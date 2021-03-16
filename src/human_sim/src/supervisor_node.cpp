@@ -282,6 +282,7 @@ void Supervisor::askPlan()
 		ac.state=PLANNED;
 		plan_.addAction(ac);
 	}
+	plan_.updateState();
 }
 
 void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)

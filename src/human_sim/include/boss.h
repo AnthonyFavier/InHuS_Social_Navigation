@@ -25,6 +25,7 @@ class AgentManager
 public:
 	AgentManager(string name);
 	virtual void publishGoal(GoalArea goal) = 0;
+	virtual void showState() = 0;
 	string getName();
 	Type getType();
 	bool isGoalDone();
@@ -42,7 +43,10 @@ class HumanManager : public AgentManager
 public:
 	HumanManager(string name);
 	void publishGoal(GoalArea goal);
+	void showState();
+
 	void setAttitude(int attitude);
+
 private:
 	ros::Publisher pub_attitude_;
 
@@ -51,7 +55,7 @@ private:
 	ros::Subscriber sub_goal_start_;
 	void goalStartCB(const human_sim::Goal::ConstPtr& msg);
 
-	bool goal_done_;
+	int current_attitude_;
 };
 
 class RobotManager : public AgentManager
@@ -59,6 +63,8 @@ class RobotManager : public AgentManager
 public:
 	RobotManager(string name, string topic_goal, string topic_goal_status);
 	void publishGoal(GoalArea goal);
+	void showState();
+
 	geometry_msgs::PoseStamped getPose(human_sim::Goal goal);
 
 private:
@@ -72,6 +78,9 @@ class Boss
 {
 public:
 	Boss();
+	void initGoals();
+
+	void spawnThreadEndless();
 
 	void appendAgent(AgentManager* agent);
 
@@ -82,6 +91,9 @@ public:
 	bool showHumanAgents();
 
 	void wait(float delay);
+
+	void threadPubEndlessAgent1();
+	void threadPubEndlessAgent2();
 
 private:
 	void cleanInput();
@@ -94,8 +106,16 @@ private:
 	vector<AgentManager*> agent_managers_;
 
 	int choice_;
+	bool endless_agent1_on_;
+	int endless_agent1_;
+	int endless_agent1_i_;
+	bool endless_agent2_on_;
+	int endless_agent2_;
+	int endless_agent2_i_;
 
 	vector<GoalArea> list_goals_;
+	vector<GoalArea> endless_goals_agent1_;
+	vector<GoalArea> endless_goals_agent2_;
 };
 //////////////////////////////////////////////////
 
