@@ -142,13 +142,13 @@ geometry_msgs::PoseStamped RobotManager::getPose(human_sim::Goal goal)
 
 void RobotManager::goalStatusCB(const actionlib_msgs::GoalStatusArray::ConstPtr& msg)
 {
-	if(msg->status_list.size())
+	if(!msg->status_list.empty())
 	{
-		if(msg->status_list[0].status == 1) // ACTIVE
+		if(msg->status_list.back().status == 1) // ACTIVE
 			goal_done_ = false;
-		else if(msg->status_list[0].status == 0) // PENDING
+		else if(msg->status_list.back().status == 0) // PENDING
 			goal_done_ = false;
-		else if(msg->status_list[0].status == 3) // SUCCEEDED
+		else if(msg->status_list.back().status == 3) // SUCCEEDED
 			goal_done_ = true;
 		else
 			goal_done_ = false;
@@ -159,9 +159,12 @@ void RobotManager::goalStatusCB(const actionlib_msgs::GoalStatusArray::ConstPtr&
 ///////////////////////// BOSS //////////////////////////
 
 Boss::Boss()
+: endless_delay_(2)
 {
 	this->initGoals();
 
+	endless_agent1_ = 0;
+	endless_agent2_ = 0;
 	endless_agent1_on_ = false;
 	endless_agent2_on_ = false;
 	endless_agent1_i_ = endless_goals_agent1_.size()-1;
@@ -737,8 +740,7 @@ void Boss::threadPubEndlessAgent1()
 			{
 				endless_agent1_i_ = (endless_agent1_i_ + 1)%endless_goals_agent1_.size();
 				agent_managers_[endless_agent1_]->publishGoal(endless_goals_agent1_[endless_agent1_i_]);
-				while(ros::ok() && agent_managers_[endless_agent1_]->isGoalDone())
-					loop.sleep();
+				endless_delay_.sleep();
 			}
 		}
 		loop.sleep();
@@ -750,14 +752,13 @@ void Boss::threadPubEndlessAgent2()
 	ros::Rate loop(5);
 	while(ros::ok())
 	{
-		if(endless_agent2_on_ && int(agent_managers_.size()-1)>endless_agent2_)
+		if(endless_agent2_on_ && int(agent_managers_.size())>endless_agent2_)
 		{
 			if(agent_managers_[endless_agent2_]->isGoalDone())
 			{
 				endless_agent2_i_ = (endless_agent2_i_ + 1)%endless_goals_agent2_.size();
 				agent_managers_[endless_agent2_]->publishGoal(endless_goals_agent2_[endless_agent2_i_]);
-				while(ros::ok() && agent_managers_[endless_agent2_]->isGoalDone())
-					loop.sleep();
+				endless_delay_.sleep();
 			}
 		}
 		loop.sleep();

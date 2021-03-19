@@ -115,6 +115,7 @@ private:
 	bool endless_agent2_on_;
 	int endless_agent2_;
 	int endless_agent2_i_;
+	ros::Duration endless_delay_;
 
 	vector<GoalArea> list_goals_;
 	vector<GoalArea> endless_goals_agent1_;
