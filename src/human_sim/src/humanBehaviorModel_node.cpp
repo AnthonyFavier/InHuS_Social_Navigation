@@ -481,7 +481,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	model_pose_ = 	   	zero;
 	model_robot_pose_ =	zero;
 
-	current_goal_.type = 	"Position";
+	current_goal_.type = 	"navigation";
 	current_goal_.x  =	0;
 	current_goal_.y = 	0;
 	current_goal_.theta = 	0;
@@ -516,7 +516,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 
 	// INIT GOALS //
 	GoalArea area;
-	area.goal.type="Position";
+	area.goal.type="navigation";
 
 	//1//
 	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
@@ -914,7 +914,7 @@ human_sim::Goal HumanBehaviorModel::chooseGoal(bool random)
 
 		//ROS_INFO("alpha=%f, r=%f", alpha, r);
 
-		goal.type = "Position";
+		goal.type = "navigation";
 		goal.x = known_goals_[i].goal.x + r * cos(alpha);
 		goal.y = known_goals_[i].goal.y + r * sin(alpha);
 		goal.theta = 0;
@@ -1240,16 +1240,8 @@ void HumanBehaviorModel::goalDoneCallback(const human_sim::Goal::ConstPtr& msg)
 
 void HumanBehaviorModel::newGoalCallback(const human_sim::Goal::ConstPtr& goal)
 {
-	previous_goal_.x = 	current_goal_.x;
-	previous_goal_.y = 	current_goal_.y;
-	previous_goal_.theta = 	current_goal_.theta;
-
-	current_goal_.x = 	goal->x;
-	current_goal_.y = 	goal->y;
-	current_goal_.theta = 	goal->theta;
-
-	//ROS_INFO("CB current_goal = %.2f,%.2f", current_goal_.x, current_goal_.y);
-	//ROS_INFO("CB previous_goal = %.2f,%.2f", previous_goal_.x, previous_goal_.y);
+	previous_goal_ = 	current_goal_;
+	current_goal_ = 	*goal;
 
 	this->publishGoal(current_goal_);
 }

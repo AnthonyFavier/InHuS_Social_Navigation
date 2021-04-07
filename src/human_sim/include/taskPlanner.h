@@ -4,8 +4,9 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "human_sim/ComputePlan.h"
+#include "human_sim/Action.h"
+#include "task.h"
 #include "geometry_msgs/Pose2D.h"
-#include <move_base_msgs/MoveBaseAction.h>
 #include <tf2/LinearMath/Quaternion.h>
 
 class TaskPlanner

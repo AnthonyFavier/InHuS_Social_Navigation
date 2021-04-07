@@ -172,7 +172,7 @@ void Boss::initGoals()
 {
 	// init goals
 	GoalArea area;
-	area.goal.type="Position";
+	area.goal.type="navigation";
 
 	//0// to have easier index
 	list_goals_.push_back(area);

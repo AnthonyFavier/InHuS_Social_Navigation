@@ -72,9 +72,6 @@ Supervisor::Supervisor()
 	robot_pose_.x = 0;
 	robot_pose_.y = 0;
 	robot_pose_.theta = 0;
-
-	ros::service::waitForService("compute_plan");
-	//ROS_INFO("Connected to taskPlanner server");
 }
 
 void Supervisor::FSM()
@@ -84,7 +81,6 @@ void Supervisor::FSM()
 	{
 		case WAIT_GOAL:
 		// Wait for goal from HumanBehaviorModel
-			//ROS_INFO("\t => WAIT_GOAL <=");
 			if(goal_received_)
 			{
 				goal_received_ = false;
@@ -95,15 +91,12 @@ void Supervisor::FSM()
 			break;
 
 		case ASK_PLAN:
-			//ROS_INFO("\t => ASK_PLAN <=");
 			this->askPlan();
 			plan_.show();
 			global_state_ = EXEC_PLAN;
 			break;
 
 		case EXEC_PLAN:
-			//ROS_INFO("\t => EXEC_PLAN <=");
-			//ROS_INFO("current_goal : %s (%f, %f, %f)", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
 			if(goal_received_)
 			{
 				goal_received_ = false;
@@ -111,7 +104,7 @@ void Supervisor::FSM()
 			}
 			else
 			{
-				plan_.show();
+				//plan_.show();
 				if(plan_.isDone())
 				{
 					ROS_INFO("Plan is DONE !");
@@ -122,124 +115,113 @@ void Supervisor::FSM()
 				}
 				else
 				{
-					// check current action
-					// if PLANNED or NEEDED
-					// 	check precond
-					// 	if ok -> READY
-					// 	else -> NEEDED
-					//
-					// else if current action READY
-					// 	do action (send to geometric planner)
-					// 	action -> progress
-					//
-					// else if PROGRESS
-					// 	check postcondition
-					// 	if ok -> DONE
-
 					plan_.updateCurrentAction();
-					std::vector<Action>::iterator curr_action = plan_.getCurrentAction();
+					std::vector<human_sim::Action>::iterator curr_action = plan_.getCurrentAction();
 
-					switch((*curr_action).state)
+					if((*curr_action).type == "navigation")
 					{
-						case PLANNED:
-						case NEEDED:
-							//ROS_INFO("NEEDED");
-							// check preconditions
-							// => for now no checking
-
-							//if(precond==ok)
-								(*curr_action).state=READY;
-							//else
-							//	(*curr_action).state=NEEDED;
-							break;
-
-						case READY:
+						switch((*curr_action).state)
 						{
-							//ROS_INFO("READY");
-							human_sim::Signal srv_init_conflict;
-							client_init_check_conflict_.call(srv_init_conflict);
+							case STATE_PLANNED:
+							case STATE_NEEDED:
+								//ROS_INFO("PLANNED");
 
-							// plan without robot first
-							//ROS_INFO("Plan without robot");
+								// check preconditions
+								// => for now no checking
+								//if(precond==ok)
+									(*curr_action).state=STATE_READY;
+								//else
+								//	(*curr_action).state=NEEDED;
+								break;
 
-							// remove robot
-							srv_place_robot_hm_.request.data = false;
-							client_place_robot_hm_.call(srv_place_robot_hm_);
-							place_robot_delay_.sleep(); // wait delay
-
-							// send to geometric planner
-							move_base_msgs::MoveBaseActionGoal goal;
-							goal.goal.target_pose.header.frame_id = "map";
-							goal.goal.target_pose.header.stamp = ros::Time::now();
-							goal.goal = (*curr_action).action;
-							pub_goal_move_base_.publish(goal);
-
-							this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x,
-									(*curr_action).action.target_pose.pose.position.y, 1);
-							last_replan_ = ros::Time::now();
-
-							// place robot back
-							srv_place_robot_hm_.request.data = true;
-							client_place_robot_hm_.call(srv_place_robot_hm_);
-							place_robot_delay_.sleep(); // wait delay
-
-							(*curr_action).state=PROGRESS;
-							break;
-						}
-
-						case PROGRESS:
-							//ROS_INFO("PROGRESS");
-							msg_.data = "SUPERVISOR STATE PROGRESS " + std::to_string(ros::Time::now().toSec());
-							pub_log_.publish(msg_);
-
-							// check postconditions
-							// for now : if geometric planner tells action is done
-							if(goal_status_.status == 3) // SUCCEEDED
+							case STATE_READY:
 							{
-								ROS_INFO("Client succeeded");
-								this->updateMarkerPose(0, 0, 0);
-								(*curr_action).state = DONE;
+								//ROS_INFO("READY");
+								human_sim::Signal srv_init_conflict;
+								client_init_check_conflict_.call(srv_init_conflict);
+
+								// plan without robot first //
+
+								// remove robot
+								srv_place_robot_hm_.request.data = false;
+								client_place_robot_hm_.call(srv_place_robot_hm_);
+								place_robot_delay_.sleep(); // wait delay
+
+								// send to geometric planner
+								move_base_msgs::MoveBaseActionGoal nav_goal;
+								nav_goal.goal.target_pose.header.frame_id = "map";
+								nav_goal.goal.target_pose.header.stamp = ros::Time::now();
+								nav_goal.goal = (*curr_action).nav_goal;
+								pub_goal_move_base_.publish(nav_goal);
+
+								this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
+										(*curr_action).nav_goal.target_pose.pose.position.y, 1);
+								last_replan_ = ros::Time::now();
+
+								// place robot back
+								srv_place_robot_hm_.request.data = true;
+								client_place_robot_hm_.call(srv_place_robot_hm_);
+								place_robot_delay_.sleep(); // wait delay
+
+								(*curr_action).state=STATE_PROGRESS;
+								break;
 							}
-							/*else if(goal_status_.status == 2) // PREEMPTED
-							{
-								ROS_INFO("PREEMPTED");
-								this->updateMarkerPose(0, 0, 0);
-								global_state_ = WAIT_GOAL;
 
-							}*/
-							// If not too close, try to replan
-							else if((int)current_path_.poses.size()==0 || computePathLength(&current_path_) > replan_dist_stop_)
-							{
-								//ROS_INFO("Test for resend");
-								if(goal_status_.status == actionlib::SimpleClientGoalState::LOST
-								|| (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
+							case STATE_PROGRESS:
+								//ROS_INFO("PROGRESS");
+								msg_.data = "SUPERVISOR STATE PROGRESS " + std::to_string(ros::Time::now().toSec());
+								pub_log_.publish(msg_);
+
+								// check postconditions
+								// for now : if geometric planner tells action is done
+								if(goal_status_.status == 3) // SUCCEEDED
 								{
-									//ROS_INFO("=> Resend !");
-
-									move_base_msgs::MoveBaseActionGoal goal;
-									goal.goal.target_pose.header.frame_id = "map";
-									goal.goal.target_pose.header.stamp = ros::Time::now();
-									goal.goal = (*curr_action).action;
-									pub_goal_move_base_.publish(goal);
-
-									this->updateMarkerPose((*curr_action).action.target_pose.pose.position.x,
-										(*curr_action).action.target_pose.pose.position.y, 1);
-									last_replan_ = ros::Time::now();
+									ROS_INFO("Client succeeded");
+									this->updateMarkerPose(0, 0, 0);
+									(*curr_action).state = STATE_DONE;
 								}
-							}
+								/*else if(goal_status_.status == 2) // PREEMPTED
+								{
+									ROS_INFO("PREEMPTED");
+									this->updateMarkerPose(0, 0, 0);
+									global_state_ = WAIT_GOAL;
+								}*/
+								// If not too close, try to replan
+								else if((int)current_path_.poses.size()==0 || computePathLength(&current_path_) > replan_dist_stop_)
+								{
+									//ROS_INFO("Test for resend");
+									if(goal_status_.status == actionlib::SimpleClientGoalState::LOST
+									|| (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
+									{
+										//ROS_INFO("=> Resend !");
 
-							// Check if blocked
-							ros::spinOnce();
-							human_sim::ActionBool srv;
-							srv.request.action = (*curr_action).action;
-							client_check_conflict_.call(srv);
-							if(srv.response.conflict)
-							{
-								ROS_INFO("CONFLICT !");
-								global_state_ = SUSPENDED;
-							}
-							break;
+										move_base_msgs::MoveBaseActionGoal nav_goal;
+										nav_goal.goal.target_pose.header.frame_id = "map";
+										nav_goal.goal.target_pose.header.stamp = ros::Time::now();
+										nav_goal.goal = (*curr_action).nav_goal;
+										pub_goal_move_base_.publish(nav_goal);
+
+										this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
+											(*curr_action).nav_goal.target_pose.pose.position.y, 1);
+										last_replan_ = ros::Time::now();
+									}
+								}
+
+								// Check if blocked
+								ros::spinOnce();
+								human_sim::ActionBool srv;
+								srv.request.action = (*curr_action).nav_goal;
+								client_check_conflict_.call(srv);
+								if(srv.response.conflict)
+								{
+									ROS_INFO("CONFLICT !");
+									global_state_ = SUSPENDED;
+								}
+								break;
+						}
 					}
+					else
+					{}
 
 					plan_.updateState();
 				}
@@ -247,7 +229,6 @@ void Supervisor::FSM()
 			break;
 
 		case SUSPENDED:
-			//ROS_INFO("\t => SUSPENDED <=");
 			break;
 	}
 }
@@ -268,6 +249,7 @@ void Supervisor::statePrint()
 
 			case EXEC_PLAN:
 				ROS_INFO("\t => EXEC_PLAN <=");
+				//ROS_INFO("current_goal : %s (%f, %f, %f)", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
 				break;
 
 			case SUSPENDED:
@@ -292,37 +274,22 @@ void Supervisor::askPlan()
 	plan_.clear();
 
 	human_sim::ComputePlan srv;
-	srv.request.goal.type = 	current_goal_.type;
-	srv.request.goal.x = 		current_goal_.x;
-	srv.request.goal.y = 		current_goal_.y;
-	srv.request.goal.theta = 	current_goal_.theta;
+	srv.request.goal = current_goal_;
 	ros::service::waitForService("compute_plan");
 	while(!client_plan_.call(srv))
 	{
 		ROS_ERROR("Failure while asking for a plan, asking again in 1s");
 		ros::Duration(1).sleep();
 	}
-
-	Action ac;
 	for(int i=0; i<srv.response.actions.size(); i++)
-	{
-		ac.action = srv.response.actions[i];
-		ac.state=PLANNED;
-		plan_.addAction(ac);
-	}
+		plan_.addAction(srv.response.actions[i]);
 	plan_.updateState();
 }
 
 void Supervisor::newGoalCallback(const human_sim::GoalConstPtr& msg)
 {
-	//ROS_INFO("New goal received!");
-
 	goal_received_ = 	true;
-
-	current_goal_.type=msg->type;
-	current_goal_.x=msg->x;
-	current_goal_.y=msg->y;
-	current_goal_.theta=msg->theta;
+	current_goal_ = *msg;
 }
 
 bool Supervisor::srvSetWaitGoal(human_sim::Signal::Request &req, human_sim::Signal::Response &res)

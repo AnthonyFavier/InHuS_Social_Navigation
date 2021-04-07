@@ -3,17 +3,15 @@
 
 #include "ros/ros.h"
 #include <vector>
-#include <move_base_msgs/MoveBaseAction.h>
+#include "human_sim/Action.h"
 
-enum State{UNKNOWN=0, PLANNED, NEEDED, READY, PROGRESS, DONE, FAILED};
-
-/////////////////// ACTION //////////////////////
-
-struct Action
-{
-	move_base_msgs::MoveBaseGoal action;
-	State state;
-};
+#define STATE_UNKNOWN 0
+#define STATE_PLANNED 1
+#define STATE_NEEDED 2
+#define STATE_READY 3
+#define STATE_PROGRESS 4
+#define STATE_DONE 5
+#define STATE_FAILED 6
 
 ////////////////////// PLAN /////////////////////
 
@@ -22,23 +20,21 @@ class Plan
 public:
 	Plan();
 
-	void addAction(Action action);
+	void addAction(human_sim::Action action);
 
 	void show();
 	void clear();
 
-	void setState(State state);
-
 	bool isDone();
 
 	void updateCurrentAction();
-	std::vector<Action>::iterator getCurrentAction();
+	std::vector<human_sim::Action>::iterator getCurrentAction();
 	void updateState();
 
 private:
-	State state_;
-	std::vector<Action> action_series_;
-	std::vector<Action>::iterator curr_action_;
+	int state_;
+	std::vector<human_sim::Action> action_series_;
+	std::vector<human_sim::Action>::iterator curr_action_;
 };
 
 /////////////////////////////////////////////////

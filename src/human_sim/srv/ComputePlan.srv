@@ -1,3 +1,3 @@
 human_sim/Goal goal
 ---
-move_base_msgs/MoveBaseGoal[] actions
+human_sim/Action[] actions

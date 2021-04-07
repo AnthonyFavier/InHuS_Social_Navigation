@@ -12,22 +12,26 @@ TaskPlanner::TaskPlanner()
 
 bool TaskPlanner::computePlan(human_sim::ComputePlan::Request& req, human_sim::ComputePlan::Response& res)
 {
-	move_base_msgs::MoveBaseGoal action;
+	human_sim::Action action;
 
-	action.target_pose.header.frame_id = "map";
+	if(req.goal.type == "navigation")
+	{
+		action.type = "navigation";
+		action.state = STATE_PLANNED;
 
-	action.target_pose.header.stamp = ros::Time::now();
-	action.target_pose.pose.position.x =		req.goal.x;
-	action.target_pose.pose.position.y =		req.goal.y;
-	tf2::Quaternion q;
-	q.setRPY(0,0,req.goal.theta);
-	action.target_pose.pose.orientation.x =	q.x();
-	action.target_pose.pose.orientation.y =	q.y();
-	action.target_pose.pose.orientation.z =	q.z();
-	action.target_pose.pose.orientation.w =	q.w();
-	res.actions.push_back(action);
+		action.nav_goal.target_pose.header.frame_id = "map";
 
-	printf("plan done !\n");
+		action.nav_goal.target_pose.header.stamp = ros::Time::now();
+		action.nav_goal.target_pose.pose.position.x =		req.goal.x;
+		action.nav_goal.target_pose.pose.position.y =		req.goal.y;
+		tf2::Quaternion q;
+		q.setRPY(0,0,req.goal.theta);
+		action.nav_goal.target_pose.pose.orientation.x =	q.x();
+		action.nav_goal.target_pose.pose.orientation.y =	q.y();
+		action.nav_goal.target_pose.pose.orientation.z =	q.z();
+		action.nav_goal.target_pose.pose.orientation.w =	q.w();
+		res.actions.push_back(action);
+	}
 
 	return true;
 }
