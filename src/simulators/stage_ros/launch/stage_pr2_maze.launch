@@ -1,0 +1,27 @@
+<launch>
+  <arg name="fast_mode" default="false"/>
+  <arg name="gui" default="false"/>
+  <arg name="mode" default="" unless="$(arg fast_mode)"/>
+  <arg name="mode" value="-f" if="$(arg fast_mode)"/>
+  <arg name="graphics" default="-g" unless="$(arg gui)"/>
+  <arg name="graphics" value="" if="$(arg gui)"/>
+  <arg name="world_file" default="$(find stage_ros)/worlds/maze_simplified.world" unless="$(arg gui)"/>
+  <arg name="world_file" value="$(find stage_ros)/worlds/maze.world" if="$(arg gui)"/>
+
+  <master auto="start"/>
+  <param name="/use_sim_time" value="true"/>
+
+  <node pkg="stage_ros" type="stageros" name="stageros" args="$arg -u $(arg graphics) $(arg mode) $(arg world_file)" respawn="false">
+    <param name="base_watchdog_timeout" value="0.2"/>
+  </node>
+
+  <param name="robot_description" command="cat $(find morse_ros)/urdf/pr2.urdf" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <rosparam param="source_list">["/stage_joint_states"]</rosparam>
+    <param name="rate" value="50"/>
+  </node>
+
+  <node name="stage_joints" pkg="stage_ros" type="stage_joints.py"/>
+</launch>

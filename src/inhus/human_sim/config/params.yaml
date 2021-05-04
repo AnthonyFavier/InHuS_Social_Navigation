@@ -1,0 +1,84 @@
+# do not enter zero frequencies
+
+#####################################################
+# Common between supervisor and humanBehaviorModel ##
+#####################################################
+
+### Replan global path
+replan_freq: 2.0
+  #=> frequency to replan global path
+replan_dist_stop: 0.5
+  #=> if distance to goal is less than this then stop replan
+
+### PlaceRobot
+place_robot_delay: 0.3
+  #=> duration waited after calling place_robot service to "be sure" it's effective
+
+###########################
+humanBehaviorModel_node: ##
+###########################
+
+### Cmd perturbation
+  ratio_perturbation_cmd: 0.0
+    #=> perturbate cmd_vel 0.2 <=> +/- 20% of cmd_vel value
+
+### Check see robot
+  fov: 180
+    #=> field of view of the human in degrees and in [180;-180]
+  check_see_robot_freq: 5.0
+    #=> frequence at which the human checks if he sees the robot
+  delay_forget_robot: 1.5
+    #=> delay after the last time the robot has been seen to forget the robot pose
+
+### TTC
+  human_radius: 0.30
+  robot_radius: 0.325
+    #=> radius of both human and robot to compute TTC (Time To Collision)
+
+###############
+## Attitudes ##
+###############
+
+### Attitude RANDOM
+  b_random_chance_choose: 30
+  b_random_try_freq: 0.5
+    #=> b_random_chance_choose% chance every 1/b_random_try_freq seconds to choose a new goal
+
+### Attitude STOP_LOOK
+  b_stop_look_dist_near_robot: 2.0
+    #=> distance from which stop goal and look at robot for some time
+  b_stop_look_stop_dur: 2.0
+    #=> duration look at robot before resuming goal
+
+### Attitude HARASS
+  b_harass_dist_in_front: 2.0
+    #=> distance in front of robot as goal
+  b_harass_replan_freq: 2.0
+    #=> frequency to replan for goal in front of robot
+
+#####################
+## ConflictManager ##
+#####################
+
+### Changed too much
+  blocked_ask_path_freq: 2.0
+    #=> frequency ask global path when blocked
+  absolute_path_length_diff: 1.0
+    #=> if length difference between the path received and the previous stored path is less than this then concidered as "good global path"
+  ratio_path_length_diff: 1.3
+    #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good global path"
+
+### Approach
+  approach_dist: 1.5
+    #=> when blocked, get close until this distance to the robot by ignoring it
+  approach_freq: 2.0
+    #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
+
+####################
+placeRobot_node: ##
+####################
+
+  size_rob: 0.6
+    #=> size of robot to add on costmap (one side of a square)
+  dist_threshold: 5.0
+    #=> distance above which the robot isn't drawn on costmap

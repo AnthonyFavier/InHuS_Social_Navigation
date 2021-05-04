@@ -1,0 +1,6 @@
+<launch>
+
+	<node name="place_human_node" pkg="smb" type="place_human_node" ns="robot"/>
+	<node name="preprocessing_r_node" pkg="smb" type="preprocessing_r_node" ns="robot"/>
+
+</launch>

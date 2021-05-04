@@ -1,0 +1,7 @@
+<launch>
+
+	<include file="$(find smb)/launch/map.launch"/>
+	<include file="$(find smb)/launch/move_base.launch"/>
+	<include file="$(find smb)/launch/robot.launch"/>
+
+</launch>

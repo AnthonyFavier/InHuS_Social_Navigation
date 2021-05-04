@@ -1,0 +1,7 @@
+<launch>
+    <!-- setting up robot frames and model -->
+    <param name="robot_description" command="cat $(find morse_ros)/urdf/pr2.urdf" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    <arg name="publish_tf" value="false" />
+
+</launch>

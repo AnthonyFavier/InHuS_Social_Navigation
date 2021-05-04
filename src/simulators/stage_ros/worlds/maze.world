@@ -1,0 +1,388 @@
+show_clock 0
+show_clock_interval 10000
+threads 4
+
+define block_box model
+(
+  size [0.5 0.5 0.5]
+  gui_nose 0
+)
+
+define lidar model
+(
+  size [0.15 0.1 0.1]
+  gui_nose 1
+)
+
+define torso_bottom model
+(
+  size [0.2 0.6 0.75]
+  gui_nose 1
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.42]
+    )
+)
+
+define torso_top model
+(
+  size [0.6 0.6 0.1]
+  gui_nose 1
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.42]
+    )
+)
+
+define hand_box1 model
+(
+  size [0.35 0.25 0.25]
+  gui_nose 1
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.25]
+    )
+)
+
+define hand_box2 model
+(
+  size [0.25 0.15 0.42]
+  gui_nose 1
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.42]
+    )
+)
+
+define hand_box3 model
+(
+  size [0.13 0.29 0.1]
+  gui_nose 1
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.1]
+    )
+)
+
+define head model
+(
+  size [0.35 0.4 0.15]
+  gui_nose 1
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.42]
+    )
+)
+
+define face model
+(
+  size [0.1 0.35 0.25]
+  gui_nose 1
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.42]
+    )
+)
+
+define laser_sensor ranger
+(
+  sensor(
+    range [ 0.0 7.0 ]
+    fov 270.25
+    samples 1081
+  )
+  # generic model properties
+  color "black"
+  size [ 0.050 0.050 0.100 ]
+)
+
+define pr2 position
+(
+  size [0.650 0.650 0.250]
+  origin [-0.050 0 0 0]
+  gui_nose 1
+  drive "omni"
+  laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
+
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.25]
+    )
+  lidar(pose [ 0.19 0.0 0.0 0.0 ] color "black")
+  torso_bottom(pose [ -0.25 0.0 0.0 0.0 ] color "white")
+  torso_top(pose [-0.05 0.0 0.75 0.0 ] color "white")
+  hand_box3(pose [0 -0.15 0.1 0.0 ] color "gray")
+  hand_box2(pose [-0.05 -0.25 0.08 0.0 ] color "green")
+  hand_box1(pose [0 -0.2 0.5 0.0 ] color "blue")
+  hand_box3(pose [0 0.15 0.1 0.0 ] color "gray")
+  hand_box2(pose [-0.05 0.25 0.08 0.0 ] color "green")
+  hand_box1(pose [0 0.2 0.5 0.0 ] color "blue")
+  head(pose [-0.1 0.0 0.85 0 ] color "blue")
+  face(pose [0.0 0.0 0.85 0 ] color "green")
+)
+
+
+define human_leg model
+(
+  size [0.15 0.15 0.6]
+  gui_nose 0
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.25]
+    )
+)
+
+define human_hand model
+(
+  size [0.08 0.08 0.25]
+  gui_nose 0
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.25]
+    )
+)
+
+define human_fist model
+(
+  size [0.1 0.1 0.1]
+  gui_nose 0
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.25]
+    )
+)
+
+define human_shoulder model
+(
+  size [0.2 0.12 0.15]
+  gui_nose 0
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.25]
+    )
+)
+
+define human_torso model
+(
+  size [0.2 0.4 0.5]
+  gui_nose 0
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.25]
+    )
+)
+
+define human_head model
+(
+  size [0.25 0.25 0.15]
+  gui_nose 0
+  block
+    (
+      points 8
+      point[7] [0.05 0]
+      point[6] [0 0.05]
+      point[5] [0 0.95]
+      point[4] [0.05 1]
+      point[3] [0.95 1]
+      point[2] [1 0.95]
+      point[1] [1 0.05]
+      point[0] [0.95 0]
+      z [0 0.25]
+    )
+)
+
+define cap_b model
+(
+  size [0.35 0.26 0.02]
+  gui_nose 0
+)
+
+define cap model
+(
+  size [0.26 0.26 0.15]
+  gui_nose 0
+)
+
+define human position
+(
+  bitmap "images/human_base.png"
+  size [0.60 0.60 0.25]
+  origin [0.0 0 0 0]
+  gui_nose 1
+  localization "gps"
+  drive "omni"
+  #laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
+
+    cap_b(pose [0.05 0.0 1.25 0 ] color "brown")
+    cap(pose [0.0 0.0 1.27 0 ] color "brown")
+    human_head(pose [0.0 0.0 1.1 0 ] color "khaki")
+    human_torso(pose [0.0  0.0 0.6 0 ] color "orange")
+    human_shoulder(pose [0.0  -0.25 0.95 0 ] color "orange")
+    human_shoulder(pose [0.0  0.25 0.95 0 ] color "orange")
+    human_hand(pose [0.0  0.25 0.7 0 ] color "khaki")
+    human_hand(pose [0.0 -0.25 0.7 0 ] color "khaki")
+    human_fist(pose [0.0 -0.25 0.6 0 ] color "khaki")
+    human_fist(pose [0.0 0.25 0.6 0 ] color "khaki")
+    human_leg(pose [0.0  0.1 0.0 0 ] color "gray")
+    human_leg(pose [0.0 -0.1 0.0 0 ] color "gray")
+)
+
+define floorplan model
+(
+  # sombre, sensible, artistic
+  color "gray30"
+
+  # most maps will need a bounding box
+  boundary 1
+
+  gui_nose 0
+  gui_grid 0
+
+  gui_outline 1
+  gripper_return 0
+  fiducial_return 0
+  ranger_return 1
+)
+
+# set the resolution of the underlying raytrace model in meters
+resolution 0.01
+
+interval_sim 20  # simulation timestep in milliseconds
+
+window
+(
+  size [ 745.000 448.000 ]
+  rotate [ 0.000 0.000 ]
+  scale 28.806
+)
+
+# load an environment bitmap
+floorplan
+(
+  name "laas"
+  bitmap "maps/maze.pgm"
+  size [45 90 2.0 ]
+  pose [22.571 45.049 0.000 0.000]
+)
+
+# throw in a robot (always the robot first)
+pr2( pose [ 2.0 2.0 0 0 ] name "pr2" color "gray")
+human( pose [ 3.0 1.0 0 0 ] name "human1" color "blue")
+human( pose [ 7.0 5.0 0 0 ] name "human2" color "green")

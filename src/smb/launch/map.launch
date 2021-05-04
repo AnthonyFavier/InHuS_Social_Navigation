@@ -1,0 +1,6 @@
+<launch>
+
+	<arg name="map_file" default="$(find smb)/maps/laas_adream.yaml"/>
+	<node name="map_server" pkg="map_server" type="map_server" ns="robot" args="$(arg map_file)"/>
+
+</launch>
