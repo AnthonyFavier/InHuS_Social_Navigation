@@ -1,0 +1,5 @@
+<launch>
+
+  <node name="test_get_path_node" type="test_get_path_node" pkg="human_sim" ns="human" output="screen"/>
+
+</launch>
