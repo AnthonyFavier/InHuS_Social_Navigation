@@ -86,7 +86,3 @@ target_link_libraries(lowLevelController_node ${catkin_LIBRARIES})
 add_executable(boss_node src/boss_node.cpp)
 add_dependencies(boss_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(boss_node ${catkin_LIBRARIES})
-
-add_executable(test_get_path_node src/test_get_path_node.cpp)
-add_dependencies(test_get_path_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(test_get_path_node ${catkin_LIBRARIES})
