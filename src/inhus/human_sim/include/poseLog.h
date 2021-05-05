@@ -4,7 +4,7 @@
 #include "ros/ros.h"
 #include <ros/package.h>
 #include "std_msgs/String.h"
-#include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/Pose2D.h"
 #include <fstream>
 
 using namespace std;
@@ -14,8 +14,8 @@ class PoseLog
 public:
 	PoseLog();
 	~PoseLog();
-	void poseHCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
-	void poseRCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+	void poseHCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
+	void poseRCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 private:
 	ros::NodeHandle nh_;
 	ros::Subscriber sub_pose_H_;

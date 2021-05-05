@@ -63,11 +63,11 @@ add_executable(taskPlanner_node src/taskPlanner_node.cpp src/task.cpp)
 add_dependencies(taskPlanner_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(taskPlanner_node ${catkin_LIBRARIES})
 
-add_executable(input_node src/input_interface_node.cpp)
+add_executable(input_node src/interface_input_node.cpp)
 add_dependencies(input_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(input_node ${catkin_LIBRARIES})
 
-add_executable(output_node src/output_interface_node.cpp)
+add_executable(output_node src/interface_output_node.cpp)
 add_dependencies(output_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(output_node ${catkin_LIBRARIES})
 

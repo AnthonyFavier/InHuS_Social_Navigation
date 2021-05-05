@@ -10,8 +10,8 @@ PoseLog::PoseLog()
 	log_file_.open(path_ + "/logs/log_data/poseLog.txt");
 	log_file_ << "LOG STARTS : " << ros::Time::now() << endl;
 
-	sub_pose_H_ = nh_.subscribe("interface/human_pose", 100, &PoseLog::poseHCallback, this);
-	sub_pose_R_ = nh_.subscribe("interface/robot_pose", 100, &PoseLog::poseRCallback, this);
+	sub_pose_H_ = nh_.subscribe("interface/in/human_pose", 100, &PoseLog::poseHCallback, this);
+	sub_pose_R_ = nh_.subscribe("interface/in/robot_pose", 100, &PoseLog::poseRCallback, this);
 }
 
 PoseLog::~PoseLog()
@@ -19,14 +19,14 @@ PoseLog::~PoseLog()
 	log_file_.close();
 }
 
-void PoseLog::poseHCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+void PoseLog::poseHCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
-	log_file_ << ros::Time::now() << " : H " << std::to_string(msg->header.stamp.toSec()) << " " << msg->pose.position.x << " " << msg->pose.position.y << endl;
+	log_file_ << ros::Time::now() << " : H " << std::to_string(ros::Time::now().toSec()) << " " << msg->x << " " << msg->y << endl;
 }
 
-void PoseLog::poseRCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+void PoseLog::poseRCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
-	log_file_ << ros::Time::now() << " : R " << std::to_string(msg->header.stamp.toSec()) << " " << msg->pose.position.x << " " << msg->pose.position.y << endl;
+	log_file_ << ros::Time::now() << " : R " << std::to_string(ros::Time::now().toSec()) << " " << msg->x << " " << msg->y << endl;
 }
 
 //////////////////////// MAIN ///////////////////////////////
