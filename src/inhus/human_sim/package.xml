@@ -4,7 +4,7 @@
   <version>0.0.0</version>
   <description>The human_sim package</description>
 
-  <maintainer email="rhaynnix@todo.todo">rhaynnix</maintainer>
+  <maintainer email="anthony.favier@laas.fr">Anthony Favier</maintainer>
 
   <license>TODO</license>
 
@@ -36,8 +36,8 @@
   <exec_depend>roslib</exec_depend>
   <exec_depend>tf</exec_depend>
 
-  <exec_depend>move_human</exec_depend>
-  <build_depend>move_human</build_depend>
+  <exec_depend>inhus_navigation</exec_depend>
+  <build_depend>inhus_navigation</build_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

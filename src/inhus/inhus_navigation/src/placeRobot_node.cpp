@@ -42,7 +42,7 @@ PlaceRobotMap::PlaceRobotMap()
 	point.z = 0.0;
 	point.x = -size_rob_/2;
 	point.y = -size_rob_/2;
-	cloud.points.push_back(point);	
+	cloud.points.push_back(point);
 	point.x = -size_rob_/2;
 	point.y = 0.01;
 	cloud.points.push_back(point);
@@ -77,7 +77,7 @@ PlaceRobotMap::PlaceRobotMap()
 	place_robot_server_ = nh_.advertiseService("place_robot", &PlaceRobotMap::placeRobotSrv, this);
 }
 
-bool PlaceRobotMap::placeRobotSrv(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
+bool PlaceRobotMap::placeRobotSrv(inhus_navigation::PlaceRobot::Request& req, inhus_navigation::PlaceRobot::Response& res)
 {
 	place_robot_ = req.data;
 
@@ -98,7 +98,7 @@ void PlaceRobotMap::placeRobot()
 			robot_pose_pub_.publish(robot_pose_PointCloud2_);
 		}
 		else
-		{	
+		{
 			// publish empty
 			empty_PointCloud2_.header.stamp = ros::Time::now();
 			robot_pose_pub_.publish(empty_PointCloud2_);

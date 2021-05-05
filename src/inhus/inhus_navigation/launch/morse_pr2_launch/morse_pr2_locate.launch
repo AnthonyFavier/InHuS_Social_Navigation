@@ -1,0 +1,31 @@
+<launch>
+  <arg name="map_name" default="laas_adream"/>
+  <arg name="localize" default="fake"/>
+
+  <!-- start map_server with laas_adream map -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find inhus_navigation)/maps/laas_adream.yaml" if="$(eval 'laas_adream'==arg('map_name'))"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find inhus_navigation)/maps/maze.yaml" if="$(eval 'maze'==arg('map_name'))"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find inhus_navigation)/maps/open_space.yaml" if="$(eval 'open_space'==arg('map_name'))"/>
+
+  <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="true" output="screen" if="$(eval 'fake'==arg('localize'))">
+    <param name="odom_frame_id" value="odom" />
+    <param name="global_frame_id" value="/map" />
+    <param name="delta_x" value="0.0" />
+    <param name="delta_y" value="0.0" />
+    <param name="delta_yaw" value="0.0" />
+  </node>
+
+  <!-- ***************************************************************************************************************** -->
+  <!-- Can be used in place of fake localization -->
+  <!-- <node pkg="tf" type="static_transform_publisher" name="odom_transform" args="0 0 0 0 0 0 /map /odom 20"/> -->
+  <!-- ***************************************************************************************************************** -->
+
+  <!-- start acml for localization -->
+  <group if="$(eval 'amcl'==arg('localize'))">
+    <include file="$(find inhus_navigation)/config/morse_pr2_move_base_config/amcl_node.xml"/>
+    <param name="/amcl/initial_pose_x" value="2.0" />
+    <param name="/amcl/initial_pose_y" value="2.0" />
+    <param name="/amcl/initial_pose_a" value="0.0" />
+  </group>
+
+</launch>

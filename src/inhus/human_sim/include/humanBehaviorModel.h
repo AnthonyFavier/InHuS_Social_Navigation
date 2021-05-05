@@ -14,7 +14,7 @@
 #include "human_sim/Goal.h"
 #include "human_sim/Signal.h"
 #include "human_sim/ActionBool.h"
-#include "move_human/PlaceRobot.h"
+#include "inhus_navigation/PlaceRobot.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Bool.h"
@@ -62,7 +62,7 @@ private:
 	ros::ServiceClient client_resume_supervisor_;
 
 	// srv
-	move_human::PlaceRobot srv_place_robot_hm_;
+	inhus_navigation::PlaceRobot srv_place_robot_hm_;
 	nav_msgs::GetPlan srv_get_plan_;
 	human_sim::Signal srv_signal_;
 
@@ -191,12 +191,12 @@ private:
 
 	// Service Server //
 	ros::ServiceServer server_place_robot_;
-	bool srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res);
+	bool srvPlaceRobotHM(inhus_navigation::PlaceRobot::Request& req, inhus_navigation::PlaceRobot::Response& res);
 	ros::ServiceServer server_update_robot_map_;
 	bool srvUpdateRobotMap(human_sim::Signal::Request& req, human_sim::Signal::Response& res);
 
 	// Services //
-	move_human::PlaceRobot srv_place_robot_;
+	inhus_navigation::PlaceRobot srv_place_robot_;
 	human_sim::Signal srv_signal_;
 
 	//// Variables ////

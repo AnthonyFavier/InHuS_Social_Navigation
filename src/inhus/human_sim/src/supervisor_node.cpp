@@ -19,7 +19,7 @@ Supervisor::Supervisor()
 
 	// Service clients
 	client_plan_ = 					nh_.serviceClient<human_sim::ComputePlan>("compute_plan");
-	client_place_robot_hm_ =		nh_.serviceClient<move_human::PlaceRobot>("place_robot_hm");
+	client_place_robot_hm_ =		nh_.serviceClient<inhus_navigation::PlaceRobot>("place_robot_hm");
 	client_check_conflict_ =		nh_.serviceClient<human_sim::ActionBool>("check_conflict");
 	client_init_check_conflict_ = 	nh_.serviceClient<human_sim::Signal>("init_check_conflict");
 

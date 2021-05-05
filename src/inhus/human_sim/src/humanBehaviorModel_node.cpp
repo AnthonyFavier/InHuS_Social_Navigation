@@ -461,7 +461,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	// Service clients
 	client_set_wait_goal_ = 		nh_.serviceClient<human_sim::Signal>("set_wait_goal");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<human_sim::Signal>("cancel_goal_and_stop");
-	client_place_robot_ = 		nh_.serviceClient<move_human::PlaceRobot>("place_robot");
+	client_place_robot_ = 		nh_.serviceClient<inhus_navigation::PlaceRobot>("place_robot");
 	client_suspend_supervisor_ = nh_.serviceClient<human_sim::Signal>("suspendSupervisor");
 	client_resume_supervisor_ = nh_.serviceClient<human_sim::Signal>("resumeSupervisor");
 
@@ -1147,7 +1147,7 @@ void HumanBehaviorModel::initConflictManager(ConflictManager* conflict_manager)
 {
 	conflict_manager_ = conflict_manager;
 }
-
+inhus_navigation
 void HumanBehaviorModel::updateConflictManager()
 {
 	conflict_manager_->updateData(sim_pose_, sim_vel_, sim_robot_pose_, sim_robot_vel_);
@@ -1166,7 +1166,7 @@ bool HumanBehaviorModel::srvUpdateRobotMap(human_sim::Signal::Request& req, huma
 	return true;
 }
 
-bool HumanBehaviorModel::srvPlaceRobotHM(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res)
+bool HumanBehaviorModel::srvPlaceRobotHM(inhus_navigation::PlaceRobot::Request& req, inhus_navigation::PlaceRobot::Response& res)
 {
 	want_robot_placed_ = req.data;
 

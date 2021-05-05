@@ -9,13 +9,13 @@
 #include "sensor_msgs/PointCloud2.h"
 #include "sensor_msgs/point_cloud_conversion.h"
 
-#include "move_human/PlaceRobot.h"
+#include "inhus_navigation/PlaceRobot.h"
 
 class PlaceRobotMap
 {
 public:
 	PlaceRobotMap();
-	bool placeRobotSrv(move_human::PlaceRobot::Request& req, move_human::PlaceRobot::Response& res);
+	bool placeRobotSrv(inhus_navigation::PlaceRobot::Request& req, inhus_navigation::PlaceRobot::Response& res);
 
 	bool initDone();
 
@@ -25,7 +25,7 @@ public:
 
 private:
 	ros::NodeHandle nh_;
-	
+
 	ros::Subscriber robot_pose_sub_;
 	void robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_pose);
 	geometry_msgs::Pose2D robot_pose_;

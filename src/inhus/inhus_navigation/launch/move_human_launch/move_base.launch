@@ -13,13 +13,13 @@
 		<param name="base_global_planner" value="$(arg base_global_planner)"/>
 		<param name="base_local_planner" value="$(arg base_local_planner)"/>
 
-		<rosparam file="$(find move_human)/config/planner.yaml" command="load"/>
+		<rosparam file="$(find inhus_navigation)/config/planner.yaml" command="load"/>
 
-		<rosparam file="$(find move_human)/config/costmap_common.yaml" command="load" ns="global_costmap" />
-		<rosparam file="$(find move_human)/config/costmap_common.yaml" command="load" ns="local_costmap" />
+		<rosparam file="$(find inhus_navigation)/config/costmap_common.yaml" command="load" ns="global_costmap" />
+		<rosparam file="$(find inhus_navigation)/config/costmap_common.yaml" command="load" ns="local_costmap" />
 
-		<rosparam file="$(find move_human)/config/costmap_global.yaml" command="load"/>
-		<rosparam file="$(find move_human)/config/costmap_local.yaml" command="load"/>
+		<rosparam file="$(find inhus_navigation)/config/costmap_global.yaml" command="load"/>
+		<rosparam file="$(find inhus_navigation)/config/costmap_local.yaml" command="load"/>
 
 	</node>
 

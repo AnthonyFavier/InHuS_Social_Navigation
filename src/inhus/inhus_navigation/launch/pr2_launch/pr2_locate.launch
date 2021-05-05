@@ -1,0 +1,32 @@
+<launch>
+  <!-- start map_server with laas_adream map -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find inhus_navigation)/maps/laas_adream_simplified.yaml"/>
+
+  <!-- start acml for localization -->
+  <!-- <node name="amcl" pkg="amcl" type="amcl">
+    <param name="odom_frame_id" value="odom_combined"/>
+    <remap from="scan" to="base_scan"/>
+    <param name="initial_pose_x" value="2.0"/>
+    <param name="initial_pose_y" value="2.0"/>
+    <param name="initial_pose_a" value="0.0"/>
+  </node> -->
+
+  <include file="$(find inhus_navigation)/config/pr2_move_base_config/amcl_node.xml"/>
+  <param name="/amcl/initial_pose_x" value="2.0" />
+  <param name="/amcl/initial_pose_y" value="2.0" />
+  <param name="/amcl/initial_pose_a" value="0.0" />
+
+<!-- ********************************************************************************************************************** -->
+  <!-- Don't Use it with real robot (Can be used for gazebo)-->
+  <!-- <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
+    <param name="odom_frame_id" value="odom_combined" />
+    <param name="base_frame_id" value="base_link" />
+    <param name="global_frame_id" value="map" />
+    <remap from="scan" to="base_scan"/>
+    <param name="delta_x" value="-2.0" />
+    <param name="delta_y" value="-2.0" />
+    <param name="delta_yaw" value="0.0" />
+  </node> -->
+  <!-- ********************************************************************************************************************** -->
+
+</launch>

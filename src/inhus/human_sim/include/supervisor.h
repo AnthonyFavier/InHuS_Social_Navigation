@@ -12,7 +12,7 @@
 #include "human_sim/Goal.h"
 #include "human_sim/Signal.h"
 #include "human_sim/ActionBool.h"
-#include "move_human/PlaceRobot.h"
+#include "inhus_navigation/PlaceRobot.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "nav_msgs/Path.h"
@@ -68,7 +68,7 @@ private:
 	ros::ServiceClient client_init_check_conflict_;
 
 	// Services
-	move_human::PlaceRobot srv_place_robot_hm_;
+	inhus_navigation::PlaceRobot srv_place_robot_hm_;
 
 	// Service servers //
 	ros::ServiceServer server_set_wait_goal_;
