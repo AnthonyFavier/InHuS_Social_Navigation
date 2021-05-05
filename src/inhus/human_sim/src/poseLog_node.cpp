@@ -2,14 +2,16 @@
 
 //////////////////// POSE LOG ////////////////////////////
 
+// subscribes to Agent positions and sends them to the logManager to be saved
+
 PoseLog::PoseLog()
 {
 	path_ = ros::package::getPath("human_sim");
 	log_file_.open(path_ + "/logs/log_data/poseLog.txt");
 	log_file_ << "LOG STARTS : " << ros::Time::now() << endl;
 
-	sub_pose_H_ = nh_.subscribe("/morse/human_pose", 100, &PoseLog::poseHCallback, this);
-	sub_pose_R_ = nh_.subscribe("/morse/robot_pose", 100, &PoseLog::poseRCallback, this);
+	sub_pose_H_ = nh_.subscribe("interface/human_pose", 100, &PoseLog::poseHCallback, this);
+	sub_pose_R_ = nh_.subscribe("interface/robot_pose", 100, &PoseLog::poseRCallback, this);
 }
 
 PoseLog::~PoseLog()
