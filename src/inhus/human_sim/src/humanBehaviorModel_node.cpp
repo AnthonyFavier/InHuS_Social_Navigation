@@ -1147,7 +1147,7 @@ void HumanBehaviorModel::initConflictManager(ConflictManager* conflict_manager)
 {
 	conflict_manager_ = conflict_manager;
 }
-inhus_navigation
+
 void HumanBehaviorModel::updateConflictManager()
 {
 	conflict_manager_->updateData(sim_pose_, sim_vel_, sim_robot_pose_, sim_robot_vel_);
