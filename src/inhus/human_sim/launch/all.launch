@@ -2,9 +2,6 @@
 
 	<rosparam command="load" file="$(find human_sim)/config/params.yaml" ns="human"/>
 
-	<!-- Nav -->
-	<include file="$(find inhus_navigation)/launch/all.launch"/>
-
 	<!-- Human controller -->
 	<include file="$(find human_sim)/launch/human_controller.launch"/>
 

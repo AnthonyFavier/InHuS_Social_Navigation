@@ -5,7 +5,7 @@
 	<include file="$(find inhus_navigation)/launch/move_base.launch"/>
 
 	<node name="placeRobot_node" type="placeRobot_node" pkg="inhus_navigation" output="screen" ns="human"/>
-	<node name="odom_to_map_broadcaster" type="static_transform_publisher" pkg="tf" args="0 0 0 0 0 0 map odom 1000" ns="human"/>
+	<node name="odom_to_map_broadcaster" type="static_transform_publisher" pkg="tf" args="0 0 0 0 0 0 /map /odom 20" ns="human"/>
 	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" ns="human">
 		<!-- See all params at http://wiki.ros.org/pointcloud_to_laserscan -->
 
