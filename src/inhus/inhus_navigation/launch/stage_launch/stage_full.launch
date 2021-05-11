@@ -5,19 +5,19 @@
   <arg name="fast_mode" default="false"/>
 
   <!-- simulator and robot robot description -->
-  <include file="$(find inhus_navigation)/launch/mine/mine_stage_simulator.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/stage_simulator.launch">
     <arg name="map_name" value="$(arg map_name)"/>
     <arg name="gui" value="$(arg gui)"/>
     <arg name="fast_mode" value="$(arg fast_mode)"/>
   </include>
 
   <!-- localization and maps -->
-  <include file="$(find inhus_navigation)/launch/mine/mine_stage_locate.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/stage_locate.launch">
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
   <!-- navigation -->
-  <include file="$(find inhus_navigation)/launch/mine/mine_stage_nav.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/stage_nav.launch">
     <arg name="node_start_delay" value="$(arg node_start_delay)"/>
   </include>
 

@@ -1,7 +1,0 @@
-<launch>
-  <!-- static map and localization -->
-  <include file="$(find laas_navigation)/pr2_launch/pr2_laas_adream_locate.launch"/>
-
-  <!-- navigation -->
-  <include file="$(find laas_navigation)/pr2_launch/pr2_nav.launch"/>
-</launch>

@@ -3,12 +3,12 @@
   <arg name="map_name" default="laas_adream"/>
 
   <!-- static map server -->
-  <include file="$(find inhus_navigation)/launch/mine/mine_map_static.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/stage_map_static.launch">
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
   <!-- pov map server -->
-  <include file="$(find inhus_navigation)/launch/mine/mine_map_pov.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/stage_map_pov.launch">
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
