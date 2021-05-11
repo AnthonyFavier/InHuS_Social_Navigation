@@ -5,6 +5,9 @@
 	<node name="map_server_pov" pkg="map_server" type="map_server" ns="human" args="$(find inhus_navigation)/maps/laas_adream/laas_adream_pov.yaml" if="$(eval 'laas_adream'==arg('map_name'))">
 		<remap from="map" to="map_pov"/>
 	</node>
+	<node name="map_server_pov" pkg="map_server" type="map_server" ns="human" args="$(find inhus_navigation)/maps/laas_adream_big/laas_adream_big_pov.yaml" if="$(eval 'laas_adream_big'==arg('map_name'))">
+		<remap from="map" to="map_pov"/>
+	</node>
   <node name="map_server_pov" pkg="map_server" type="map_server" ns="human" args="$(find inhus_navigation)/maps/maze/maze_pov.yaml" if="$(eval 'maze'==arg('map_name'))">
 		<remap from="map" to="map_pov"/>
 	</node>
