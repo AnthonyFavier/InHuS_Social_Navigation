@@ -1,5 +1,5 @@
 <launch>
-  <arg name="map_name" default="laas_adream_big"/>
+  <arg name="map_name" default="laas_adream"/>
   <arg name="node_start_delay" default="4.0"/>
 
   <!-- localization and maps -->
