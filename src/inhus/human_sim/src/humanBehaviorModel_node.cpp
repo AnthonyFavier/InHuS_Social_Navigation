@@ -857,20 +857,20 @@ void HumanBehaviorModel::testSeeRobot()
 			if(this->testObstacleView(human_pose_offset, robot_pose_offset))
 			{
 				// the human sees the robot
-				ROS_INFO("I SEE");
+				//ROS_INFO("I SEE");
 				see_ = true;
 				last_seen_robot_ = ros::Time::now();
 			}
 			else
 			{
 				// human can't see the robot
-				ROS_INFO("VIEW IS BLOCKED");
+				//ROS_INFO("VIEW IS BLOCKED");
 				see_ = false;
 			}
 		}
 		else
 		{
-			ROS_INFO("NOT IN FOV");
+			//ROS_INFO("NOT IN FOV");
 			see_ = false;
 		}
 

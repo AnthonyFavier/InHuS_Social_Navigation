@@ -1,14 +1,13 @@
 local_costmap:
   global_frame: map
-  robot_base_frame: human_robot_base
+  robot_base_frame: base_footprint
   update_frequency: 4.0
   width: 10.0
   height: 10.0
   rolling_window: true
   origin_x: -5.0
   origin_y: -5.0
-  
+
   plugins:
   - {name: static_layer, type: "costmap_2d::StaticLayer"}
   - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
-

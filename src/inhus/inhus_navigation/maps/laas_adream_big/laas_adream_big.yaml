@@ -1,4 +1,5 @@
-image: laas_adream.pgm
+image: laas_adream_big
+.pgm
 resolution: 0.050000
 origin: [-5.000000, -10.000000, 0.000000]
 negate: 0

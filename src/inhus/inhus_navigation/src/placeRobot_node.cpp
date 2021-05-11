@@ -31,13 +31,11 @@ PlaceRobotMap::PlaceRobotMap()
 
 	// Build empty_PointCloud2
 	sensor_msgs::PointCloud cloud;
-	cloud.header.frame_id = "human_robot_base";
+	cloud.header.frame_id = "base_footprint";
 	cloud.header.stamp = ros::Time::now();
 	sensor_msgs::convertPointCloudToPointCloud2(cloud, empty_PointCloud2_);
 
 	// Build robot_pose_PoinCloud2_
-	cloud.header.frame_id = "human_robot_base";
-	cloud.header.stamp = ros::Time::now();
 	geometry_msgs::Point32 point;
 	point.z = 0.0;
 	point.x = -size_rob_/2;
@@ -64,6 +62,7 @@ PlaceRobotMap::PlaceRobotMap()
 	point.x = 0;
 	point.y = -size_rob_/2;
 	cloud.points.push_back(point);
+	cloud.header.stamp = ros::Time::now();
 	sensor_msgs::convertPointCloudToPointCloud2(cloud, robot_pose_PointCloud2_);
 
 	// Subscriber
@@ -81,7 +80,8 @@ bool PlaceRobotMap::placeRobotSrv(inhus_navigation::PlaceRobot::Request& req, in
 {
 	place_robot_ = req.data;
 
-	this->placeRobot();
+	if(active_)
+		this->placeRobot();
 
 	return true;
 }
@@ -128,17 +128,17 @@ void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_p
 		this->placeRobot();
 }
 
-void PlaceRobotMap::start()
-{
-	active_ = true;
-}
-
 void PlaceRobotMap::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_pose)
 {
 	human_pose_.x = 	h_pose->x+2;
 	human_pose_.y = 	h_pose->y+8;
 	human_pose_.theta = 	h_pose->theta;
 	hcb_ =	true;
+}
+
+void PlaceRobotMap::start()
+{
+	active_ = true;
 }
 
 //////////////////////// MAIN //////////////////////////////

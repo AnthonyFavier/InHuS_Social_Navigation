@@ -12,7 +12,7 @@
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
-  <!-- fake localization -->
+  <!-- fake localization : Robot, Human1, Human2 -->
   <node pkg="tf" type="static_transform_publisher" name="odom_tf" args="0 0 0 0 0 0 /map /odom 20"/>
   <node pkg="tf" type="static_transform_publisher" name="human1_odom_tf" args="0 0 0 0 0 0 /map /human1/odom 20"/>
   <node pkg="tf" type="static_transform_publisher" name="human2_odom_tf" args="0 0 0 0 0 0 /map /human2/odom 20"/>
@@ -32,8 +32,8 @@
 		<param name="range_min" value="0.0"/>
 		<param name="range_max" value="100.0"/>
 
-		<!-- Frame of your depth sensor -->
-		<param name="target_frame" value="human_robot_base"/>
+		<!-- Frame of your depth sensor = Robot -->
+		<param name="target_frame" value="base_footprint"/>
 
 		<!-- Topic from which to read PointCloud2 -->
 		<remap from="cloud_in" to="robot_pose_PointCloud2"/>

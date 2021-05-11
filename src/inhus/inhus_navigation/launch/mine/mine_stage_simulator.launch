@@ -1,0 +1,26 @@
+<launch>
+  <arg name="map_name" default="laas_adream"/>
+  <arg name="gui" default="true"/>
+  <arg name="fast_mode" default="false"/>
+
+  <!-- Stage simulator and robot robot description -->
+  <group if="$(eval 'laas_adream'==arg('map_name'))">
+    <include file="$(find stage_ros)/launch/stage_pr2_laas_adream.launch">
+      <arg name="fast_mode" value="$(arg fast_mode)"/>
+      <arg name="gui" value="$(arg gui)" unless="$(arg fast_mode)"/>
+    </include>
+  </group>
+  <group if="$(eval 'maze'==arg('map_name'))">
+    <include file="$(find stage_ros)/launch/stage_pr2_maze.launch">
+      <arg name="fast_mode" value="$(arg fast_mode)"/>
+      <arg name="gui" value="$(arg gui)" unless="$(arg fast_mode)"/>
+    </include>
+  </group>
+  <group if="$(eval 'open_space'==arg('map_name'))">
+    <include file="$(find stage_ros)/launch/stage_pr2_open_space.launch">
+      <arg name="fast_mode" value="$(arg fast_mode)"/>
+      <arg name="gui" value="$(arg gui)" unless="$(arg fast_mode)"/>
+    </include>
+  </group>
+
+</launch>
