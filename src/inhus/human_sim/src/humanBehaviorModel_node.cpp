@@ -627,6 +627,13 @@ void HumanBehaviorModel::computeTTC()
 	}
 }
 
+void HumanBehaviorModel::computeRelSpd()
+{
+	relative_speed_ = sqrt(pow(model_vel_.linear.x-model_robot_vel_.linear.x,2) + pow(model_vel_.linear.y-model_robot_vel_.linear.y,2));
+	msg_log_.data = "HUMAN_MODEL REL_SPD " + std::to_string(relative_speed_) + " " + std::to_string(ros::Time::now().toSec());
+	pub_log_.publish(msg_log_);
+}
+
 bool HumanBehaviorModel::initDone()
 {
 	return hcb_ && rcb_ && pmcb_;
@@ -1371,6 +1378,9 @@ int main(int argc, char** argv)
 		/* LOGS */
 		// Compute TTC
 		human_model.computeTTC();
+
+		// Compute relative speed
+		human_model.computeRelSpd();
 
 		// Publish human/robot distance to log
 		human_model.pubDist();

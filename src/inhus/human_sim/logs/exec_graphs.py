@@ -35,6 +35,9 @@ list_state_blocked_time = []
 list_ttc_data = []
 list_ttc_time = []
 
+list_rel_spd_data = []
+list_rel_spd_time = []
+
 value_state = -1
 
 for line in f:
@@ -82,6 +85,10 @@ for line in f:
                 list_vel_r_data.append(float(mylist[4]))
                 list_vel_r_time.append(float(mylist[0]))
 
+            elif mylist[3] == 'REL_SPD':
+                list_rel_spd_data.append(float(mylist[4]))
+                list_rel_spd_time.append(float(mylist[5]))
+
 f.close()
 
 fig, (ax1, ax2, ax5) = plt.subplots(3, 1)
@@ -115,20 +122,25 @@ ax4 = ax2.twinx()
 vel_r, = ax4.plot(list_vel_r_time, list_vel_r_data, '-r')
 ax4.set_ylim(bottom=0)
 
-maxy_vel = max(ax3.get_ybound()[1], ax4.get_ybound()[1])
-maxy_vel = 1.5
-ax3.set_ylim(top=maxy_vel)
-ax4.set_ylim(top=maxy_vel)
+maxi_vel = max(ax3.get_ybound()[1], ax4.get_ybound()[1])
+maxi_vel = 1.5
+ax3.set_ylim(top=maxi_vel)
+ax4.set_ylim(top=maxi_vel)
 
 ax2.legend([vel_h, vel_r], ['human speed', 'robot speed'])
 
 
-# TTC #
+# TTC + REL_SPD#
 ax5.set_xlabel('time (s)')
 ax5.set_ylabel('TTC (s)')
 ax5.plot(list_ttc_time, list_ttc_data, 'k+')
 ax5.set_ylim(bottom=0, top=6)
 ax5.set_xlim(left=ax1.get_xbound()[0], right=ax1.get_xbound()[1])
+
+ax6 = ax5.twinx()
+ax6.set_ylabel('relative speed (m/s)')
+rel_spd, = ax6.plot(list_rel_spd_time, list_rel_spd_data, '-y')
+ax6.set_ylim(bottom=0)
 
 
 if len(sys.argv)>=3:

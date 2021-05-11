@@ -114,6 +114,7 @@ public:
 	void attitudes();
 	void pubDist();
 	void computeTTC();
+	void computeRelSpd();
 	void testSeeRobot();
 	void updateConflictManager();
 	void initConflictManager(ConflictManager* conflict_manager);
@@ -213,6 +214,7 @@ private:
 	geometry_msgs::Twist model_robot_vel_;
 
 	double ttc_;
+	double relative_speed_;
 	float human_radius_;
 	float robot_radius_;
 	float radius_sum_sq_;
