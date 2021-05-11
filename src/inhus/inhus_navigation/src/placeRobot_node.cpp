@@ -9,7 +9,7 @@ PlaceRobotMap::PlaceRobotMap()
 	private_nh.param(std::string("size_rob"), size_rob_, float(0.6));
 	private_nh.param(std::string("dist_threshold"), dist_threshold_, float(5.0));
 
-	ROS_INFO("Params:");
+	ROS_INFO("=> Params PlaceRobot :");
 	ROS_INFO("size_rob=%f", size_rob_);
 	ROS_INFO("dist_threshold=%f", dist_threshold_);
 
