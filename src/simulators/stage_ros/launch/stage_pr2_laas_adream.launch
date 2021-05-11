@@ -5,8 +5,7 @@
   <arg name="mode" value="-f" if="$(arg fast_mode)"/>
   <arg name="graphics" default="-g" unless="$(arg gui)"/>
   <arg name="graphics" value="" if="$(arg gui)"/>
-  <arg name="world_file" default="$(find stage_ros)/worlds/laas_simplified.world" unless="$(arg gui)"/>
-  <arg name="world_file" value="$(find stage_ros)/worlds/laas.world" if="$(arg gui)"/>
+  <arg name="world_file" value="$(find stage_ros)/worlds/laas.world"/>
 
   <master auto="start"/>
   <param name="/use_sim_time" value="true"/>

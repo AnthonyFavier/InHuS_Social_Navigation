@@ -1,6 +1,6 @@
 <launch>
   <arg name="map_name" default="laas_adream"/>
-  <arg name="node_start_delay" default="4.0"/>
+  <arg name="node_start_delay" default="2.0"/>
   <arg name="gui" default="true"/>
   <arg name="fast_mode" default="false"/>
 

@@ -369,7 +369,7 @@ interval_sim 20  # simulation timestep in milliseconds
 window
 (
   size [ 745.000 448.000 ]
-  rotate [ 0.000 0.000 ]
+  rotate [ 0.000 90.000 ]
   scale 28.806
 )
 
@@ -378,8 +378,9 @@ floorplan
 (
   name "laas"
   bitmap "maps/laas_adream.pgm"
-  size [19.2 41.6 2.0 ]
-  pose [4.6 10.8 0 0.000 ]
+  gui_move 0
+  size [19.2 40 2.0 ]
+  pose [5.0 10.0 0 0.000 ]
 )
 
 # throw in a robot (always the robot first)
