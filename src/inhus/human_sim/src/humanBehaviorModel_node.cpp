@@ -446,7 +446,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	sub_set_attitude_ = 	nh_.subscribe("/boss/human/set_attitude", 100, &HumanBehaviorModel::setAttitudeCallback, this);
 	sub_new_goal_ =		nh_.subscribe("/boss/human/new_goal", 100, &HumanBehaviorModel::newGoalCallback, this);
 	sub_stop_cmd_ = 	nh_.subscribe("stop_cmd", 100, &HumanBehaviorModel::stopCmdCallback, this);
-	sub_pov_map_ = 		nh_.subscribe("pov_map", 1, &HumanBehaviorModel::povMapCallback, this);
+	sub_pov_map_ = 		nh_.subscribe("map_pov", 1, &HumanBehaviorModel::povMapCallback, this);
 
 	// Publishers
 	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("known/human_pose", 100);
@@ -857,20 +857,20 @@ void HumanBehaviorModel::testSeeRobot()
 			if(this->testObstacleView(human_pose_offset, robot_pose_offset))
 			{
 				// the human sees the robot
-				//ROS_INFO("I SEE");
+				ROS_INFO("I SEE");
 				see_ = true;
 				last_seen_robot_ = ros::Time::now();
 			}
 			else
 			{
 				// human can't see the robot
-				//ROS_INFO("VIEW IS BLOCKED");
+				ROS_INFO("VIEW IS BLOCKED");
 				see_ = false;
 			}
 		}
 		else
 		{
-			//ROS_INFO("NOT IN FOV");
+			ROS_INFO("NOT IN FOV");
 			see_ = false;
 		}
 

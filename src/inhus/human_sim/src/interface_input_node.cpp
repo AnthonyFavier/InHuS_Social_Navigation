@@ -85,30 +85,7 @@ int main(int argc, char** argv)
 	pub_sim_robot_vel = nh.advertise<geometry_msgs::Twist>("in/robot_vel", 100);
 	////////////////////////////
 
-	ros::Rate rate(30);
-
-	tf::TransformBroadcaster br;
-	tf::Quaternion q;
-
-	tf::Transform tf_map_footprint;
-	tf::Transform tf_map_robot;
-
-	while(ros::ok())
-	{
-		tf_map_footprint.setOrigin(tf::Vector3(h_pose.x, h_pose.y, 0));
-		q.setRPY(0, 0, h_pose.theta);
-		tf_map_footprint.setRotation(q);
-
-		tf_map_robot.setOrigin(tf::Vector3(r_pose.x, r_pose.y, 0));
-		q.setRPY(0, 0, r_pose.theta);
-		tf_map_robot.setRotation(q);
-
-		br.sendTransform(tf::StampedTransform(tf_map_footprint, ros::Time::now(), "map", "human_human_base"));
-		br.sendTransform(tf::StampedTransform(tf_map_robot, ros::Time::now(), "map", "human_robot_base"));
-
-		ros::spinOnce();
-		rate.sleep();
-	}
+	ros::spin();
 
 	return 0;
 }

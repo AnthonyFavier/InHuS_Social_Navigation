@@ -1,0 +1,15 @@
+<launch>
+
+	<arg name="map_name" default="laas_adream"/>
+
+	<node name="map_server_pov" pkg="map_server" type="map_server" ns="human" args="$(find inhus_navigation)/maps/mine/laas_adream_pov.yaml" if="$(eval 'laas_adream'==arg('map_name'))">
+		<remap from="map" to="map_pov"/>
+	</node>
+  <node name="map_server_pov" pkg="map_server" type="map_server" ns="human" args="$(find inhus_navigation)/maps/maze_pov.yaml" if="$(eval 'maze'==arg('map_name'))">
+		<remap from="map" to="map_pov"/>
+	</node>
+  <node name="map_server_pov" pkg="map_server" type="map_server" ns="human" args="$(find inhus_navigation)/maps/open_space_pov.yaml" if="$(eval 'open_space'==arg('map_name'))">
+		<remap from="map" to="map_pov"/>
+	</node>
+
+</launch>
