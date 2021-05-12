@@ -1,8 +1,8 @@
 build/
 devel/
 *.swp
-src/inhus/human_sim/logs/log_data/log.txt
-src/inhus/human_sim/logs/log_data/poseLog.txt
+src/inhus/inhus/logs/log_data/log.txt
+src/inhus/inhus/logs/log_data/poseLog.txt
 
 src/navigation/
 src/hanp_msgs/

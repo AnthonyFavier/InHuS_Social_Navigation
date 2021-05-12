@@ -1,0 +1,11 @@
+<launch>
+
+	<rosparam command="load" file="$(find inhus)/config/params.yaml" ns="human"/>
+
+	<!-- Human controller -->
+	<include file="$(find inhus)/launch/human_controller.launch"/>
+
+	<!-- Boss -->
+	<include file="$(find inhus)/launch/boss.launch"/>
+
+</launch>
