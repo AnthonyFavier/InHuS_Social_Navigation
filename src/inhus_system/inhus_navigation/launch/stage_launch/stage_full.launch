@@ -17,7 +17,7 @@
   </include>
 
   <!-- navigation -->
-  <include file="$(find inhus_navigation)/launch/stage_launch/stage_nav.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/stage_nav_hateb.launch">
     <arg name="node_start_delay" value="$(arg node_start_delay)"/>
   </include>
 

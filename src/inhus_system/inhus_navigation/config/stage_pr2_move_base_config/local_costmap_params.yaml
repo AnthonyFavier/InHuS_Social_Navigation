@@ -1,0 +1,26 @@
+publish_frequency: 5
+update_frequency: 10
+width: 15.0
+height: 15.0
+resolution: 0.1
+origin_x: 0.0
+origin_y: 0.0
+global_frame: odom
+robot_base_frame: base_link
+footprint: [[-0.325, -0.325], [-0.325, 0.325], [0.325, 0.325], [0.325, -0.325]]
+footprint_padding: 0.05
+rolling_window: true
+static_map: false
+plugins:
+  - {name: static, type: "costmap_2d::StaticLayer"}
+    #- {name: obstacles, type: "costmap_2d::ObstacleLayer"}
+  - {name: inflater, type: "costmap_2d::InflationLayer"}
+  - {name: human_layers, type: "human_layers::StaticHumanLayer"}
+  # - {name: human_layers, type: "human_layers::HumanVisibilityLayer"}
+
+obstacles:
+  observation_sources: base_scan
+  base_scan: {data_type: LaserScan, sensor_frame: base_laser_link, expected_update_rate: 0.3, marking: true, clearing: true}
+  footprint_clearing_enabled: false
+inflater:
+  inflation_radius: 0.4
