@@ -7,6 +7,22 @@
   <arg name="global_planner" default="global_planner/GlobalPlanner"/>
 	<arg name="local_planner" default="hateb_local_planner/HATebLocalPlannerROS"/>
 
+  <!-- Stage humans to /tracked_humans -->
+  <arg name="num_humans" default="1"/>
+  <node name="humans" pkg="stage_ros" type="humans_bridge.py" ns="human" args="$(arg num_humans)" output="screen"/>
+
+  <!-- human pose prediction, for the local-planning -->
+  <node type="human_path_prediction" pkg="human_path_prediction" name="human_path_prediction" ns="human" output="screen" >
+    <remap from="~/" to="/human_path_predict"/>
+    <remap from="/human_path_predict/tracked_humans" to="/tracked_humans"/>
+    <remap from="/human_path_predict/external_human_paths" to="/humans_sim_node/MultiGoalPlanner/plans"/>
+    <remap from="/human_path_predict/external_human_trajs" to="/move_base_node/HATebLocalPlannerROS/human_local_trajs"/>
+
+    <param name="velobs_mul" value="1.0"/>
+    <param name="velscale_mul" value="2.0"/>
+  </node>
+  <node type="predict_goal.py" pkg="human_path_prediction" name="human_goal_predict" output="screen"/>
+
   <!-- move base node with a starting delay if needed -->
 	<node pkg="move_base" type="move_base" name="move_base" ns="human" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
 
