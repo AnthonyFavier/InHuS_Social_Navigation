@@ -1,4 +1,4 @@
-odom_topic: odom
+odom_topic: /human1/odom
 map_frame: /odom
 
 planning_mode: 1

@@ -80,7 +80,7 @@ Visualization Manager:
       Marker Topic: /human/visualization_marker
       Name: Human_goal
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 0.699999988079071
@@ -108,8 +108,7 @@ Visualization Manager:
       Marker Topic: /human/move_base/TebLocalPlannerROS/teb_markers
       Name: Human_teb_marker
       Namespaces:
-        RobotFootprintModel: true
-        ViaPoints: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/TF
@@ -586,5 +585,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: 1920
+  X: 3840
   Y: 25

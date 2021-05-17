@@ -6,7 +6,7 @@ resolution: 0.1
 origin_x: 0.0
 origin_y: 0.0
 global_frame: odom
-robot_base_frame: base_link
+robot_base_frame: human1/base_footprint
 footprint: [[-0.325, -0.325], [-0.325, 0.325], [0.325, 0.325], [0.325, -0.325]]
 footprint_padding: 0.05
 rolling_window: true
