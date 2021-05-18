@@ -43,7 +43,7 @@
 #define PREDICT_SERVICE_NAME "predict_human_poses"
 #define PUBLISH_MARKERS_SRV_NAME "publish_prediction_markers"
 #define PREDICTED_HUMANS_MARKERS_PUB_TOPIC "predicted_human_poses"
-#define GET_PLAN_SRV_NAME "/move_base/GlobalPlanner/make_plan"
+#define GET_PLAN_SRV_NAME "/human/move_base/GlobalPlanner/make_plan"
 #define DEFAULT_HUMAN_PART human_msgs::TrackedSegmentType::TORSO
 #define MAX_HUMAN_MARKERS 1000
 #define MIN_MARKER_LIFETIME 1.0
