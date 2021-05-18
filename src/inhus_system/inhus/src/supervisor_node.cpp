@@ -199,7 +199,7 @@ void Supervisor::FSM()
 										nav_goal.goal.target_pose.header.frame_id = "map";
 										nav_goal.goal.target_pose.header.stamp = ros::Time::now();
 										nav_goal.goal = (*curr_action).nav_goal;
-										//pub_goal_move_base_.publish(nav_goal);
+										pub_goal_move_base_.publish(nav_goal);
 
 										this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
 											(*curr_action).nav_goal.target_pose.pose.position.y, 1);
