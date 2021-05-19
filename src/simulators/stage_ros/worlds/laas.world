@@ -380,10 +380,10 @@ floorplan
   bitmap "maps/laas_adream.pgm"
   gui_move 0
   size [19.2 40 2.0 ]
-  pose [5.0 10.0 0 0.000 ]
+  pose [4.5 10.0 0 0.000 ]
 )
 
 # throw in a robot (always the robot first)
-pr2( pose [ 2.0 2.0 0 0 ] name "pr2" color "gray")
+pr2( pose [ 10.2 8.5 0 0 ] name "pr2" color "gray")
 human( pose [ 3.0 1.0 0 0 ] name "human1" color "blue")
-human( pose [ 7.0 5.0 0 0 ] name "human2" color "green")
+#human( pose [ 7.0 5.0 0 0 ] name "human2" color "green")
