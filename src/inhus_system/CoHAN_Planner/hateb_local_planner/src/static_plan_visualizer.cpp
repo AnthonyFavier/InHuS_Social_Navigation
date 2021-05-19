@@ -35,8 +35,8 @@
  * Author: Phani Teja Singamaneni (email:ptsingaman@laas.fr)
  *********************************************************************/
 #define NAME "HATebStaticPlanVisualizer"
-#define GET_PLAN_SRV "/human/move_base/GlobalPlanner/make_plan"
-#define OPTIMIZE_SRV "/human/move_base/HATebLocalPlannerROS/optimize"
+#define GET_PLAN_SRV "/move_base/GlobalPlanner/make_plan"
+#define OPTIMIZE_SRV "/move_base/HATebLocalPlannerROS/optimize"
 #define HUMANS_SUB "/tracked_humans"
 #define ROBOT_GOAL_SUB "/clicked_point"
 #define DEFAULT_HUMAN_PART human_msgs::TrackedSegmentType::TORSO
