@@ -87,6 +87,7 @@ private:
 	StateGlobal global_state_previous_;
 
 	// Params
+	bool replan_active_;
 	ros::Rate replan_freq_;
 	float replan_dist_stop_;
 	ros::Duration place_robot_delay_;
