@@ -521,6 +521,14 @@ Visualization Manager:
       Topic: /human/move_base/TebLocalPlannerROS/local_plan
       Unreliable: false
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /human/move_base/HATebLocalPlannerROS/local_plan_fp_poses
+      Name: MarkerArray
+      Namespaces:
+        robot_fp_poses: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -549,16 +557,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 14.15734577178955
+      Distance: 11.420066833496094
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 5.022088050842285
-        Y: 3.757391929626465
-        Z: -0.014201128855347633
+        X: 5.9309186935424805
+        Y: 3.4441139698028564
+        Z: -0.2698264718055725
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -567,7 +575,7 @@ Visualization Manager:
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0
+      Yaw: 6.2781853675842285
     Saved: ~
 Window Geometry:
   Displays:
