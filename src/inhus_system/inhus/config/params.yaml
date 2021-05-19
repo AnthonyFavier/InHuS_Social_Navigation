@@ -5,6 +5,8 @@
 #####################################################
 
 ### Replan global path
+replan_active: false
+  #=> activate replaning
 replan_freq: 2.0
   #=> frequency to replan global path
 replan_dist_stop: 0.5

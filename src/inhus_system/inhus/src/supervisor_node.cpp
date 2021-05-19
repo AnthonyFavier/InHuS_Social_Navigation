@@ -9,6 +9,7 @@ Supervisor::Supervisor()
 {
 	// Ros Params
 	float f_nb;
+	nh_.param(std::string("replan_active"), replan_active_, true);
 	nh_.param(std::string("replan_freq"), f_nb, float(2.0)); replan_freq_ = ros::Rate(f_nb);
 	nh_.param(std::string("replan_dist_stop"), replan_dist_stop_, float(0.5));
 	nh_.param(std::string("place_robot_delay"), f_nb, float(0.3)); place_robot_delay_ = ros::Duration(f_nb);
@@ -186,24 +187,28 @@ void Supervisor::FSM()
 									this->updateMarkerPose(0, 0, 0);
 									global_state_ = WAIT_GOAL;
 								}*/
-								// If not too close, try to replan
-								else if((int)current_path_.poses.size()==0 || computePathLength(&current_path_) > replan_dist_stop_)
+								// If replaning is active check if we can replan
+								else if(replan_active_)
 								{
-									//ROS_INFO("Test for resend");
-									if(goal_status_.status == actionlib::SimpleClientGoalState::LOST
-									|| (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
+									// If not too close, try to replan
+									if((int)current_path_.poses.size()==0 || computePathLength(&current_path_) > replan_dist_stop_)
 									{
-										//ROS_INFO("=> Resend !");
+										//ROS_INFO("Test for resend");
+										if(goal_status_.status == actionlib::SimpleClientGoalState::LOST
+										|| (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
+										{
+											//ROS_INFO("=> Resend !");
 
-										move_base_msgs::MoveBaseActionGoal nav_goal;
-										nav_goal.goal.target_pose.header.frame_id = "map";
-										nav_goal.goal.target_pose.header.stamp = ros::Time::now();
-										nav_goal.goal = (*curr_action).nav_goal;
-										pub_goal_move_base_.publish(nav_goal);
+											move_base_msgs::MoveBaseActionGoal nav_goal;
+											nav_goal.goal.target_pose.header.frame_id = "map";
+											nav_goal.goal.target_pose.header.stamp = ros::Time::now();
+											nav_goal.goal = (*curr_action).nav_goal;
+											pub_goal_move_base_.publish(nav_goal);
 
-										this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
-											(*curr_action).nav_goal.target_pose.pose.position.y, 1);
-										last_replan_ = ros::Time::now();
+											this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
+												(*curr_action).nav_goal.target_pose.pose.position.y, 1);
+											last_replan_ = ros::Time::now();
+										}
 									}
 								}
 
