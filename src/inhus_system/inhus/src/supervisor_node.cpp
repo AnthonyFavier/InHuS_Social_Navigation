@@ -87,8 +87,8 @@ void Supervisor::FSM()
 				goal_received_ = false;
 				global_state_ = ASK_PLAN;
 			}
-			else
-				pub_stop_cmd_.publish(geometry_msgs::Twist());
+			//else
+			//	pub_stop_cmd_.publish(geometry_msgs::Twist());
 			break;
 
 		case ASK_PLAN:

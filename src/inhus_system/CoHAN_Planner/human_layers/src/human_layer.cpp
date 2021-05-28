@@ -34,14 +34,14 @@
  *
  * Author: Phani Teja Singamaneni (email:ptsingaman@laas.fr)
  *********************************************************************/
- 
+
 #include <human_layers/human_layer.h>
 #include <angles/angles.h>
 #include <pluginlib/class_list_macros.h>
 
 #define DEFAULT_HUMAN_PART human_msgs::TrackedSegmentType::TORSO
 #define TRACKED_HUMAN_SUB "/tracked_humans"
-#define HUMANS_STATES_SUB "/move_base/HATebLocalPlannerROS/humans_states"
+#define HUMANS_STATES_SUB "move_base/HATebLocalPlannerROS/humans_states"
 
 using costmap_2d::NO_INFORMATION;
 using costmap_2d::LETHAL_OBSTACLE;

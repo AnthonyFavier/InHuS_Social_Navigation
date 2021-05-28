@@ -43,12 +43,12 @@
 #define PREDICT_SERVICE_NAME "predict_human_poses"
 #define PUBLISH_MARKERS_SRV_NAME "publish_prediction_markers"
 #define PREDICTED_HUMANS_MARKERS_PUB_TOPIC "predicted_human_poses"
-#define GET_PLAN_SRV_NAME "/move_base/GlobalPlanner/make_plan"
+#define GET_PLAN_SRV_NAME "/human/move_base/GlobalPlanner/make_plan"
 #define DEFAULT_HUMAN_PART human_msgs::TrackedSegmentType::TORSO
 #define MAX_HUMAN_MARKERS 1000
 #define MIN_MARKER_LIFETIME 1.0
 #define MINIMUM_COVARIANCE_MARKERS 0.1
-#define ROBOT_FRAME_ID "base_footprint"
+#define ROBOT_FRAME_ID "human1/base_footprint"
 #define MAP_FRAME_ID "map"
 #define HUMAN_DIST_BEHIND_ROBOT 1.0 // in meters
 #define HUMAN_ANGLE_BEHIND_ROBOT 3.14

@@ -38,7 +38,7 @@
  #include <hateb_local_planner/backoff.h>
  #define NODE_NAME "Backoff_recovery"
  #define ROBOT_FRAME_ID "base_link"
- #define CURRENT_GOAL_TOPIC_NAME "/move_base/current_goal"
+ #define CURRENT_GOAL_TOPIC_NAME "move_base/current_goal"
  #define PUBLISH_GOAL_TOPIC "/move_base_simple/goal"
 
 

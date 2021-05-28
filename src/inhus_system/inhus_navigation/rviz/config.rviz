@@ -80,7 +80,7 @@ Visualization Manager:
       Marker Topic: /human/visualization_marker
       Name: Human_goal
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 0.699999988079071
@@ -108,8 +108,7 @@ Visualization Manager:
       Marker Topic: /human/move_base/TebLocalPlannerROS/teb_markers
       Name: Human_teb_marker
       Namespaces:
-        RobotFootprintModel: true
-        ViaPoints: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/TF
@@ -180,10 +179,6 @@ Visualization Manager:
         human1/base_link:
           Value: false
         human1/odom:
-          Value: false
-        human2/base_footprint:
-          Value: true
-        human2/base_link:
           Value: false
         human2/odom:
           Value: false
@@ -335,9 +330,7 @@ Visualization Manager:
               human1/base_link:
                 {}
           human2/odom:
-            human2/base_footprint:
-              human2/base_link:
-                {}
+            {}
           odom:
             base_footprint:
               base_link:
@@ -522,6 +515,38 @@ Visualization Manager:
       Topic: /human/move_base/TebLocalPlannerROS/local_plan
       Unreliable: false
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /human/move_base/HATebLocalPlannerROS/local_plan_fp_poses
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /human/move_base/HATebLocalPlannerROS/mode_text
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /human/move_base/HATebLocalPlannerROS/local_plan_fp_poses
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /human/move_base/HATebLocalPlannerROS/human_local_plans_fp_poses
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -550,16 +575,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 14.15734577178955
+      Distance: 14.962448120117188
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 5.022088050842285
-        Y: 3.757391929626465
-        Z: -0.014201128855347633
+        X: 5.842171669006348
+        Y: 3.393329381942749
+        Z: -0.015021325089037418
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -586,5 +611,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: 1920
+  X: 3840
   Y: 25
