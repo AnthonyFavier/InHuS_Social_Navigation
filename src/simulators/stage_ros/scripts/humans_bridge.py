@@ -26,7 +26,8 @@ class StageHumans(object):
         hum_marker_sub = []
         for human_id in range(1,self.num_hum+1):
             name = 'human'+str(human_id)
-            hum_marker_sub.append(message_filters.Subscriber("/" + name + "/base_pose_ground_truth", Odometry))
+            #hum_marker_sub.append(message_filters.Subscriber("/" + name + "/base_pose_ground_truth", Odometry))
+            hum_marker_sub.append(message_filters.Subscriber("/base_pose_ground_truth", Odometry))
         self.tracked_humans_pub = rospy.Publisher("/tracked_humans", TrackedHumans, queue_size=1)
         pose_msg = message_filters.TimeSynchronizer(hum_marker_sub, 10)
         pose_msg.registerCallback(self.HumansCB)
