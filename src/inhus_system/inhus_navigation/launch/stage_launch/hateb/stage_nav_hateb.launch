@@ -1,0 +1,38 @@
+<launch>
+
+  <!-- Node start delay to avoid crashing of navigation node -->
+  <arg name="node_start_delay" default="4.0" />
+
+  <!-- Define which global and local planner to be used by Move Base -->
+  <arg name="global_planner" default="global_planner/GlobalPlanner"/>
+	<arg name="local_planner" default="hateb_local_planner/HATebLocalPlannerROS"/>
+
+  <!-- human pose prediction, for the local-planning -->
+  <node type="human_path_prediction" pkg="human_path_prediction" name="human_path_prediction" ns="human" output="screen" >
+    <remap from="~/" to="/human_path_predict"/>
+    <remap from="/human_path_predict/tracked_humans" to="/tracked_humans"/>
+    <remap from="/human_path_predict/external_human_paths" to="/humans_sim_node/MultiGoalPlanner/plans"/>
+    <remap from="/human_path_predict/external_human_trajs" to="/move_base_node/HATebLocalPlannerROS/human_local_trajs"/>
+
+    <param name="velobs_mul" value="1.0"/>
+    <param name="velscale_mul" value="2.0"/>
+  </node>
+  <node type="predict_goal.py" pkg="human_path_prediction" name="human_goal_predict" output="screen"/>
+
+  <!-- move base node with a starting delay if needed -->
+	<node pkg="move_base" type="move_base" name="move_base" ns="human" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
+
+		<remap from="cmd_vel" to="cmd_geo"/>
+		<remap from="map" to="map_static"/>
+
+		<param name="base_global_planner" value="$(arg global_planner)"/>
+		<param name="base_local_planner" value="$(arg local_planner)"/>
+
+    <rosparam file="$(find inhus_navigation)/config/stage_pr2_move_base_config/move_base_params.yaml" command="load" />
+    <rosparam file="$(find inhus_navigation)/config/stage_pr2_move_base_config/global_costmap_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find inhus_navigation)/config/stage_pr2_move_base_config/local_costmap_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find inhus_navigation)/config/stage_pr2_move_base_config/hateb_local_planner_params.yaml" command="load" ns="HATebLocalPlannerROS" />
+
+	</node>
+
+</launch>
