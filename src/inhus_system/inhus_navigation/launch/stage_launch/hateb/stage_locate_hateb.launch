@@ -2,6 +2,8 @@
 
   <arg name="map_name" default="laas_adream"/>
 
+<!-- MAP SERVERS -->
+
   <!-- static map server -->
   <include file="$(find inhus_navigation)/launch/stage_launch/stage_map_static.launch">
     <arg name="map_name" value="$(arg map_name)"/>
@@ -12,13 +14,18 @@
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
-  <!-- fake localization : Robot, Human1, Human2 -->
-  <node pkg="tf" type="static_transform_publisher" name="odom_tf" args="0 0 0 0 0 0 /map /odom 20"/>
+
+<!-- FAKE LOCALIZATION -->
+
+  <!-- fake localization : Human1, Human2 -->
   <node pkg="tf" type="static_transform_publisher" name="human1_odom_tf" args="0 0 0 0 0 0 /map /human1/odom 20"/>
   <node pkg="tf" type="static_transform_publisher" name="human2_odom_tf" args="0 0 0 0 0 0 /map /human2/odom 20"/>
 
+
+<!-- TRACKED HUMANS -->
+
   <!-- Stage humans to /tracked_humans -->
   <arg name="num_humans" default="1"/>
-  <node name="humans" pkg="stage_ros" type="humans_bridge.py" args="$(arg num_humans)" output="screen"/>
+  <node name="humans" pkg="stage_ros" type="humans_bridge.py" ns="human" args="$(arg num_humans)" output="screen"/>
 
 </launch>
