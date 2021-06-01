@@ -8,12 +8,15 @@
 	<arg name="local_planner" default="hateb_local_planner/HATebLocalPlannerROS"/>
 
   <!-- human pose prediction, for the local-planning -->
-  <node name="human_path_prediction" type="human_path_prediction" pkg="human_path_prediction" ns="human" output="screen" >
-    <!--remap from="~/" to="/human_path_predict"/>
+  <node name="human_path_prediction_inhus" type="human_path_prediction" pkg="human_path_prediction" ns="human" output="screen" >
+    <remap from="~/" to="/human_path_predict"/>
     <remap from="/human_path_predict/tracked_humans" to="/tracked_humans"/>
     <remap from="/human_path_predict/external_human_paths" to="/humans_sim_node/MultiGoalPlanner/plans"/>
-    <remap from="/human_path_predict/external_human_trajs" to="/move_base_node/HATebLocalPlannerROS/human_local_trajs"/-->
+    <remap from="/human_path_predict/external_human_trajs" to="/move_base_node/HATebLocalPlannerROS/human_local_trajs"/>
+
+    <remap from="/tracked_humans" to="tracked_humans"/>
     <remap from="/human_goal_predict/predicted_goal" to="human_goal_predict/predicted_goal"/>
+    
 
     <param name="velobs_mul" value="1.0"/>
     <param name="velscale_mul" value="2.0"/>

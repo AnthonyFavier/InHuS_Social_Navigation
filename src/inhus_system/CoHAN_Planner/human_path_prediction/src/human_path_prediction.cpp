@@ -39,9 +39,9 @@
 #define NODE_NAME "human_path_prediction"
 #define HUMANS_SUB_TOPIC "tracked_humans"
 #define EXTERNAL_PATHS_SUB_TOPIC "external_human_paths"
-#define RESET_EXT_PATHS_SERVICE_NAME "reset_external_paths"
-#define PREDICT_SERVICE_NAME "predict_human_poses"
-#define PUBLISH_MARKERS_SRV_NAME "publish_prediction_markers"
+#define RESET_EXT_PATHS_SERVICE_NAME "/human/human_path_predict/reset_external_paths"
+#define PREDICT_SERVICE_NAME "/human/human_path_predict/predict_human_poses"
+#define PUBLISH_MARKERS_SRV_NAME "/human/human_path_predict/publish_prediction_markers"
 #define PREDICTED_HUMANS_MARKERS_PUB_TOPIC "predicted_human_poses"
 #define GET_PLAN_SRV_NAME "/human/move_base/GlobalPlanner/make_plan"
 #define DEFAULT_HUMAN_PART human_msgs::TrackedSegmentType::TORSO
@@ -129,7 +129,7 @@ void HumanPathPrediction::initialize() {
   publish_markers_srv_ = private_nh.advertiseService(publish_markers_srv_name_, &HumanPathPrediction::setPublishMarkers, this);
   get_plan_client_ = private_nh.serviceClient<nav_msgs::GetPlan>(get_plan_srv_name_, true);
   set_goal_srv_ = private_nh.advertiseService("set_human_goal", &HumanPathPrediction::setExternalGoal, this);
-  set_goal_call_srv_ = private_nh.advertiseService("check_human_goal", &HumanPathPrediction::checkExternalGoal, this);
+  set_goal_call_srv_ = private_nh.advertiseService("/human/human_path_predict/check_human_goal", &HumanPathPrediction::checkExternalGoal, this);
   goal_change_srv_  = private_nh.serviceClient<std_srvs::Trigger>("/goal_changed");
 
   showing_markers_ = false;
