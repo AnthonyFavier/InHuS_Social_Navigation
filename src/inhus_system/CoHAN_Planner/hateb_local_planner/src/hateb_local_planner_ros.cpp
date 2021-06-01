@@ -40,10 +40,10 @@
  * Modified by: Phani Teja Singamaneni
  *********************************************************************/
 
-#define PREDICT_SERVICE_NAME "/human_path_predict/predict_human_poses"
-#define RESET_PREDICTION_SERVICE_NAME "/human_path_predict/reset_external_paths"
-#define PUBLISH_MARKERS_SRV_NAME "/human_path_predict/publish_prediction_markers"
-#define HUMAN_GOAL_SRV_NAME "/human_path_predict/check_human_goal"
+#define PREDICT_SERVICE_NAME "human_path_predict/predict_human_poses"
+#define RESET_PREDICTION_SERVICE_NAME "human_path_predict/reset_external_paths"
+#define PUBLISH_MARKERS_SRV_NAME "human_path_predict/publish_prediction_markers"
+#define HUMAN_GOAL_SRV_NAME "human_path_predict/check_human_goal"
 #define HUMANS_SUB_TOPIC "/tracked_humans"
 #define OPTIMIZE_SRV_NAME "optimize"
 #define APPROACH_SRV_NAME "set_approach_id"
@@ -205,10 +205,16 @@ void HATebLocalPlannerROS::initialize(std::string name, tf2_ros::Buffer* tf, cos
     backoff_recovery_.initialize(costmap_ros,cfg_.robot.is_real);
 
     // setup human prediction client with persistent connection
-    predict_humans_client_ = nh.serviceClient<human_path_prediction::HumanPosePredict>(PREDICT_SERVICE_NAME, true);
-    reset_humans_prediction_client_ = nh.serviceClient<std_srvs::Empty>(RESET_PREDICTION_SERVICE_NAME, true);
-    publish_predicted_markers_client_ = nh.serviceClient<std_srvs::SetBool>(PUBLISH_MARKERS_SRV_NAME, true);
-    human_goal_client_ = nh.serviceClient<std_srvs::Trigger>(HUMAN_GOAL_SRV_NAME);
+    ros::NodeHandle nh_bis;
+    predict_humans_client_ = nh_bis.serviceClient<human_path_prediction::HumanPosePredict>(PREDICT_SERVICE_NAME, true);
+
+    ROS_INFO("====> Wait for srv to start");
+    ros::service::waitForService(PREDICT_SERVICE_NAME);
+    ROS_INFO("====> SRV STARTED !!!");
+
+    reset_humans_prediction_client_ = nh_bis.serviceClient<std_srvs::Empty>(RESET_PREDICTION_SERVICE_NAME, true);
+    publish_predicted_markers_client_ = nh_bis.serviceClient<std_srvs::SetBool>(PUBLISH_MARKERS_SRV_NAME, true);
+    human_goal_client_ = nh_bis.serviceClient<std_srvs::Trigger>(HUMAN_GOAL_SRV_NAME);
 
     optimize_server_ = nh.advertiseService(OPTIMIZE_SRV_NAME, &HATebLocalPlannerROS::optimizeStandalone, this);
     approach_server_ = nh.advertiseService(APPROACH_SRV_NAME, &HATebLocalPlannerROS::setApproachID, this);
@@ -708,7 +714,7 @@ uint32_t HATebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::Pose
 
     if(isDistMax || !found){
       humans_via_points_map_.clear();
-      
+
       if(visible_human_ids.size() > 0){
       updateHumanViaPointsContainers(transformed_human_plan_vel_map,
                                      cfg_.trajectory.global_plan_viapoint_sep);
@@ -801,6 +807,7 @@ uint32_t HATebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::Pose
     }
 
     if (predict_humans_client_ && predict_humans_client_.call(predict_srv)) {
+      ROS_INFO("PREDICT_HUMAN_POSE called !");
       tf2::Stamped<tf2::Transform> tf_human_plan_to_global;
       for (auto predicted_humans_poses :
            predict_srv.response.predicted_humans_poses) {
@@ -868,6 +875,7 @@ uint32_t HATebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::Pose
 
     // call human prediction server
     if (predict_humans_client_ && predict_humans_client_.call(predict_srv)) {
+      ROS_INFO("PREDICT_HUMAN_POSE called !");
       for (auto predicted_humans_poses :
            predict_srv.response.predicted_humans_poses) {
         if (predicted_humans_poses.id == cfg_.approach.approach_id) {
