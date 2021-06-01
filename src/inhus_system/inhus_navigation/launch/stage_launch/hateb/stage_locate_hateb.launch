@@ -26,8 +26,6 @@
 
   <!-- Stage humans to /tracked_humans -->
   <arg name="num_humans" default="1"/>
-  <node name="humans" pkg="stage_ros" type="humans_bridge.py" ns="human" args="$(arg num_humans)" output="screen">
-    <remap from="/tracked_humans" to="tracked_humans"/>
-  </node>
+  <node name="humans" pkg="stage_ros" type="humans_bridge.py" ns="human" args="$(arg num_humans)" output="screen"/>
 
 </launch>
