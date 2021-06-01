@@ -1,26 +1,33 @@
 <launch>
-  <arg name="map_name" default="laas_adream"/>
-  <arg name="node_start_delay" default="4.0"/>
 
-  <!-- localization and maps -->
-<!-- static map server -->
+  <arg name="map_name" default="laas_adream"/>
+
+<!-- MAP SERVERS -->
+
+  <!-- static map server -->
   <include file="$(find inhus_navigation)/launch/stage_launch/stage_map_static.launch">
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
-<!-- pov map server -->
+  <!-- pov map server -->
   <include file="$(find inhus_navigation)/launch/stage_launch/stage_map_pov.launch">
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
-<!-- fake localization : Robot, Human1, Human2 -->
+
+<!-- FAKE LOCALIZATION -->
+
+  <!-- fake localization : Human1, Human2 -->
   <node pkg="tf" type="static_transform_publisher" name="human1_odom_tf" args="0 0 0 0 0 0 /map /human1/odom 20"/>
   <node pkg="tf" type="static_transform_publisher" name="human2_odom_tf" args="0 0 0 0 0 0 /map /human2/odom 20"/>
 
-<!-- placeRobot node add the robot on the global costmap -->
+
+<!-- PLACE ROBOT -->
+
+  <!-- placeRobot node add the robot on the global costmap -->
   <node name="placeRobot_node" type="placeRobot_node" pkg="inhus_navigation" output="screen" ns="human"/>
 
-<!-- convert pointcloud to laserscan to add more easily the robot on the costmap -->
+  <!-- convert pointcloud to laserscan to add more easily the robot on the costmap -->
 	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" ns="human">
 		<!-- See all params at http://wiki.ros.org/pointcloud_to_laserscan -->
 
@@ -41,13 +48,5 @@
 		<!-- Topic to which LaserScan will be published -->
 		<remap from="scan" to="robot_pose_LaserScan"/>
 	</node>
-
-  <!-- navigation -->
-  <include file="$(find inhus_navigation)/launch/stage_launch/stage_nav.launch">
-    <arg name="node_start_delay" value="$(arg node_start_delay)"/>
-  </include>
-
-  <!-- human controller and boss -->
-  <include file="$(find inhus)/launch/all.launch"/>
 
 </launch>

@@ -12,12 +12,13 @@
   </include>
 
   <!-- localization and maps -->
-  <include file="$(find inhus_navigation)/launch/stage_launch/stage_locate.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/stage_locate_odom.launch"/> <!-- fake loc robot -->
+  <include file="$(find inhus_navigation)/launch/stage_launch/normal/stage_locate.launch">
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
   <!-- navigation -->
-  <include file="$(find inhus_navigation)/launch/stage_launch/stage_nav.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/normal/stage_nav.launch">
     <arg name="node_start_delay" value="$(arg node_start_delay)"/>
   </include>
 
