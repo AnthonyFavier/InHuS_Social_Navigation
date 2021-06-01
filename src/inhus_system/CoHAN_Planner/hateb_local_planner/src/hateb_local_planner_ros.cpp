@@ -40,10 +40,10 @@
  * Modified by: Phani Teja Singamaneni
  *********************************************************************/
 
-#define PREDICT_SERVICE_NAME "/human/human_path_predict/predict_human_poses"
-#define RESET_PREDICTION_SERVICE_NAME "/human/human_path_predict/reset_external_paths"
-#define PUBLISH_MARKERS_SRV_NAME "/human/human_path_predict/publish_prediction_markers"
-#define HUMAN_GOAL_SRV_NAME "/human/human_path_predict/check_human_goal"
+#define PREDICT_SERVICE_NAME "human_path_predict/predict_human_poses"
+#define RESET_PREDICTION_SERVICE_NAME "human_path_predict/reset_external_paths"
+#define PUBLISH_MARKERS_SRV_NAME "human_path_predict/publish_prediction_markers"
+#define HUMAN_GOAL_SRV_NAME "human_path_predict/check_human_goal"
 #define HUMANS_SUB_TOPIC "/tracked_humans"
 #define OPTIMIZE_SRV_NAME "optimize"
 #define APPROACH_SRV_NAME "set_approach_id"
