@@ -3,8 +3,8 @@ from PIL import Image, ImageDraw, ImageFont
 import sys
 
 def convert_pose_map(pose):
-    nx=int((pose[1]+8)/0.025)
-    ny=int((pose[0]+2)/0.025)
+    nx=int((pose[1]+10)/0.025)
+    ny=int((pose[0]+5)/0.025)
     return (nx,ny)
 
 def compute_color(time):
