@@ -380,7 +380,7 @@ floorplan
   bitmap "maps/laas_adream.pgm"
   gui_move 0
   size [19.2 40 2.0 ]
-  pose [4.5 10.0 0 0.000 ]
+  pose [4.6 10.0 0 0.000 ]
 )
 
 # throw in a robot (always the robot first)
