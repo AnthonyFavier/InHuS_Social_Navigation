@@ -11,6 +11,7 @@ from human_msgs.msg import TrackedHuman
 from human_msgs.msg import TrackedSegmentType
 from human_msgs.msg import TrackedSegment
 from nav_msgs.msg import Odometry
+from std_srvs.srv import SetBool
 import message_filters
 
 
@@ -19,7 +20,9 @@ class StageHumans(object):
     def __init__(self, num_hum):
         self.num_hum = num_hum
         self.tracked_humans_pub = []
+        self.activate_place_robot_server = []
         self.Segment_Type = TrackedSegmentType.TORSO
+        self.active = True
 
     def HumansPub(self):
         rospy.init_node('Stage_Humans', anonymous=True)
@@ -31,23 +34,29 @@ class StageHumans(object):
         self.tracked_humans_pub = rospy.Publisher("/tracked_humans", TrackedHumans, queue_size=1)
         pose_msg = message_filters.TimeSynchronizer(hum_marker_sub, 10)
         pose_msg.registerCallback(self.HumansCB)
+        activate_place_robot_server = rospy.Service("activate_place_robot", SetBool, self.Activate)
         rospy.spin()
 
+    def Activate(self,req):
+        self.active = req.data
+        return True, "called"
+
     def HumansCB(self,*msg):
-        tracked_humans = TrackedHumans()
-        for human_id in range(1,self.num_hum+1):
-            human_segment = TrackedSegment()
-            human_segment.type = self.Segment_Type
-            human_segment.pose.pose = msg[human_id-1].pose.pose
-            human_segment.twist.twist = msg[human_id-1].twist.twist
-            tracked_human = TrackedHuman()
-            tracked_human.track_id = human_id
-            tracked_human.segments.append(human_segment)
-            tracked_humans.humans.append(tracked_human)
-        if(tracked_humans.humans):
-            tracked_humans.header.stamp = rospy.Time.now()
-            tracked_humans.header.frame_id = 'map'
-            self.tracked_humans_pub.publish(tracked_humans)
+        if(self.active):
+            tracked_humans = TrackedHumans()
+            for human_id in range(1,self.num_hum+1):
+                human_segment = TrackedSegment()
+                human_segment.type = self.Segment_Type
+                human_segment.pose.pose = msg[human_id-1].pose.pose
+                human_segment.twist.twist = msg[human_id-1].twist.twist
+                tracked_human = TrackedHuman()
+                tracked_human.track_id = human_id
+                tracked_human.segments.append(human_segment)
+                tracked_humans.humans.append(tracked_human)
+            if(tracked_humans.humans):
+                tracked_humans.header.stamp = rospy.Time.now()
+                tracked_humans.header.frame_id = 'map'
+                self.tracked_humans_pub.publish(tracked_humans)
 
 
 if __name__ == '__main__':
