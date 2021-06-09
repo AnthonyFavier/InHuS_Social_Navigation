@@ -8,7 +8,7 @@ meter_scoring: true
 footprint_padding: 0.0
 
 static_layer:
-  map_topic: /map
+  map_topic: map_static
   subscribe_to_updates: false
   static_map: true
 
