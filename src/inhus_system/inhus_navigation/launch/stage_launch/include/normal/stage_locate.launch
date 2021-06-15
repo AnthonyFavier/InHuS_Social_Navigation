@@ -5,12 +5,12 @@
 <!-- MAP SERVERS -->
 
   <!-- static map server -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/morse_map_static.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/include/stage_map_static.launch">
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
   <!-- pov map server -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/morse_map_pov.launch">
+  <include file="$(find inhus_navigation)/launch/stage_launch/include/stage_map_pov.launch">
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
