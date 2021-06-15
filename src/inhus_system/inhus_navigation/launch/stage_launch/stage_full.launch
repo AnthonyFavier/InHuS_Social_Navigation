@@ -1,5 +1,5 @@
 <launch>
-  <arg name="ns" default="toto"/>
+  <arg name="ns" default="human1"/>
   <arg name="map_name" default="laas_adream"/>
   <arg name="node_start_delay" default="2.0"/>
   <arg name="gui" default="true"/>
