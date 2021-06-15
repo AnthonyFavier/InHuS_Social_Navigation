@@ -5,10 +5,21 @@
   <arg name="num_agents" default="3"/>
   <arg name="node_start_delay" default="2.0"/>
 
+<!-- MAP SERVERS -->
   <!-- start map_server with laas_adream map -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find cohan_navigation)/maps/laas_adream.yaml" if="$(eval 'laas_adream'==arg('map_name'))"/>
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find cohan_navigation)/maps/maze.yaml" if="$(eval 'maze'==arg('map_name'))"/>
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find cohan_navigation)/maps/open_space.yaml" if="$(eval 'open_space'==arg('map_name'))"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find inhus_navigation)/maps/laas_adream/laas_adream.yaml" if="$(eval 'laas_adream'==arg('map_name'))"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find inhus_navigation)/maps/maze/maze.yaml" if="$(eval 'maze'==arg('map_name'))"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find inhus_navigation)/maps/open_space/open_space.yaml" if="$(eval 'open_space'==arg('map_name'))"/>
+  <!-- static map server -->
+  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_map_static.launch">
+    <arg name="ns" value="$(arg ns)"/>
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+  <!-- pov map server -->
+  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_map_pov.launch">
+    <arg name="ns" value="$(arg ns)"/>
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
 
   <include file="$(find cohan_navigation)/launch/morse_pr2_multi_launch/include/agent_with_ns.launch">
     <arg name="ns" value="$(arg ns)"/>

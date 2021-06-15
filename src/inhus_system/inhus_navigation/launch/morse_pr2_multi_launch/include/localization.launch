@@ -17,7 +17,7 @@
 
     <!-- start acml for localization -->
     <group if="$(eval 'amcl'==arg('localize'))">
-      <include file="$(find cohan_navigation)/config/morse_pr2_move_base_config/amcl_node.xml"/>
+      <include file="$(find inhus_navigation)/config/morse_pr2_move_base_config/amcl_node.xml"/>
       <param name="/amcl/initial_pose_x" value="2.0" />
       <param name="/amcl/initial_pose_y" value="2.0" />
       <param name="/amcl/initial_pose_a" value="0.0" />
@@ -42,7 +42,7 @@
 
     <!-- start acml for localization -->
     <group if="$(eval 'amcl'==arg('localize'))">
-      <include file="$(find cohan_navigation)/config/morse_pr2_move_base_config/amcl_node.xml"/>
+      <include file="$(find inhus_navigation)/config/morse_pr2_move_base_config/amcl_node.xml"/>
       <param name="/$(arg ns)/amcl/initial_pose_x" value="3.0" />
       <param name="/$(arg ns)/amcl/initial_pose_y" value="1.0" />
       <param name="/$(arg ns)/amcl/initial_pose_a" value="0.0" />
