@@ -31,6 +31,22 @@ add_executable(placeRobot_node src/placeRobot_node.cpp)
 add_dependencies(placeRobot_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(placeRobot_node ${catkin_LIBRARIES})
 
+add_executable(input_stage_node src/interface_stage_input_node.cpp)
+add_dependencies(input_stage_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(input_stage_node ${catkin_LIBRARIES})
+
+add_executable(output_stage_node src/interface_stage_output_node.cpp)
+add_dependencies(output_stage_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(output_stage_node ${catkin_LIBRARIES})
+
+add_executable(input_morse_node src/interface_morse_input_node.cpp)
+add_dependencies(input_morse_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(input_morse_node ${catkin_LIBRARIES})
+
+add_executable(output_morse_node src/interface_morse_output_node.cpp)
+add_dependencies(output_morse_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(output_morse_node ${catkin_LIBRARIES})
+
 # install
 foreach(dir maps launch/stage_launch config/stage_pr2_move_base_config)
    install(DIRECTORY ${dir}/

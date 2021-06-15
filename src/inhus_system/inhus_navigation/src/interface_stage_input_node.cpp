@@ -72,8 +72,8 @@ int main(int argc, char** argv)
 	////////////////////////////
 	////  Input Subscribers //// Part to modify for another simulator
   ////////////////////////////
-	ros::Subscriber sub_human_odom = nh.subscribe("/human1/odom", 1, humanOdomCallback);
-	ros::Subscriber sub_robot_odom = nh.subscribe("/odom", 1, robotOdomCallback);
+	ros::Subscriber sub_human_odom = nh.subscribe("/human1/odom", 10, humanOdomCallback);
+	ros::Subscriber sub_robot_odom = nh.subscribe("/odom", 10, robotOdomCallback);
 	////////////////////////////
 	////////////////////////////
 	////////////////////////////

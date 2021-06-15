@@ -1,0 +1,6 @@
+<launch>
+
+  <include file="$(find morse_ros)/launch/morse_pr2.launch"/>
+  <include file="$(find inhus_navigation)/launch/morse_launch/morse_interface.launch"/>
+
+</launch>

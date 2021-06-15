@@ -1,0 +1,19 @@
+<launch>
+  <arg name="map_name" default="laas_adream"/>
+  <arg name="node_start_delay" default="4.0"/>
+
+  <!-- localization and maps -->
+  <include file="$(find inhus_navigation)/launch/morse_launch/morse_locate_odom.launch"/> <!-- fake loc robot -->
+  <include file="$(find inhus_navigation)/launch/morse_launch/normal/morse_locate.launch">
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+
+  <!-- navigation -->
+  <include file="$(find inhus_navigation)/launch/morse_launch/normal/morse_nav.launch">
+    <arg name="node_start_delay" value="$(arg node_start_delay)"/>
+  </include>
+
+  <!-- human controller and boss -->
+  <include file="$(find inhus)/launch/all.launch"/>
+
+</launch>
