@@ -24,6 +24,6 @@
   </group>
 
   <!-- interface -->
-  <include file="$(find inhus_navigation)/launch/stage_launch/stage_interface.launch"/>
+  <include file="$(find inhus_navigation)/launch/stage_launch/include/stage_interface.launch"/>
 
 </launch>
