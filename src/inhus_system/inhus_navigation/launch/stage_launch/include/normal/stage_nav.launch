@@ -1,4 +1,5 @@
 <launch>
+  <arg name="ns" default="human1"/>
 
   <!-- Node start delay to avoid crashing of navigation node -->
   <arg name="node_start_delay" default="4.0" />
@@ -8,7 +9,7 @@
 	<arg name="local_planner" default="teb_local_planner/TebLocalPlannerROS"/>
 
   <!-- move base node with a starting delay if needed -->
-	<node pkg="move_base" type="move_base" name="move_base" ns="human" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
+	<node pkg="move_base" type="move_base" name="move_base" ns="$(arg ns)" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
 
 		<remap from="cmd_vel" to="cmd_geo"/>
 		<remap from="/map" to="map_static"/>

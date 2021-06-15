@@ -1,16 +1,18 @@
 <launch>
-
+  <arg name="ns" default="human1"/>
   <arg name="map_name" default="laas_adream"/>
 
 <!-- MAP SERVERS -->
 
   <!-- static map server -->
   <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_map_static.launch">
+    <arg name="ns" value="$(arg ns)"/>
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
   <!-- pov map server -->
   <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_map_pov.launch">
+    <arg name="ns" value="$(arg ns)"/>
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
@@ -25,10 +27,10 @@
 <!-- PLACE ROBOT -->
 
   <!-- placeRobot node add the robot on the global costmap -->
-  <node name="placeRobot_node" type="placeRobot_node" pkg="inhus_navigation" output="screen" ns="human"/>
+  <node name="placeRobot_node" type="placeRobot_node" pkg="inhus_navigation" output="screen" ns="$(arg ns)"/>
 
   <!-- convert pointcloud to laserscan to add more easily the robot on the costmap -->
-	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" ns="human">
+	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" ns="$(arg ns)">
 		<!-- See all params at http://wiki.ros.org/pointcloud_to_laserscan -->
 
 		<!-- Min and max height to sample from depth data - these values worked for my drone -->

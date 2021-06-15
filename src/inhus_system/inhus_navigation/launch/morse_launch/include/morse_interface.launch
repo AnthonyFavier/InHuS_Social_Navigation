@@ -1,6 +1,7 @@
 <launch>
+	<arg name="ns" default="human1"/>
 
-	<node name="input_node" type="input_morse_node" pkg="inhus_navigation" ns="human/interface"/>
-	<node name="output_node" type="output_morse_node" pkg="inhus_navigation" ns="human/interface"/>
+	<node name="input_node" type="input_morse_node" pkg="inhus_navigation" ns="$(arg ns)/interface"/>
+	<node name="output_node" type="output_morse_node" pkg="inhus_navigation" ns="$(arg ns)/interface"/>
 
 </launch>

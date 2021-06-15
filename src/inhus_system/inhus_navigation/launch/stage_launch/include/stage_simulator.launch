@@ -1,4 +1,5 @@
 <launch>
+    <arg name="ns" default="human1"/>
   <arg name="map_name" default="laas_adream"/>
   <arg name="gui" default="true"/>
   <arg name="fast_mode" default="false"/>
@@ -24,6 +25,8 @@
   </group>
 
   <!-- interface -->
-  <include file="$(find inhus_navigation)/launch/stage_launch/include/stage_interface.launch"/>
+  <include file="$(find inhus_navigation)/launch/stage_launch/include/stage_interface.launch">
+    <arg name="ns" value="$(arg ns)"/>
+  </include>
 
 </launch>

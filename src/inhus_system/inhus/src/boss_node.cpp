@@ -38,10 +38,10 @@ HumanManager::HumanManager(string name) : AgentManager(name)
 	pub_manual_cmd_ = nh_.advertise<geometry_msgs::Twist>(topic_manual, 1);
 
 	string topic_goal_done = "/" + name_ + "/goal_done";
-	sub_goal_done_ = 	nh_.subscribe("/human/goal_done", 1, &HumanManager::goalDoneCB, this);
+	sub_goal_done_ = 	nh_.subscribe(topic_goal_done, 1, &HumanManager::goalDoneCB, this);
 
 	string topic_goal_start = "/" + name_ + "/new_goal";
-	sub_goal_start_ =	nh_.subscribe("/human/new_goal", 1, &HumanManager::goalStartCB, this);
+	sub_goal_start_ =	nh_.subscribe(topic_goal_start, 1, &HumanManager::goalStartCB, this);
 
 	goal_done_ = true;
 	current_attitude_ = 0;
