@@ -1,10 +1,11 @@
 <launch>
+	<arg name="ns" default="human1"/>
 
-	<node name="humanBehaviorModel_node" type="humanBehaviorModel_node" pkg="inhus" ns="human" output="screen"/> <!-- launch-prefix="xterm -geometry '80x25+1470+0' -e"/-->
-	<node name="taskPlanner_node" type="taskPlanner_node" pkg="inhus" ns="human"/>
-	<node name="supervisor_node" type="supervisor_node" pkg="inhus" ns="human" output="screen"/> <!--launch-prefix="xterm -geometry '156x25+0+0' -e"/-->
-	<node name="logManager_node" type="logManager_node" pkg="inhus" ns="human"/>
-	<node name="poseLog_node" type="poseLog_node" pkg="inhus" ns="human"/>
-	<node name="lowLevelController_node" type="lowLevelController_node" pkg="inhus" ns="human"/>
+	<node name="humanBehaviorModel_node" type="humanBehaviorModel_node" pkg="inhus" ns="$(arg ns)" output="screen"/> <!-- launch-prefix="xterm -geometry '80x25+1470+0' -e"/-->
+	<node name="taskPlanner_node" type="taskPlanner_node" pkg="inhus" ns="$(arg ns)"/>
+	<node name="supervisor_node" type="supervisor_node" pkg="inhus" ns="$(arg ns)" output="screen"/> <!--launch-prefix="xterm -geometry '156x25+0+0' -e"/-->
+	<node name="logManager_node" type="logManager_node" pkg="inhus" ns="$(arg ns)"/>
+	<node name="poseLog_node" type="poseLog_node" pkg="inhus" ns="$(arg ns)"/>
+	<node name="lowLevelController_node" type="lowLevelController_node" pkg="inhus" ns="$(arg ns)"/>
 
 </launch>

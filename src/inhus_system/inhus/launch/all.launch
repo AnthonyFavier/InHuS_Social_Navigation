@@ -1,11 +1,16 @@
 <launch>
+	<arg name="ns" default="human1"/>
 
-	<rosparam command="load" file="$(find inhus)/config/params.yaml" ns="human"/>
+	<rosparam command="load" file="$(find inhus)/config/params.yaml" ns="$(arg ns)"/>
 
 	<!-- Human controller -->
-	<include file="$(find inhus)/launch/human_controller.launch"/>
+	<include file="$(find inhus)/launch/human_controller.launch">
+		<arg name="ns" value="$(arg ns)"/>
+	</include>
 
 	<!-- Boss -->
-	<include file="$(find inhus)/launch/boss.launch"/>
+	<include file="$(find inhus)/launch/boss.launch">
+		<arg name="ns" value="$(arg ns)"/>
+	</include>
 
 </launch>
