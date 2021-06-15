@@ -526,13 +526,10 @@ StageNode::WorldCallback()
         //this->odomMsgs[r].stall = this->positionmodels[r]->Stall();
         //
 
-				if(this->positionmodels[r]->Stalled()){
-					std::cout << "Collison !!" << '\n';
-					//std_srvs::Empty::Request req;
-					//std_srvs::Empty::Response res;
-					//cb_reset_srv(req, res);
+	if(this->positionmodels[r]->Stalled()){
+	  std::cout << "Collison !!" << '\n';
+	}
 
-				}
         odom_msg.header.frame_id = mapName("odom", r, static_cast<Stg::Model*>(robotmodel->positionmodel));
         odom_msg.header.stamp = sim_time;
 

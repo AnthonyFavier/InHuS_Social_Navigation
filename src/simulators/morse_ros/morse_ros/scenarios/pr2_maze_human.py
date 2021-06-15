@@ -4,7 +4,10 @@ import sys
 import rospy
 from morse.builder import *
 from morse.core.services import service
-from human_msgs.msg import HumanTwist
+
+num_humans = 3
+locations = [[3.0, 1.0, 0.0],[7.0, 5.0, 0.0],[7.0, 14.0, 0.0]]
+orientations = [0.0,0.7,1.57]
 
 num_humans = 3
 locations = [[3.0, 1.0, 0.0],[7.0, 5.0, 0.0],[7.0, 14.0, 0.0]]
@@ -13,6 +16,7 @@ orientations = [0.0,0.7,1.57]
 # add clock
 clock = Clock()
 clock.add_interface("ros", topic="clock")
+
 
 def add_human(h_id):
 
@@ -25,13 +29,34 @@ def add_human(h_id):
 
     name = "human" + str(h_id)
 
-    # human_marker sensor for the human
-    human_marker = HumanMarker()
+    ## human_marker sensor for the human
+    human_marker = AgentMarker()
     human.append(human_marker)
     human_marker.add_interface("ros", topic="/"+name)
 
     human_motion = MotionXYW()
     human_motion.properties(ControlType='Position')
+
+    human_odom = Odometry()
+    human_odom.add_interface("ros",topic="/"+name+"/odom",
+                             frame_id = name+"/odom",
+                             child_frame_id = name+"/base_footprint")
+    human_odom.add_interface("ros",topic="/"+name+"/base_pose_ground_truth",
+                             frame_id = name+"/odom",
+                             child_frame_id = name+"/base_footprint")
+    human.append(human_odom)
+
+    if h_id==1:
+        scan = Hokuyo()
+        scan.translate(x=0.275, z=0.05)
+        scan.add_interface("ros",topic="/"+name+"/scan",frame_id = name+"/base_laser_link")
+        human.append(scan)
+        scan.properties(Visible_arc = False)
+        scan.properties(laser_range = 30.0)
+        scan.properties(resolution = 1)
+        scan.properties(scan_window = 180.0)
+        scan.create_laser_arc()
+
 
     human.append(human_motion)
     human_motion.add_interface("ros", topic="/" + name + "/cmd_vel")

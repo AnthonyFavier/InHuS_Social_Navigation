@@ -328,7 +328,7 @@ define human position
   gui_nose 1
   localization "gps"
   drive "omni"
-  #laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
+  laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
 
     cap_b(pose [0.05 0.0 1.25 0 ] color "brown")
     cap(pose [0.0 0.0 1.27 0 ] color "brown")
@@ -369,7 +369,7 @@ interval_sim 20  # simulation timestep in milliseconds
 window
 (
   size [ 745.000 448.000 ]
-  rotate [ 0.000 90.000 ]
+  rotate [ 0.000 0.000 ]
   scale 28.806
 )
 
@@ -378,12 +378,11 @@ floorplan
 (
   name "laas"
   bitmap "maps/laas_adream.pgm"
-  gui_move 0
-  size [19.2 40 2.0 ]
-  pose [4.6 10.0 0 0.000 ]
+  size [19.2 41.6 2.0 ]
+  pose [4.606 10.744 0.000 0.000 ]
 )
 
 # throw in a robot (always the robot first)
-pr2( pose [ 10.2 8.5 0 0 ] name "pr2" color "gray")
+pr2( pose [ 2.0 2.0 0 0 ] name "pr2" color "gray")
 human( pose [ 3.0 1.0 0 0 ] name "human1" color "blue")
-#human( pose [ 7.0 5.0 0 0 ] name "human2" color "green")
+human( pose [ 7.5 5.0 0 90.0 ] name "human2" color "green")

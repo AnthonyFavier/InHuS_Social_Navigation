@@ -14,4 +14,8 @@
 
     <!-- start pr2 robot -->
     <include file="$(find morse_ros)/launch/pr2.launch"/>
+
+    <!-- tuck the arms by default -->
+    <include file="$(find morse_ros)/launch/pr2_tuck_arms.launch" />
+    
   </launch>
