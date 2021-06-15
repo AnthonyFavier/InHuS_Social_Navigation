@@ -1,0 +1,61 @@
+<launch>
+
+  <arg name="ns" default=""/>
+  <arg name="num_agents" default="2"/>
+
+<!-- ****************************************************************************** -->
+<!-- *         Two different settings to avoid '/' in tf2 frames                  * -->
+<!-- ****************************************************************************** -->
+
+  <!-- Without namespace -->
+  <group if="$(eval ''==arg('ns'))">
+    <!-- MORSE agents to /tracked_agents -->
+    <node name="agents" pkg="morse_ros" type="agents_bridge.py" args="$(arg num_agents)" output="screen"/>
+
+    <!-- agent pose prediction, for the local-planning -->
+    <node pkg="agent_path_prediction" type="agent_path_prediction" name="agent_path_predict" output="screen" >
+      <remap from="/agent_path_predict/tracked_agents" to="/tracked_agents"/>
+      <remap from="/agent_path_predict/external_agent_trajs" to="/move_base_node/HATebLocalPlannerROS/agent_local_trajs"/>
+
+      <param name="velobs_mul" value="1.0"/>
+      <param name="velscale_mul" value="2.0"/>
+    </node>
+
+    <node pkg="agent_path_prediction" type="predict_goal.py" name="agent_goal_predict" output="screen"/>
+
+    <!-- Filter the agents from laser scan -->
+    <include file="$(find cohan_layers)/launch/agent_filter.launch">
+      <arg name="simulator" value="morse"/>
+    </include>
+  </group>
+
+
+  <!-- With namespace -->
+  <group unless="$(eval ''==arg('ns'))">
+    <!-- MORSE agents to /tracked_agents -->
+    <node name="agents" pkg="morse_ros" type="agents_bridge.py" args="$(arg num_agents) $(arg ns)" output="screen"/>
+
+    <!-- agent pose prediction, for the local-planning -->
+    <node pkg="agent_path_prediction" type="agent_path_prediction" name="agent_path_predict" output="screen" >
+      <remap from="map" to="/map"/>
+      <remap from="/$(arg ns)/agent_path_predict/tracked_agents" to="/$(arg ns)/tracked_agents"/>
+      <remap from="/$(arg ns)/agent_path_predict/external_agent_trajs" to="/move_base_node/HATebLocalPlannerROS/agent_local_trajs"/>
+
+      <param name="velobs_mul" value="1.0"/>
+      <param name="velscale_mul" value="2.0"/>
+      <param name="~robot_frame_id" value="$(arg ns)/base_footprint"/>
+    </node>
+
+    <node pkg="agent_path_prediction" type="predict_goal.py" name="agent_goal_predict" output="screen">
+      <remap from="/tracked_agents" to="/$(arg ns)/tracked_agents"/>
+    </node>
+
+    <!-- Filter the agents from laser scan -->
+    <include file="$(find cohan_layers)/launch/agent_filter.launch">
+      <arg name="simulator" value="morse"/>
+      <arg name="ns" value="$(arg ns)"/>
+    </include>
+  </group>
+
+
+</launch>
