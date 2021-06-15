@@ -16,4 +16,7 @@
   <!-- human controller and boss -->
   <include file="$(find inhus)/launch/all.launch"/>
 
+  <!-- Interface with the simulator -->
+  <include file="$(find inhus_navigation)/launch/stage_launch/include/stage_interface.launch"/>
+
 </launch>

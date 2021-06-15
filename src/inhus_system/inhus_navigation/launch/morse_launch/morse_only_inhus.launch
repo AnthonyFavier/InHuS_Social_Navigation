@@ -16,4 +16,7 @@
   <!-- human controller and boss -->
   <include file="$(find inhus)/launch/all.launch"/>
 
+  <!-- Interface with the simulator -->
+  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_interface.launch"/>
+
 </launch>
