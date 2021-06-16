@@ -3,7 +3,7 @@ update_frequency: 10.0
 global_frame: map
 robot_base_frame: base_link
 rolling_window: false
-robot_radius: 0.3
+robot_radius: 0.4
 plugins:
   - {name: static_map, type: "costmap_2d::StaticLayer"}
   - {name: obstacles, type: "costmap_2d::ObstacleLayer"}
@@ -17,7 +17,8 @@ obstacles:
   footprint_clearing_enabled: true
   track_unknown_space: true
 inflater:
-  inflation_radius: 0.2
+  inflation_radius:     0.6  
+  cost_scaling_factor:  9.0
 static_map:
   enabled:              true
   map_topic:            "/map"
