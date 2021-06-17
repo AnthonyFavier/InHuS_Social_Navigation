@@ -7,8 +7,8 @@ from morse.builder import *
 from morse.core.services import service
 
 num_humans = 3
-locations = [[3.0, 1.0, 0.0],[7.0, 5.0, 0.0],[7.0, 14.0, 0.0]]
-orientations = [0.0,0.7,1.57]
+locations = [[1.5, 14.0, 0.0],[7.0, 5.0, 0.0],[8.8, 9.5, 0.0]]
+orientations = [3.14,0.7,1.57]
 
 # add clock
 clock = Clock()
@@ -73,7 +73,8 @@ pr2.append(ground_truth)
 ground_truth.add_interface("ros", topic="base_pose_ground_truth")
 
 # put the robot and humans in some good places and add clock
-pr2.translate(2.0, 2.0, 0.0)
+pr2.translate(10.0, 15.0, 0.0)
+pr2.rotate(z=3.14)
 pr2.append(clock)
 
 # HumanArray humans
