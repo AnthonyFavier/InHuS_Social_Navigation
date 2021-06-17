@@ -69,11 +69,16 @@ PlaceRobotMap::PlaceRobotMap()
 	robot_pose_sub_ = 	nh_.subscribe("known/robot_pose", 100, &PlaceRobotMap::robotPoseCallback, this);
 	human_pose_sub_ = 	nh_.subscribe("known/human_pose", 100, &PlaceRobotMap::humanPoseCallback, this);
 
-	// Publisher
-	robot_pose_pub_ =	nh_.advertise<sensor_msgs::PointCloud2>("robot_pose_PointCloud2", 10);
-
 	// Server
 	place_robot_server_ = nh_.advertiseService("place_robot", &PlaceRobotMap::placeRobotSrv, this);
+
+	// Client
+	client_shutdown_layer_static_human_ = nh_.serviceClient<std_srvs::SetBool>("move_base/global_costmap/human_layer_static/shutdown_layer");
+	client_shutdown_layer_visible_human_ = nh_.serviceClient<std_srvs::SetBool>("move_base/global_costmap/human_layer_visible/shutdown_layer");
+
+	// Publisher
+	//robot_pose_pub_ =	nh_.advertise<sensor_msgs::PointCloud2>("robot_pose_PointCloud2", 10);
+
 }
 
 bool PlaceRobotMap::placeRobotSrv(inhus_navigation::PlaceRobot::Request& req, inhus_navigation::PlaceRobot::Response& res)
@@ -94,21 +99,33 @@ void PlaceRobotMap::placeRobot()
 		if(sqrt(pow(human_pose_.x-robot_pose_.x,2) + pow(human_pose_.y-robot_pose_.y,2)) <= dist_threshold_)
 		{
 			// publish with obst
-			robot_pose_PointCloud2_.header.stamp = ros::Time::now();
-			robot_pose_pub_.publish(robot_pose_PointCloud2_);
+			// robot_pose_PointCloud2_.header.stamp = ros::Time::now();
+			// robot_pose_pub_.publish(robot_pose_PointCloud2_);
+			std_srvs::SetBool srv;
+			srv.request.data = false;
+			client_shutdown_layer_static_human_.call(srv);
+			client_shutdown_layer_visible_human_.call(srv);
 		}
 		else
 		{
 			// publish empty
-			empty_PointCloud2_.header.stamp = ros::Time::now();
-			robot_pose_pub_.publish(empty_PointCloud2_);
+			// empty_PointCloud2_.header.stamp = ros::Time::now();
+			// robot_pose_pub_.publish(empty_PointCloud2_);
+			std_srvs::SetBool srv;
+			srv.request.data = true;
+			client_shutdown_layer_static_human_.call(srv);
+			client_shutdown_layer_visible_human_.call(srv);
 		}
 	}
 	else
 	{
 		// publish empty
-		empty_PointCloud2_.header.stamp = ros::Time::now();
-		robot_pose_pub_.publish(empty_PointCloud2_);
+		// empty_PointCloud2_.header.stamp = ros::Time::now();
+		// robot_pose_pub_.publish(empty_PointCloud2_);
+		std_srvs::SetBool srv;
+		srv.request.data = true;
+		client_shutdown_layer_static_human_.call(srv);
+		client_shutdown_layer_visible_human_.call(srv);
 	}
 }
 

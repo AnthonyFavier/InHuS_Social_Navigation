@@ -1,4 +1,4 @@
-publish_frequency: 5.0
+publish_frequency: 3.0
 update_frequency: 10.0
 width: 15.0
 height: 15.0
@@ -23,8 +23,8 @@ obstacles:
   footprint_clearing_enabled: true
   track_unknown_space: true
 inflater:
-  inflation_radius:     0.6
-  cost_scaling_factor:  9.0  
+  inflation_radius:     0.5
+  cost_scaling_factor:  9.0
 static:
   enabled:              true
   map_topic:            "/map"

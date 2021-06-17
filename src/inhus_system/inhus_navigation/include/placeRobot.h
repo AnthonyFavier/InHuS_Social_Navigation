@@ -10,6 +10,7 @@
 #include "sensor_msgs/point_cloud_conversion.h"
 
 #include "inhus_navigation/PlaceRobot.h"
+#include "std_srvs/SetBool.h"
 
 class PlaceRobotMap
 {
@@ -43,6 +44,8 @@ private:
 	ros::Publisher robot_pose_pub_;
 
 	ros::ServiceServer place_robot_server_;
+	ros::ServiceClient client_shutdown_layer_static_human_;
+	ros::ServiceClient client_shutdown_layer_visible_human_;
 
 	float size_rob_;
 	float dist_threshold_;
