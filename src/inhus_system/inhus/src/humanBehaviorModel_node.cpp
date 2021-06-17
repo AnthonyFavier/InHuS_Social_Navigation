@@ -114,7 +114,7 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 		if(abs(current_path_length-previous_path_length) > absolute_path_length_diff_ 	// if difference big enough in absolute
 		&& current_path_length > ratio_path_length_diff_*previous_path_length)   		// and if difference big enough relatively
 		{
-			ROS_INFO("Checked PATH_CHANGED_TOO_MUCH");
+			ROS_INFO("Checked PATH_CHANGED_TOO_MUCH %f", current_path_length);
 			state_blocked_ = LONGER;
 			res.conflict = 	true;
 		}
@@ -123,7 +123,7 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 	if(res.conflict)
 	{
 		// remove robot
-		//ROS_INFO("remove robot in checked");
+		ROS_INFO("remove robot in checked");
 		*want_robot_placed_ = false;
 		client_update_robot_map_.call(srv_signal_);
 
@@ -206,9 +206,9 @@ void ConflictManager::loop()
 					case REPLANNING:
 						if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
 						{
-							//ROS_INFO("\t => APPROACH <=");
-							//ROS_INFO("REPLANNING");
-							//ROS_INFO("dist=%f", dist_to_robot);
+							ROS_INFO("\t => APPROACH <=");
+							ROS_INFO("REPLANNING");
+							ROS_INFO("dist=%f", dist_to_robot);
 
 							// if not too close from approach_dist
 							if(dist_to_robot > approach_dist_ + replan_dist_stop_)
@@ -218,13 +218,14 @@ void ConflictManager::loop()
 								goal.goal.target_pose.header.stamp = ros::Time::now();
 								goal.goal = current_action_;
 								pub_goal_move_base_.publish(goal);
+								ros::Duration(0.3).sleep();
 							}
 
 							// put the robot back on the map to check if still blocked in next approach loop
 							*want_robot_placed_ = true;
 							client_update_robot_map_.call(srv_signal_);
+							ROS_INFO("put robot in replanning (for check)");
 							state_approach_ = CHECKING;
-
 							last_replan_ = ros::Time::now();
 						}
 						break;
@@ -233,9 +234,9 @@ void ConflictManager::loop()
 					case CHECKING:
 						if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
 						{
-							//ROS_INFO("\t => APPROACH <=");
-							//ROS_INFO("CHECKING");
-							//ROS_INFO("dist=%f", dist_to_robot);
+							ROS_INFO("\t => APPROACH <=");
+							ROS_INFO("CHECKING");
+							ROS_INFO("dist=%f", dist_to_robot);
 
 							// check if still blocked
 							bool still_blocked = true;
@@ -250,6 +251,8 @@ void ConflictManager::loop()
 								{
 									float response_path_length = computePathLength(&(srv_get_plan_.response.plan));
 									float previous_path_length = computePathLength(&previous_path_);
+									ROS_INFO("check path length = %f", response_path_length);
+									ROS_INFO("check previous path length = %f", previous_path_length);
 
 									// check if the path found is 'good'
 									if(previous_path_length == 0								// if no path was found before
@@ -260,6 +263,7 @@ void ConflictManager::loop()
 							}
 							else
 								ROS_ERROR("Failed to call service make_plan");
+							ros::Duration(0.3).sleep();
 
 							if(still_blocked)
 							{
@@ -269,6 +273,7 @@ void ConflictManager::loop()
 								*want_robot_placed_ = false;
 								client_update_robot_map_.call(srv_signal_);
 								last_replan_ = ros::Time::now();
+								ROS_INFO("remove robot in checking (for replan)");
 								state_approach_ = REPLANNING;
 							}
 							else
@@ -308,7 +313,7 @@ void ConflictManager::loop()
 			}
 			else if(ros::Time::now() - last_replan_ > blocked_ask_path_freq_.expectedCycleTime())
 			{
-				//ROS_INFO("\t => BLOCKED <=");
+				ROS_INFO("\t => BLOCKED <=");
 				//ROS_INFO("try to replan");
 
 				srv_get_plan_.request.start.pose.position.x = 	h_pose_.x;
@@ -326,10 +331,13 @@ void ConflictManager::loop()
 						float response_path_length = computePathLength(&(srv_get_plan_.response.plan));
 						float previous_path_length = computePathLength(&previous_path_);
 
+						ROS_INFO("blocked path length = %f", response_path_length);
+						ROS_INFO("blocked previous path length = %f", previous_path_length);
+
 						// If new path is 'good'
 						if(previous_path_length == 0								// if no path was found before
 						|| abs(response_path_length-previous_path_length)<absolute_path_length_diff_		// if close enough in absolute
-						|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if clone enough relatively
+						|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if close enough relatively
 						{
 							ROS_INFO("Not BLOCKED back to IDLE");
 							state_global_ = IDLE;
@@ -1343,7 +1351,7 @@ int main(int argc, char** argv)
 	// spawn thread ros spin
 	boost::thread thread_a(threadSpin);
 
-	ros::Rate rate(15);
+	ros::Rate rate(30);
 
 	//ROS_INFO("Waiting for init ...");
 	while(ros::ok() && !human_model.initDone())

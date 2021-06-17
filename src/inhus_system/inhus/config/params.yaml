@@ -71,10 +71,10 @@ humanBehaviorModel_node: ##
     #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good global path"
 
 ### Approach
-  approach_dist: 1.5
+  approach_dist: 2.5
     #=> when blocked, get close until this distance to the robot by ignoring it
-  approach_freq: 2.0
-    #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
+  approach_freq: 0.8
+    #=> frequency at which we either check if still block or replan w/o the robot (approach_freq has to be smaller than 1/place_robot_delay)
 
 ####################
 placeRobot_node: ##
@@ -82,5 +82,5 @@ placeRobot_node: ##
 
   size_rob: 0.6
     #=> size of robot to add on costmap (one side of a square)
-  dist_threshold: 5.0
+  dist_threshold: 10.0
     #=> distance above which the robot isn't drawn on costmap
