@@ -7,7 +7,7 @@ from morse.builder import *
 from morse.core.services import service
 
 num_humans = 3
-locations = [[1.5, 14.0, 0.0],[7.0, 5.0, 0.0],[8.8, 9.5, 0.0]]
+locations = [[1.4, 14.0, 0.0],[7.0, 5.0, 0.0],[8.8, 9.5, 0.0]]
 orientations = [3.14,0.7,1.57]
 
 # add clock
