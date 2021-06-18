@@ -5,9 +5,9 @@
 
 ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 : replan_freq_(1)
-, place_robot_delay_(0.4)
 , blocked_ask_path_freq_(2.0)
 , approach_freq_(2.0)
+, delay_place_robot_(0.3)
 {
 	nh_ = nh;
 	want_robot_placed_ = want_robot_placed;
@@ -16,7 +16,6 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	ros::NodeHandle private_nh("~"); float f_nb;
 	nh_.param(std::string("replan_freq"), f_nb, float(2.0)); replan_freq_ = ros::Rate(f_nb);
 	nh_.param(std::string("replan_dist_stop"), replan_dist_stop_, float(0.5));
-	nh_.param(std::string("place_robot_delay"), f_nb, float(0.4)); place_robot_delay_ = ros::Duration(f_nb);
 	private_nh.param(std::string("blocked_ask_path_freq"), f_nb, float(2.0)); blocked_ask_path_freq_ = ros::Rate(f_nb);
 	private_nh.param(std::string("absolute_path_length_diff"), absolute_path_length_diff_, float(1.0));
 	private_nh.param(std::string("ratio_path_length_diff"), ratio_path_length_diff_, float(1.3));
@@ -25,12 +24,13 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	ROS_INFO("=> Params ConflictManager :");
 	ROS_INFO("replan_freq=%f", 1/replan_freq_.expectedCycleTime().toSec());
 	ROS_INFO("replan_dist_stop=%f", replan_dist_stop_);
-	ROS_INFO("place_robot_delay=%f", place_robot_delay_.toSec());
 	ROS_INFO("blocked_ask_path_freq=%f", 1/blocked_ask_path_freq_.expectedCycleTime().toSec());
 	ROS_INFO("absolute_path_length_diff=%f", absolute_path_length_diff_);
 	ROS_INFO("ratio_path_length_diff=%f", ratio_path_length_diff_);
 	ROS_INFO("approach_dist=%f", approach_dist_);
 	ROS_INFO("approach_freq=%f", 1/approach_freq_.expectedCycleTime().toSec());
+
+	delay_place_robot_ = ros::Duration(approach_freq_.expectedCycleTime().toSec()/2);
 
 	state_global_ = IDLE;
 
@@ -191,14 +191,14 @@ void ConflictManager::loop()
 				client_cancel_goal_and_stop_.call(srv_signal_);
 
 				last_replan_ = ros::Time::now() - blocked_ask_path_freq_.expectedCycleTime();
-				place_robot_delay_.sleep();
+				delay_place_robot_.sleep();
 			}
 			else
 			{
 				switch(state_approach_)
 				{
 					case FIRST:
-						place_robot_delay_.sleep();
+						delay_place_robot_.sleep();
 						state_approach_ = REPLANNING;
 						break;
 
@@ -218,9 +218,16 @@ void ConflictManager::loop()
 								goal.goal.target_pose.header.stamp = ros::Time::now();
 								goal.goal = current_action_;
 								pub_goal_move_base_.publish(goal);
-								ros::Duration(0.3).sleep();
 							}
+							state_approach_ = PLACE_ROBOT;
+							last_replan_ = ros::Time::now();
+						}
+						break;
 
+					// Place the robot back for next checking with it
+					case PLACE_ROBOT:
+						if(ros::Time::now() - last_replan_ > delay_place_robot_)
+						{
 							// put the robot back on the map to check if still blocked in next approach loop
 							*want_robot_placed_ = true;
 							client_update_robot_map_.call(srv_signal_);
@@ -263,18 +270,12 @@ void ConflictManager::loop()
 							}
 							else
 								ROS_ERROR("Failed to call service make_plan");
-							ros::Duration(0.3).sleep();
 
 							if(still_blocked)
 							{
 								//ROS_INFO("Still blocked, rm R");
-
-								// remove the robot from the map for replanning in next approach loop
-								*want_robot_placed_ = false;
-								client_update_robot_map_.call(srv_signal_);
 								last_replan_ = ros::Time::now();
-								ROS_INFO("remove robot in checking (for replan)");
-								state_approach_ = REPLANNING;
+								state_approach_ = REMOVE_ROBOT;
 							}
 							else
 							{
@@ -283,6 +284,19 @@ void ConflictManager::loop()
 								state_global_ = IDLE;
 								client_resume_supervisor_.call(srv_signal_);
 							}
+						}
+						break;
+
+					// Remove the robot for next replan without it
+					case REMOVE_ROBOT:
+						if(ros::Time::now() - last_replan_ > delay_place_robot_)
+						{
+							// remove the robot from the map for replanning in next approach loop
+							*want_robot_placed_ = false;
+							client_update_robot_map_.call(srv_signal_);
+							ROS_INFO("remove robot in checking (for replan)");
+							last_replan_ = ros::Time::now();
+							state_approach_ = REPLANNING;
 						}
 						break;
 				}

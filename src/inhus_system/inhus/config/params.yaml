@@ -13,7 +13,7 @@ replan_dist_stop: 0.5
   #=> if distance to goal is less than this then stop replan
 
 ### PlaceRobot
-place_robot_delay: 0.3
+place_robot_delay: 0.2
   #=> duration waited after calling place_robot service to "be sure" it's effective
 
 ###########################
@@ -73,8 +73,8 @@ humanBehaviorModel_node: ##
 ### Approach
   approach_dist: 2.5
     #=> when blocked, get close until this distance to the robot by ignoring it
-  approach_freq: 0.8
-    #=> frequency at which we either check if still block or replan w/o the robot (approach_freq has to be smaller than 1/place_robot_delay)
+  approach_freq: 3.0
+    #=> frequency at which we either check if still block or replan w/o the robot
 
 ####################
 placeRobot_node: ##
