@@ -154,6 +154,7 @@ void Supervisor::FSM()
 								nav_goal.goal.target_pose.header.stamp = ros::Time::now();
 								nav_goal.goal = (*curr_action).nav_goal;
 								pub_goal_move_base_.publish(nav_goal);
+								place_robot_delay_.sleep();
 
 								this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
 										(*curr_action).nav_goal.target_pose.pose.position.y, 1);
@@ -197,7 +198,7 @@ void Supervisor::FSM()
 										if(goal_status_.status == actionlib::SimpleClientGoalState::LOST
 										|| (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
 										{
-											//ROS_INFO("=> Resend !");
+											ROS_INFO("=> Resend !");
 
 											move_base_msgs::MoveBaseActionGoal nav_goal;
 											nav_goal.goal.target_pose.header.frame_id = "map";
@@ -234,6 +235,11 @@ void Supervisor::FSM()
 			break;
 
 		case SUSPENDED:
+			if(goal_received_)
+			{
+				goal_received_ = false;
+				global_state_ = ASK_PLAN;
+			}
 			break;
 	}
 }

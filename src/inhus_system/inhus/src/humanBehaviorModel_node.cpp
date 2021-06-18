@@ -5,9 +5,9 @@
 
 ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 : replan_freq_(1)
-, place_robot_delay_(0.4)
 , blocked_ask_path_freq_(2.0)
 , approach_freq_(2.0)
+, delay_place_robot_(0.3)
 {
 	nh_ = nh;
 	want_robot_placed_ = want_robot_placed;
@@ -16,7 +16,6 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	ros::NodeHandle private_nh("~"); float f_nb;
 	nh_.param(std::string("replan_freq"), f_nb, float(2.0)); replan_freq_ = ros::Rate(f_nb);
 	nh_.param(std::string("replan_dist_stop"), replan_dist_stop_, float(0.5));
-	nh_.param(std::string("place_robot_delay"), f_nb, float(0.4)); place_robot_delay_ = ros::Duration(f_nb);
 	private_nh.param(std::string("blocked_ask_path_freq"), f_nb, float(2.0)); blocked_ask_path_freq_ = ros::Rate(f_nb);
 	private_nh.param(std::string("absolute_path_length_diff"), absolute_path_length_diff_, float(1.0));
 	private_nh.param(std::string("ratio_path_length_diff"), ratio_path_length_diff_, float(1.3));
@@ -25,12 +24,13 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	ROS_INFO("=> Params ConflictManager :");
 	ROS_INFO("replan_freq=%f", 1/replan_freq_.expectedCycleTime().toSec());
 	ROS_INFO("replan_dist_stop=%f", replan_dist_stop_);
-	ROS_INFO("place_robot_delay=%f", place_robot_delay_.toSec());
 	ROS_INFO("blocked_ask_path_freq=%f", 1/blocked_ask_path_freq_.expectedCycleTime().toSec());
 	ROS_INFO("absolute_path_length_diff=%f", absolute_path_length_diff_);
 	ROS_INFO("ratio_path_length_diff=%f", ratio_path_length_diff_);
 	ROS_INFO("approach_dist=%f", approach_dist_);
 	ROS_INFO("approach_freq=%f", 1/approach_freq_.expectedCycleTime().toSec());
+
+	delay_place_robot_ = ros::Duration(approach_freq_.expectedCycleTime().toSec()/2);
 
 	state_global_ = IDLE;
 
@@ -114,7 +114,7 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 		if(abs(current_path_length-previous_path_length) > absolute_path_length_diff_ 	// if difference big enough in absolute
 		&& current_path_length > ratio_path_length_diff_*previous_path_length)   		// and if difference big enough relatively
 		{
-			ROS_INFO("Checked PATH_CHANGED_TOO_MUCH");
+			ROS_INFO("Checked PATH_CHANGED_TOO_MUCH %f", current_path_length);
 			state_blocked_ = LONGER;
 			res.conflict = 	true;
 		}
@@ -123,7 +123,7 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 	if(res.conflict)
 	{
 		// remove robot
-		//ROS_INFO("remove robot in checked");
+		ROS_INFO("remove robot in checked");
 		*want_robot_placed_ = false;
 		client_update_robot_map_.call(srv_signal_);
 
@@ -191,14 +191,14 @@ void ConflictManager::loop()
 				client_cancel_goal_and_stop_.call(srv_signal_);
 
 				last_replan_ = ros::Time::now() - blocked_ask_path_freq_.expectedCycleTime();
-				place_robot_delay_.sleep();
+				delay_place_robot_.sleep();
 			}
 			else
 			{
 				switch(state_approach_)
 				{
 					case FIRST:
-						place_robot_delay_.sleep();
+						delay_place_robot_.sleep();
 						state_approach_ = REPLANNING;
 						break;
 
@@ -206,9 +206,9 @@ void ConflictManager::loop()
 					case REPLANNING:
 						if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
 						{
-							//ROS_INFO("\t => APPROACH <=");
-							//ROS_INFO("REPLANNING");
-							//ROS_INFO("dist=%f", dist_to_robot);
+							ROS_INFO("\t => APPROACH <=");
+							ROS_INFO("REPLANNING");
+							ROS_INFO("dist=%f", dist_to_robot);
 
 							// if not too close from approach_dist
 							if(dist_to_robot > approach_dist_ + replan_dist_stop_)
@@ -219,12 +219,20 @@ void ConflictManager::loop()
 								goal.goal = current_action_;
 								pub_goal_move_base_.publish(goal);
 							}
+							state_approach_ = PLACE_ROBOT;
+							last_replan_ = ros::Time::now();
+						}
+						break;
 
+					// Place the robot back for next checking with it
+					case PLACE_ROBOT:
+						if(ros::Time::now() - last_replan_ > delay_place_robot_)
+						{
 							// put the robot back on the map to check if still blocked in next approach loop
 							*want_robot_placed_ = true;
 							client_update_robot_map_.call(srv_signal_);
+							ROS_INFO("put robot in replanning (for check)");
 							state_approach_ = CHECKING;
-
 							last_replan_ = ros::Time::now();
 						}
 						break;
@@ -233,9 +241,9 @@ void ConflictManager::loop()
 					case CHECKING:
 						if(ros::Time::now() - last_replan_ > approach_freq_.expectedCycleTime())
 						{
-							//ROS_INFO("\t => APPROACH <=");
-							//ROS_INFO("CHECKING");
-							//ROS_INFO("dist=%f", dist_to_robot);
+							ROS_INFO("\t => APPROACH <=");
+							ROS_INFO("CHECKING");
+							ROS_INFO("dist=%f", dist_to_robot);
 
 							// check if still blocked
 							bool still_blocked = true;
@@ -250,6 +258,8 @@ void ConflictManager::loop()
 								{
 									float response_path_length = computePathLength(&(srv_get_plan_.response.plan));
 									float previous_path_length = computePathLength(&previous_path_);
+									ROS_INFO("check path length = %f", response_path_length);
+									ROS_INFO("check previous path length = %f", previous_path_length);
 
 									// check if the path found is 'good'
 									if(previous_path_length == 0								// if no path was found before
@@ -264,12 +274,8 @@ void ConflictManager::loop()
 							if(still_blocked)
 							{
 								//ROS_INFO("Still blocked, rm R");
-
-								// remove the robot from the map for replanning in next approach loop
-								*want_robot_placed_ = false;
-								client_update_robot_map_.call(srv_signal_);
 								last_replan_ = ros::Time::now();
-								state_approach_ = REPLANNING;
+								state_approach_ = REMOVE_ROBOT;
 							}
 							else
 							{
@@ -278,6 +284,19 @@ void ConflictManager::loop()
 								state_global_ = IDLE;
 								client_resume_supervisor_.call(srv_signal_);
 							}
+						}
+						break;
+
+					// Remove the robot for next replan without it
+					case REMOVE_ROBOT:
+						if(ros::Time::now() - last_replan_ > delay_place_robot_)
+						{
+							// remove the robot from the map for replanning in next approach loop
+							*want_robot_placed_ = false;
+							client_update_robot_map_.call(srv_signal_);
+							ROS_INFO("remove robot in checking (for replan)");
+							last_replan_ = ros::Time::now();
+							state_approach_ = REPLANNING;
 						}
 						break;
 				}
@@ -308,7 +327,7 @@ void ConflictManager::loop()
 			}
 			else if(ros::Time::now() - last_replan_ > blocked_ask_path_freq_.expectedCycleTime())
 			{
-				//ROS_INFO("\t => BLOCKED <=");
+				ROS_INFO("\t => BLOCKED <=");
 				//ROS_INFO("try to replan");
 
 				srv_get_plan_.request.start.pose.position.x = 	h_pose_.x;
@@ -326,10 +345,13 @@ void ConflictManager::loop()
 						float response_path_length = computePathLength(&(srv_get_plan_.response.plan));
 						float previous_path_length = computePathLength(&previous_path_);
 
+						ROS_INFO("blocked path length = %f", response_path_length);
+						ROS_INFO("blocked previous path length = %f", previous_path_length);
+
 						// If new path is 'good'
 						if(previous_path_length == 0								// if no path was found before
 						|| abs(response_path_length-previous_path_length)<absolute_path_length_diff_		// if close enough in absolute
-						|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if clone enough relatively
+						|| response_path_length < ratio_path_length_diff_*previous_path_length)   		// or if close enough relatively
 						{
 							ROS_INFO("Not BLOCKED back to IDLE");
 							state_global_ = IDLE;
@@ -1343,7 +1365,7 @@ int main(int argc, char** argv)
 	// spawn thread ros spin
 	boost::thread thread_a(threadSpin);
 
-	ros::Rate rate(15);
+	ros::Rate rate(30);
 
 	//ROS_INFO("Waiting for init ...");
 	while(ros::ok() && !human_model.initDone())

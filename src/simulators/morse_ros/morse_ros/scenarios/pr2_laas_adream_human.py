@@ -73,8 +73,8 @@ pr2.append(ground_truth)
 ground_truth.add_interface("ros", topic="base_pose_ground_truth")
 
 # put the robot and humans in some good places and add clock
-pr2.translate(10.0, 15.0, 0.0)
-pr2.rotate(z=3.14)
+pr2.translate(0.7, 12.5, 0.0)
+pr2.rotate(z=-1.57)
 pr2.append(clock)
 
 # HumanArray humans

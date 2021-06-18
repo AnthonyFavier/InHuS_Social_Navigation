@@ -42,7 +42,6 @@ private:
 	// Params
 	float absolute_path_length_diff_;
 	float ratio_path_length_diff_;
-	ros::Duration place_robot_delay_;
 	ros::Rate approach_freq_;
 	float replan_dist_stop_;
 	float approach_dist_;
@@ -81,13 +80,15 @@ private:
 	// Other
 	enum StateGlobal{IDLE, APPROACH, BLOCKED};
 	StateGlobal state_global_;
-	enum StateApproach{FIRST, CHECKING, REPLANNING};
+	enum StateApproach{FIRST, CHECKING, PLACE_ROBOT, REPLANNING, REMOVE_ROBOT};
 	StateApproach state_approach_;
 	enum StateBlocked{NO_PATH, LONGER};
 	StateBlocked state_blocked_;
 
 	actionlib_msgs::GoalStatus goal_status_;
 	ros::Time last_replan_;
+
+	ros::Duration delay_place_robot_;
 
 	geometry_msgs::Pose2D h_pose_;
 	geometry_msgs::Twist h_vel_;

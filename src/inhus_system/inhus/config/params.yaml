@@ -13,7 +13,7 @@ replan_dist_stop: 0.5
   #=> if distance to goal is less than this then stop replan
 
 ### PlaceRobot
-place_robot_delay: 0.3
+place_robot_delay: 0.2
   #=> duration waited after calling place_robot service to "be sure" it's effective
 
 ###########################
@@ -71,10 +71,10 @@ humanBehaviorModel_node: ##
     #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good global path"
 
 ### Approach
-  approach_dist: 1.5
+  approach_dist: 2.5
     #=> when blocked, get close until this distance to the robot by ignoring it
-  approach_freq: 2.0
-    #=> frequency at which we either check if still block or replan w/o the robot (1/approach_freq has to be greater than place_robot_delay)
+  approach_freq: 3.0
+    #=> frequency at which we either check if still block or replan w/o the robot
 
 ####################
 placeRobot_node: ##
@@ -82,5 +82,5 @@ placeRobot_node: ##
 
   size_rob: 0.6
     #=> size of robot to add on costmap (one side of a square)
-  dist_threshold: 5.0
+  dist_threshold: 10.0
     #=> distance above which the robot isn't drawn on costmap

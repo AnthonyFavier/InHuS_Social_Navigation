@@ -238,7 +238,7 @@ void Boss::initGoals()
 
 	// Corridor //
 	//17 // init corridor H
-	area.goal.x=10.35; 	area.goal.y=2.60; 	area.goal.theta=PI/2;	area.radius=0;
+	area.goal.x=10.35; 	area.goal.y=2.00; 	area.goal.theta=PI/2;	area.radius=0;
 	list_goals_.push_back(area);
 	//18 // goal corridor H
 	area.goal.x=10.6; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
