@@ -21,7 +21,7 @@
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
-  <include file="$(find cohan_navigation)/launch/morse_pr2_multi_launch/include/agent_with_ns.launch">
+  <include file="$(find inhus_navigation)/launch/morse_pr2_multi_launch/include/agent_with_ns.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="node_start_delay" value="$(arg node_start_delay)" />
     <arg name="localize" value="$(arg localize)"/>
@@ -29,6 +29,6 @@
   </include>
 
   <!-- Rviz -->
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cohan_navigation)/rviz/cohan_nav_morse_human.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find inhus_navigation)/rviz/cohan_nav_morse_human_robot.rviz" />
 
 </launch>
