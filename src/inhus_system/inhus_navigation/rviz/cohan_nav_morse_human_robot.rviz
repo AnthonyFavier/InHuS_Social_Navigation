@@ -573,7 +573,7 @@ Visualization Manager:
       Marker Topic: /human1/move_base/HATebLocalPlannerROS/mode_text
       Name: ModeText
       Namespaces:
-        {}
+        mode: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -581,7 +581,7 @@ Visualization Manager:
       Marker Topic: /move_base/HATebLocalPlannerROS/local_plan_fp_poses
       Name: RobotTimeVelocityMarkers
       Namespaces:
-        {}
+        robot_fp_poses: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -615,9 +615,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 11.520296096801758
+      Max Intensity: 11.517460823059082
       Min Color: 0; 0; 0
-      Min Intensity: 3.2749998569488525
+      Min Intensity: -0.01901836507022381
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -635,7 +635,23 @@ Visualization Manager:
       Marker Topic: /human1/visualization_marker
       Name: InHuS goal
       Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /human1/move_base/HATebLocalPlannerROS/agents_local_plans_fp_poses
+      Name: MarkerArray
+      Namespaces:
         {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /human1/move_base/HATebLocalPlannerROS/local_plan_fp_poses
+      Name: MarkerArray
+      Namespaces:
+        robot_fp_poses: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -658,14 +674,14 @@ Visualization Manager:
       X std deviation: 0.5
       Y std deviation: 0.5
     - Class: rviz/SetGoal
-      Topic: /human1/move_base_simple/goal
+      Topic: /move_base_simple/goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
   Value: true
   Views:
     Current:
-      Angle: 1.569999098777771
+      Angle: 1.5700000524520874
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -675,11 +691,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 54.71671676635742
+      Scale: 72.5398941040039
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 5.6292548179626465
-      Y: 7.917947769165039
+      X: 5.729931831359863
+      Y: 4.237616539001465
     Saved: ~
 Window Geometry:
   Displays:
@@ -697,5 +713,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: 3840
+  X: 0
   Y: 25
