@@ -12,8 +12,11 @@
     <arg name="node_start_delay" value="$(arg node_start_delay)"/>
   </include>
 
-  <include file="$(find inhus_navigation)/launch/morse_pr2_multi_launch/include/localization.launch">
+  <!-- <include file="$(find inhus_navigation)/launch/morse_pr2_multi_launch/include/localization.launch">
     <arg name="localize" value="$(arg localize)"/>
-  </include>
+  </include> -->
+
+  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_locate_odom.launch"/>
+
 
 </launch>

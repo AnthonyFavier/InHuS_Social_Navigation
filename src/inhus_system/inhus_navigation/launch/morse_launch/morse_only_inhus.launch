@@ -4,7 +4,7 @@
   <arg name="node_start_delay" default="4.0"/>
 
   <!-- localization and maps -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_locate_odom.launch"/> <!-- fake loc robot -->
+  <!-- <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_locate_odom.launch"/>  -->
   <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_locate_old.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="map_name" value="$(arg map_name)"/>
