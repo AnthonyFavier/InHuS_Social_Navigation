@@ -86,7 +86,7 @@ placeRobot_node: ##
     #=> distance above which the robot isn't drawn on costmap
 
 #######################
-placeRobot_node_old: ##
+placeRobot_old_node: ##
 #######################
 
   size_rob: 0.6
