@@ -6,8 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Map1
       Splitter Ratio: 0.5
-    Tree Height: 313
+    Tree Height: 479
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -26,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -40,7 +41,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /map
+      Topic: /human1/map_static
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -557,7 +558,7 @@ Visualization Manager:
       Marker Topic: /move_base/HATebLocalPlannerROS/agent_marker
       Name: HumanMarker
       Namespaces:
-        body: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -565,7 +566,7 @@ Visualization Manager:
       Marker Topic: /move_base/HATebLocalPlannerROS/agent_arrow
       Name: HumanDirection
       Namespaces:
-        direction: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -573,7 +574,7 @@ Visualization Manager:
       Marker Topic: /human1/move_base/HATebLocalPlannerROS/mode_text
       Name: ModeText
       Namespaces:
-        mode: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -581,7 +582,7 @@ Visualization Manager:
       Marker Topic: /move_base/HATebLocalPlannerROS/local_plan_fp_poses
       Name: RobotTimeVelocityMarkers
       Namespaces:
-        robot_fp_poses: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -617,7 +618,7 @@ Visualization Manager:
       Max Color: 255; 255; 255
       Max Intensity: 11.517460823059082
       Min Color: 0; 0; 0
-      Min Intensity: -0.01901836507022381
+      Min Intensity: -0.019018515944480896
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -635,7 +636,7 @@ Visualization Manager:
       Marker Topic: /human1/visualization_marker
       Name: InHuS goal
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -651,8 +652,61 @@ Visualization Manager:
       Marker Topic: /human1/move_base/HATebLocalPlannerROS/local_plan_fp_poses
       Name: MarkerArray
       Namespaces:
-        robot_fp_poses: true
+        {}
       Queue Size: 100
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic: /social_cost_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /TDP/move_base_node/TBPlanner/path
+      Unreliable: false
       Value: true
   Enabled: true
   Global Options:
@@ -674,7 +728,7 @@ Visualization Manager:
       X std deviation: 0.5
       Y std deviation: 0.5
     - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
+      Topic: /TDP/move_base_simple/goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
@@ -694,8 +748,8 @@ Visualization Manager:
       Scale: 72.5398941040039
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 5.729931831359863
-      Y: 4.237616539001465
+      X: 5.575710296630859
+      Y: 3.211608648300171
     Saved: ~
 Window Geometry:
   Displays:
@@ -703,7 +757,7 @@ Window Geometry:
   Height: 1031
   Hide Left Dock: true
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd000000040000000000000156000003adfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000003d000001c4000000c900fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730000000207000001e30000005c00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c000002610000000100000111000003adfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000003ad000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000077d0000003efc0100000002fb0000000800540069006d006500000000000000077d0000042200fffffffb0000000800540069006d0065010000000000000450000000000000000000000780000003ad00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000156000003adfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000003d0000026a000000c900fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000002ad0000013d0000005c00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c000002610000000100000111000003adfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000003ad000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000077d0000003efc0100000002fb0000000800540069006d006500000000000000077d0000025600fffffffb0000000800540069006d0065010000000000000450000000000000000000000780000003ad00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:

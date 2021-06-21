@@ -31,6 +31,10 @@ add_executable(placeRobot_node src/placeRobot_node.cpp)
 add_dependencies(placeRobot_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(placeRobot_node ${catkin_LIBRARIES})
 
+add_executable(placeRobot_old_node src/placeRobot_node_old.cpp)
+add_dependencies(placeRobot_old_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(placeRobot_old_node ${catkin_LIBRARIES})
+
 add_executable(input_stage_node src/interface_stage_input_node.cpp)
 add_dependencies(input_stage_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(input_stage_node ${catkin_LIBRARIES})
