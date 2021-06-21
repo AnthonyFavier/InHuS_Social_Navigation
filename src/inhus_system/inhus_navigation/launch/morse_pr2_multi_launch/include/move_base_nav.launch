@@ -11,7 +11,7 @@
     <node pkg="move_base" type="move_base" name="move_base" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
       <param name="base_global_planner" value="global_planner/GlobalPlanner" />
       <param name="base_local_planner" value="hateb_local_planner/HATebLocalPlannerROS" />
-      <param name="GlobalPlanner/allow_unknown" value="false" />
+      <!-- <param name="GlobalPlanner/allow_unknown" value="false" /> -->
 
 
       <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/move_base_params.yaml" command="load" />
@@ -38,7 +38,7 @@
       <param name="ns" value="$(arg ns)"/>
       <param name="base_global_planner" value="global_planner/GlobalPlanner" />
       <param name="base_local_planner" value="hateb_local_planner/HATebLocalPlannerROS" />
-      <param name="GlobalPlanner/allow_unknown" value="false" />
+      <!-- <param name="GlobalPlanner/allow_unknown" value="false" /> -->
 
       <param name="global_costmap/robot_base_frame" value="$(arg ns)/base_link"/>
       <param name="local_costmap/robot_base_frame" value="$(arg ns)/base_link"/>
