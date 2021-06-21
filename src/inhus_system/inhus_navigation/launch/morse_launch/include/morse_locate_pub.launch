@@ -27,7 +27,7 @@
 <!-- PLACE ROBOT -->
 
   <!-- placeRobot node add the robot on the global costmap -->
-  <node name="placeRobot_old_node" type="placeRobot_old_node" pkg="inhus_navigation" output="screen" ns="$(arg ns)"/>
+  <node name="placeRobot_pub_node" type="placeRobot_pub_node" pkg="inhus_navigation" output="screen" ns="$(arg ns)"/>
 
   <!-- convert pointcloud to laserscan to add more easily the robot on the costmap -->
 	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" ns="$(arg ns)">

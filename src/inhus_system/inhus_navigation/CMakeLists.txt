@@ -27,13 +27,13 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(placeRobot_node src/placeRobot_node.cpp)
-add_dependencies(placeRobot_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(placeRobot_node ${catkin_LIBRARIES})
+add_executable(placeRobot_pub_node src/placeRobot_pub_node.cpp)
+add_dependencies(placeRobot_pub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(placeRobot_pub_node ${catkin_LIBRARIES})
 
-add_executable(placeRobot_old_node src/placeRobot_node_old.cpp)
-add_dependencies(placeRobot_old_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(placeRobot_old_node ${catkin_LIBRARIES})
+add_executable(placeRobot_client_node src/placeRobot_client_node.cpp)
+add_dependencies(placeRobot_client_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(placeRobot_client_node ${catkin_LIBRARIES})
 
 add_executable(input_stage_node src/interface_stage_input_node.cpp)
 add_dependencies(input_stage_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

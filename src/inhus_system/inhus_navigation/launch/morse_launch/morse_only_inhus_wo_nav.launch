@@ -8,7 +8,7 @@
     <arg name="ns" value="$(arg ns)"/>
   </include>
 
-  <node name="placeRobot_node" type="placeRobot_node" pkg="inhus_navigation" output="screen" ns="$(arg ns)"/>
+  <node name="placeRobot_client_node" type="placeRobot_client_node" pkg="inhus_navigation" output="screen" ns="$(arg ns)"/>
 
   <!-- Interface with the simulator -->
   <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_interface.launch">

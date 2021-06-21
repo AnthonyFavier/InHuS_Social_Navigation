@@ -76,20 +76,20 @@ humanBehaviorModel_node: ##
   approach_freq: 3.0
     #=> frequency at which we either check if still block or replan w/o the robot
 
-####################
-placeRobot_node: ##
-####################
+##########################
+placeRobot_client_node: ##
+##########################
 
   size_rob: 0.6
     #=> size of robot to add on costmap (one side of a square)
-  dist_threshold: 10.0
+  dist_threshold: 7.0
     #=> distance above which the robot isn't drawn on costmap
 
 #######################
-placeRobot_old_node: ##
+placeRobot_pub_node: ##
 #######################
 
   size_rob: 0.6
     #=> size of robot to add on costmap (one side of a square)
-  dist_threshold: 10.0
+  dist_threshold: 7.0
     #=> distance above which the robot isn't drawn on costmap
