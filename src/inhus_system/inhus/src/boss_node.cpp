@@ -255,13 +255,13 @@ void Boss::initGoals()
 	area.goal.x=1.3; 	area.goal.y=3.0; 	area.goal.theta=PI/2;	area.radius=0;
 	list_goals_.push_back(area);
 	//22 // goal narrow corridor H
-	area.goal.x=1.3; 	area.goal.y=15; 	area.goal.theta=0;	area.radius=0;
+	area.goal.x=1.3; 	area.goal.y=15; 	area.goal.theta=PI/2;	area.radius=0;
 	list_goals_.push_back(area);
 	//23 // init narrow corridor R
 	area.goal.x=1.3; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
 	list_goals_.push_back(area);
 	//24 // goal narrow corridor R
-	area.goal.x=1.3; 	area.goal.y=1.5; 	area.goal.theta=0;	area.radius=0;
+	area.goal.x=1.3; 	area.goal.y=1.5; 	area.goal.theta=-PI/2;	area.radius=0;
 	list_goals_.push_back(area);
 
 
