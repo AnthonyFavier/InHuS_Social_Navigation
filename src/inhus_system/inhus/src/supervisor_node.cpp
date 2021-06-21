@@ -45,7 +45,7 @@ Supervisor::Supervisor()
 
 	// Init
 	marker_rviz_.header.frame_id = 		"map";
-	marker_rviz_.type = 			3;
+	marker_rviz_.type = 			2;
 	marker_rviz_.pose.position.x = 		0;
 	marker_rviz_.pose.position.y = 		0;
 	marker_rviz_.pose.position.z = 		0.25;
@@ -53,8 +53,8 @@ Supervisor::Supervisor()
 	marker_rviz_.pose.orientation.y = 	0;
 	marker_rviz_.pose.orientation.z = 	0;
 	marker_rviz_.pose.orientation.w = 	0;
-	marker_rviz_.scale.x = 			0.1;
-	marker_rviz_.scale.y = 			0.1;
+	marker_rviz_.scale.x = 			0.3;
+	marker_rviz_.scale.y = 			0.3;
 	marker_rviz_.scale.z = 			0.5;
 	marker_rviz_.color.r = 			1;
 	marker_rviz_.color.g = 			1;
