@@ -238,20 +238,6 @@ void Boss::initGoals()
 
 	// Corridor //
 	//17 // init corridor H
-	area.goal.x=1.3; 	area.goal.y=3.0; 	area.goal.theta=PI/2;	area.radius=0;
-	list_goals_.push_back(area);
-	//18 // goal corridor H
-	area.goal.x=1.3; 	area.goal.y=15; 	area.goal.theta=0;	area.radius=0;
-	list_goals_.push_back(area);
-	//19 // init corridor R
-	area.goal.x=1.3; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
-	list_goals_.push_back(area);
-	//20 // goal corridor R
-	area.goal.x=1.3; 	area.goal.y=1.5; 	area.goal.theta=0;	area.radius=0;
-	list_goals_.push_back(area);
-
-	// Narrow corridor //
-	//21 // init narrow corridor H
 	area.goal.x=10.3; area.goal.y=2.0; 	area.goal.theta=PI/2;	area.radius=0;
 	list_goals_.push_back(area);
 	//18 // goal corridor H
@@ -262,6 +248,20 @@ void Boss::initGoals()
 	list_goals_.push_back(area);
 	//20 // goal corridor R
 	area.goal.x=10.3;	area.goal.y=0.0; 	area.goal.theta=0;	area.radius=0;
+	list_goals_.push_back(area);
+
+	// Narrow corridor //
+	//21 // init narrow corridor H
+	area.goal.x=1.3; 	area.goal.y=3.0; 	area.goal.theta=PI/2;	area.radius=0;
+	list_goals_.push_back(area);
+	//22 // goal narrow corridor H
+	area.goal.x=1.3; 	area.goal.y=15; 	area.goal.theta=0;	area.radius=0;
+	list_goals_.push_back(area);
+	//23 // init narrow corridor R
+	area.goal.x=1.3; 	area.goal.y=13.5; 	area.goal.theta=-PI/2;	area.radius=0;
+	list_goals_.push_back(area);
+	//24 // goal narrow corridor R
+	area.goal.x=1.3; 	area.goal.y=1.5; 	area.goal.theta=0;	area.radius=0;
 	list_goals_.push_back(area);
 
 
