@@ -114,7 +114,7 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 		if(abs(current_path_length-previous_path_length) > absolute_path_length_diff_ 	// if difference big enough in absolute
 		&& current_path_length > ratio_path_length_diff_*previous_path_length)   		// and if difference big enough relatively
 		{
-			ROS_INFO("Checked PATH_CHANGED_TOO_MUCH %f", current_path_length);
+			ROS_INFO("Checked PATH_CHANGED_TOO_MUCH %f, %f", current_path_length, previous_path_length);
 			state_blocked_ = LONGER;
 			res.conflict = 	true;
 		}

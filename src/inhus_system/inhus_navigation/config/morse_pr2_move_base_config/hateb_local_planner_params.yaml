@@ -18,11 +18,11 @@ shrink_horizon_backup: True
 # Robot
 holonomic_robot: true
 type: 0 #(0: Robot, 1: Human)
-max_vel_y: 0.7
+max_vel_y: 0.8
 acc_lim_y: 0.3
-max_vel_x: 0.7
+max_vel_x: 0.8
 min_vel_x: 0.02
-max_vel_x_backwards: 0.4
+max_vel_x_backwards: 0.6
 max_vel_theta: 1.2
 min_vel_theta: 0.1
 acc_lim_x: 0.3
@@ -72,7 +72,7 @@ ttcplus_threshold: 5.0
 ttcplus_timer: 1.0
 rel_vel_cost_threshold: 1.5
 visibility_cost_threshold: 2.5
-min_agent_robot_dist: 0.6
+min_agent_robot_dist: 0.7
 
 # GoalTolerance
 xy_goal_tolerance: 0.2

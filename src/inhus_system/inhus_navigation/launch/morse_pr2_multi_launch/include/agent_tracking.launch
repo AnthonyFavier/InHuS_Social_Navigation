@@ -40,6 +40,7 @@
       <remap from="map" to="/map"/>
       <remap from="/$(arg ns)/agent_path_predict/tracked_agents" to="/$(arg ns)/tracked_agents"/>
       <remap from="/$(arg ns)/agent_path_predict/external_agent_trajs" to="/move_base_node/HATebLocalPlannerROS/agent_local_trajs"/>
+      <remap from="/move_base/GlobalPlanner/make_plan" to="/smb/move_base/GlobalPlanner/make_plan"/>
 
       <param name="velobs_mul" value="1.0"/>
       <param name="velscale_mul" value="2.0"/>
