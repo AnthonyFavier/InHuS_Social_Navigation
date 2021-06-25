@@ -1,0 +1,5 @@
+<launch>
+
+	<node name="logManagerCohan_node" type="logManagerCohan_node" pkg="inhus" />
+
+</launch>

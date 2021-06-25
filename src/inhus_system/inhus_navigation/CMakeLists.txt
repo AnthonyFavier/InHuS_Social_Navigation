@@ -51,6 +51,10 @@ add_executable(output_morse_node src/interface_morse_output_node.cpp)
 add_dependencies(output_morse_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(output_morse_node ${catkin_LIBRARIES})
 
+add_executable(logManagerCohan_node src/logManagerCohan_node.cpp)
+add_dependencies(logManagerCohan_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(logManagerCohan_node ${catkin_LIBRARIES})
+
 # install
 foreach(dir maps launch/stage_launch config/stage_pr2_move_base_config)
    install(DIRECTORY ${dir}/
