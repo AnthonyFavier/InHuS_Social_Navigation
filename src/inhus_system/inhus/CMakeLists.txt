@@ -67,10 +67,6 @@ add_executable(logManager_node src/logManager_node.cpp)
 add_dependencies(logManager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(logManager_node ${catkin_LIBRARIES})
 
-add_executable(poseLog_node src/poseLog_node.cpp)
-add_dependencies(poseLog_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(poseLog_node ${catkin_LIBRARIES})
-
 add_executable(lowLevelController_node src/lowLevelController_node.cpp)
 add_dependencies(lowLevelController_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(lowLevelController_node ${catkin_LIBRARIES})
