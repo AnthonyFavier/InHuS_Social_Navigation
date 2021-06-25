@@ -11,11 +11,11 @@
 
 using namespace std;
 
-class LogManager
+class LogManagerCohan
 {
 public:
-	LogManager();
-	~LogManager();
+	LogManagerCohan();
+	~LogManagerCohan();
 
 	void logCallback(const std_msgs::String::ConstPtr& msg);
 	void poseRCallback(const nav_msgs::Odometry::ConstPtr& msg);

@@ -4,6 +4,7 @@ project(inhus_navigation)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   tf
+  roslib
 )
 
 add_service_files(
