@@ -37,10 +37,11 @@ private:
 
 	int id_;
 
-	ofstream log_file_;
+	ofstream log_file_r_;
+	ofstream log_file_h_;
 	ros::Subscriber sub_log_;
-	ros::Subscriber sub_odom_R_;
-	ros::Subscriber sub_odom_H_;
+	ros::Subscriber sub_odom_r_;
+	ros::Subscriber sub_odom_h_;
 
 	ros::Subscriber sub_robot_goal_status_;
 	ros::Subscriber sub_robot_goal_;
