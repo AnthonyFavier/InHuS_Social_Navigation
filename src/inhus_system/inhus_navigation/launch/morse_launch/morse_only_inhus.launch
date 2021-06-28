@@ -26,7 +26,6 @@
     <arg name="ns" value="$(arg ns)"/>
   </include>
 
-  <!-- Rviz -->
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find inhus_navigation)/rviz/cohan_nav_morse_human_robot.rviz" />
+  <include file="$(find inhus_navigation)/launch/rviz.launch"/>
 
 </launch>

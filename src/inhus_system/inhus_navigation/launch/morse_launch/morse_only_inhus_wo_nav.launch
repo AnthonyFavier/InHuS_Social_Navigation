@@ -15,4 +15,6 @@
     <arg name="ns" value="$(arg ns)"/>
   </include>
 
+  <include file="$(find inhus_navigation)/launch/rviz.launch"/>
+
 </launch>
