@@ -8,8 +8,8 @@ LogManagerCohan::LogManagerCohan()
 
 	id_ = 0;
 
-	sub_odom_r_ = nh_.subscribe("/odom", 100, &LogManagerCohan::odomRCB, this);
-	sub_odom_h_ = nh_.subscribe("/human1/odom", 100, &LogManagerCohan::odomHCB, this);
+	sub_odom_r_ = nh_.subscribe("/robot_odom", 100, &LogManagerCohan::odomRCB, this);
+	sub_odom_h_ = nh_.subscribe("/human_odom", 100, &LogManagerCohan::odomHCB, this);
 	sub_robot_goal_ = nh_.subscribe("/robot_goal", 100, &LogManagerCohan::robotGoalCB, this);
 	sub_robot_goal_status_ = nh_.subscribe("/robot_goal_status", 100, &LogManagerCohan::robotGoalStatusCB, this);
 
