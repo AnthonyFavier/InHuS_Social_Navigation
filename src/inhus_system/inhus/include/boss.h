@@ -84,9 +84,8 @@ class Boss
 public:
 	Boss();
 	~Boss();
-	void initGoals();
+
 	void showGoals();
-	void readGoalsFromXML();
 
 	void spawnThreadEndless();
 
@@ -108,7 +107,10 @@ private:
 
 	void askSendGoal();
 	void askScenario();
+	void askEndlessMode();
 	void askSetAttitude();
+
+	void readGoalsFromXML();
 
 	ros::NodeHandle nh_;
 	vector<AgentManager*> agent_managers_;
