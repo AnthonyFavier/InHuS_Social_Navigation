@@ -9,7 +9,7 @@ AgentManager::AgentManager(string name)
 
 string AgentManager::getName()
 {
-	 return name_;
+	return name_;
 }
 
 Type AgentManager::getType()
@@ -100,12 +100,14 @@ void HumanManager::goalStartCB(const inhus::Goal::ConstPtr& msg)
 
 //////////////////// ROBOT MANAGER //////////////////////
 
-RobotManager::RobotManager(string name, string topic_goal, string topic_goal_status) : AgentManager(name)
+RobotManager::RobotManager(string name) : AgentManager(name)
 {
 	type_ = ROBOT;
 
+	string topic_goal = "/" + name_ + "/move_base_goal";
 	pub_goal_ =	nh_.advertise<geometry_msgs::PoseStamped>(topic_goal, 1);
 
+	string topic_goal_status = "/" + name_ + "/move_base_goal_status";
 	sub_goal_status_ = nh_.subscribe(topic_goal_status, 1, &RobotManager::goalStatusCB, this);
 
 	goal_done_ = true;
@@ -161,14 +163,166 @@ void RobotManager::goalStatusCB(const actionlib_msgs::GoalStatusArray::ConstPtr&
 Boss::Boss()
 : endless_delay_(2)
 {
-	this->initGoals();
+	goal_file_name_ = "goals.xml";
+	string goal_file_path = ros::package::getPath("inhus") + "/config/" + goal_file_name_;
+	doc_ = new TiXmlDocument(goal_file_path);
+	if(!doc_->LoadFile())
+		ROS_ERROR("Failed to load %s", goal_file_path.c_str());
+	else
+		ROS_INFO("Goals file loaded");
+	this->readGoalsFromXML();
+
+	this->showGoals();
+
+	// this->initGoals();
 
 	endless_agent1_ = 0;
 	endless_agent2_ = 0;
 	endless_agent1_on_ = false;
 	endless_agent2_on_ = false;
-	endless_agent1_i_ = endless_goals_agent1_.size()-1;
-	endless_agent2_i_ = endless_goals_agent2_.size()-1;
+	endless_agent1_i_ = endless_goals_[0].size()-1;
+	endless_agent2_i_ = endless_goals_[1].size()-1;
+}
+
+Boss::~Boss()
+{
+	delete doc_;
+}
+
+void Boss::readGoalsFromXML()
+{
+	TiXmlHandle docHandle(doc_);
+	GoalArea area;
+
+	// Extracting the list of goals
+	TiXmlElement* l_goal = docHandle.FirstChild("goals").FirstChild("goal_list").FirstChild("goal").ToElement();
+	while(l_goal)
+	{
+		TiXmlElement *l_type = l_goal->FirstChildElement("type");
+
+		if(NULL != l_type)
+			area.goal.type = l_type->GetText();
+		if(area.goal.type == "navigation")
+		{
+			TiXmlElement *l_x = l_goal->FirstChildElement("x");
+			if(NULL != l_x)
+				area.goal.x = stof(l_x->GetText());
+			TiXmlElement *l_y = l_goal->FirstChildElement("y");
+			if(NULL != l_y)
+				area.goal.y = stof(l_y->GetText());
+			TiXmlElement *l_theta = l_goal->FirstChildElement("theta");
+			if(NULL != l_theta)
+				area.goal.theta = stof(l_theta->GetText());
+			TiXmlElement *l_radius = l_goal->FirstChildElement("radius");
+			if(NULL != l_radius)
+				area.radius = stof(l_radius->GetText());
+		}
+		list_goals_.push_back(area);
+
+		l_goal = l_goal->NextSiblingElement("goal");
+	}
+
+	// Extracting the scenarios
+	TiXmlElement* l_scenario = docHandle.FirstChild("goals").FirstChild("scenarios").FirstChild().ToElement();
+	while(l_scenario)
+	{
+		vector<GoalArea> scenario;
+
+		// Extract goals
+		TiXmlElement *l_goal = l_scenario->FirstChildElement();
+		while(l_goal)
+		{
+			TiXmlElement *l_type = l_goal->FirstChildElement("type");
+
+			if(NULL != l_type)
+				area.goal.type = l_type->GetText();
+			if(area.goal.type == "navigation")
+			{
+				TiXmlElement *l_x = l_goal->FirstChildElement("x");
+				if(NULL != l_x)
+					area.goal.x = stof(l_x->GetText());
+				TiXmlElement *l_y = l_goal->FirstChildElement("y");
+				if(NULL != l_y)
+					area.goal.y = stof(l_y->GetText());
+				TiXmlElement *l_theta = l_goal->FirstChildElement("theta");
+				if(NULL != l_theta)
+					area.goal.theta = stof(l_theta->GetText());
+				TiXmlElement *l_radius = l_goal->FirstChildElement("radius");
+				if(NULL != l_radius)
+					area.radius = stof(l_radius->GetText());
+			}
+			scenario.push_back(area);
+
+			l_goal = l_goal->NextSiblingElement();
+		}
+
+		scenarios_goals_.push_back(scenario);
+		l_scenario = l_scenario->NextSiblingElement();
+	}
+
+	// Extracting the endless mode
+	TiXmlElement* l_endless_scenario = docHandle.FirstChild("goals").FirstChild("endless").FirstChild().ToElement();
+	while(l_endless_scenario)
+	{
+		vector<GoalArea> endless_scenario;
+
+		// Extract goals
+		TiXmlElement *l_goal = l_endless_scenario->FirstChildElement("goal");
+		while(l_goal)
+		{
+			TiXmlElement *l_type = l_goal->FirstChildElement("type");
+
+			if(NULL != l_type)
+				area.goal.type = l_type->GetText();
+			if(area.goal.type == "navigation")
+			{
+				TiXmlElement *l_x = l_goal->FirstChildElement("x");
+				if(NULL != l_x)
+					area.goal.x = stof(l_x->GetText());
+				TiXmlElement *l_y = l_goal->FirstChildElement("y");
+				if(NULL != l_y)
+					area.goal.y = stof(l_y->GetText());
+				TiXmlElement *l_theta = l_goal->FirstChildElement("theta");
+				if(NULL != l_theta)
+					area.goal.theta = stof(l_theta->GetText());
+				TiXmlElement *l_radius = l_goal->FirstChildElement("radius");
+				if(NULL != l_radius)
+					area.radius = stof(l_radius->GetText());
+			}
+			endless_scenario.push_back(area);
+
+			l_goal = l_goal->NextSiblingElement("goal");
+		}
+
+		endless_goals_.push_back(endless_scenario);
+		l_endless_scenario = l_endless_scenario->NextSiblingElement();
+	}
+}
+
+void Boss::showGoals()
+{
+	// list goals
+	cout << "=> list_goals <=" << endl;
+	for(unsigned int i=0; i<list_goals_.size(); i++)
+		cout << "\t" << list_goals_[i].goal.type << " " << list_goals_[i].goal.x << " " << list_goals_[i].goal.y << " " << list_goals_[i].goal.theta << " " << list_goals_[i].radius << endl;
+
+	// scenarios
+	cout << "=> scenarios <=" << endl;
+	for(unsigned int i=0; i<scenarios_goals_.size(); i++)
+	{
+		cout << "scenario (" << i << ")" << endl;
+		for(unsigned int j=0; j<scenarios_goals_[i].size(); j++)
+			cout << "\t" << scenarios_goals_[i][j].goal.type << " " << scenarios_goals_[i][j].goal.x << " " << scenarios_goals_[i][j].goal.y << " " << scenarios_goals_[i][j].goal.theta << " " << scenarios_goals_[i][j].radius << endl;
+	}
+
+	// endless
+	cout << "=> endless <=" << endl;
+	for(unsigned int i=0; i<endless_goals_.size(); i++)
+	{
+		cout << "endless (" << i << ")" << endl;
+		for(unsigned int j=0; j<endless_goals_[i].size(); j++)
+			cout << "\t" << endless_goals_[i][j].goal.type << " " << endless_goals_[i][j].goal.x << " " << endless_goals_[i][j].goal.y << " " << endless_goals_[i][j].goal.theta << " " << endless_goals_[i][j].radius << endl;
+	}
 }
 
 void Boss::initGoals()
@@ -266,26 +420,26 @@ void Boss::initGoals()
 
 
 	// Endless Agent1 //
-	endless_goals_agent1_.push_back(list_goals_[4]);
-	area.goal.x=5.4; 	area.goal.y=7.3; 	area.goal.theta=-PI;	area.radius=0;
-	endless_goals_agent1_.push_back(area);
-	area.goal.x=4.0; 	area.goal.y=9.5; 	area.goal.theta=PI/2;	area.radius=0;
-	endless_goals_agent1_.push_back(area);
-	area.goal.x=9.0; 	area.goal.y=10.2; 	area.goal.theta=0;	area.radius=0;
-	endless_goals_agent1_.push_back(area);
+	// endless_goals_agent1_.push_back(list_goals_[4]);
+	// area.goal.x=5.4; 	area.goal.y=7.3; 	area.goal.theta=-PI;	area.radius=0;
+	// endless_goals_agent1_.push_back(area);
+	// area.goal.x=4.0; 	area.goal.y=9.5; 	area.goal.theta=PI/2;	area.radius=0;
+	// endless_goals_agent1_.push_back(area);
+	// area.goal.x=9.0; 	area.goal.y=10.2; 	area.goal.theta=0;	area.radius=0;
+	// endless_goals_agent1_.push_back(area);
 
 	// Endless Agent2 //
-	endless_goals_agent2_.push_back(list_goals_[2]);
-	area.goal.x=8.00; 	area.goal.y=7.60; 	area.goal.theta=0;	area.radius=0;
-	endless_goals_agent2_.push_back(area);
-	area.goal.x=7.5; 	area.goal.y=11.0; 	area.goal.theta=-PI;	area.radius=0;
-	endless_goals_agent2_.push_back(area);
-	area.goal.x=5.4; 	area.goal.y=11.3; 	area.goal.theta=PI/2;	area.radius=0;
-	endless_goals_agent2_.push_back(area);
-	area.goal.x=4.3; 	area.goal.y=6.3; 	area.goal.theta=-PI/2;	area.radius=0;
-	endless_goals_agent2_.push_back(area);
-	area.goal.x=8.00; 	area.goal.y=7.60; 	area.goal.theta=0;	area.radius=0;
-	endless_goals_agent2_.push_back(area);
+	// endless_goals_agent2_.push_back(list_goals_[2]);
+	// area.goal.x=8.00; 	area.goal.y=7.60; 	area.goal.theta=0;	area.radius=0;
+	// endless_goals_agent2_.push_back(area);
+	// area.goal.x=7.5; 	area.goal.y=11.0; 	area.goal.theta=-PI;	area.radius=0;
+	// endless_goals_agent2_.push_back(area);
+	// area.goal.x=5.4; 	area.goal.y=11.3; 	area.goal.theta=PI/2;	area.radius=0;
+	// endless_goals_agent2_.push_back(area);
+	// area.goal.x=4.3; 	area.goal.y=6.3; 	area.goal.theta=-PI/2;	area.radius=0;
+	// endless_goals_agent2_.push_back(area);
+	// area.goal.x=8.00; 	area.goal.y=7.60; 	area.goal.theta=0;	area.radius=0;
+	// endless_goals_agent2_.push_back(area);
 }
 
 void Boss::spawnThreadEndless()
@@ -389,15 +543,15 @@ void Boss::askSendGoal()
 		// From list
 		case 1:{
 			// Ask which goal from list to send
-			while(ros::ok() && (cout 	<< "[1-10] Select a goal" << endl
+			while(ros::ok() && (cout 	<< "[1-" << list_goals_.size() << "] Select a goal" << endl
 																<< "0- Back" << endl
 																<< "Choice ? ")
-			&& (!(cin >> choice_) || !(choice_>=0 && choice_<=10)))
+			&& (!(cin >> choice_) || !(choice_>=0 && choice_<=list_goals_.size())))
 				cleanInput();
 			cout << endl;
 			if(choice_==0){return;} // Back
 
-			agent_managers_[choice_agent]->publishGoal(list_goals_[choice_]);
+			agent_managers_[choice_agent]->publishGoal(list_goals_[choice_-1]);
 
 			break;}
 
@@ -487,7 +641,7 @@ void Boss::askScenario()
 																		<< "5- Endless" << endl
 																		<< "0- Back" << endl
 																		<< "Which scenario ? ")
-	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=5)))
+	&& (!(cin >> choice_) || !(choice_>=0 && choice_<=scenarios_goals_.size())))
 		cleanInput();
 	cout << endl;
 	if(choice_==0){return;} // Back
@@ -517,55 +671,28 @@ void Boss::askScenario()
 		else
 			delay=0;
 
-		// Get corresponding goals
-		int agent1_goal; int agent2_goal;
-		switch(choice_scenario)
-		{
-			case 1: // Wide Area
-				if(choice_init == 1)
-					{agent1_goal = 11; agent2_goal = 13;}
-				else
-					{agent1_goal = 12; agent2_goal = 14;}
-				break;
-
-			case 2: // Narrow Passage
-				if(choice_init == 1)
-					{agent1_goal = 15; agent2_goal = 16;}
-				else
-					{agent1_goal = 4; agent2_goal = 1;}
-				break;
-
-			case 3: // Corridor
-				if(choice_init == 1)
-					{agent1_goal = 17; agent2_goal = 19;}
-				else
-					{agent1_goal = 18; agent2_goal = 20;}
-				break;
-
-			case 4: // Narrow Corridor
-				if(choice_init == 1)
-					{agent1_goal = 21; agent2_goal = 23;}
-				else
-					{agent1_goal = 22; agent2_goal = 24;}
-				break;
-			}
+		// Get corresponding goal index
+		int agent1_goal(0);
+		if(choice_init==2) // Start
+			agent1_goal+=1;
+		int agent2_goal = agent1_goal + 2;
 
 		// Publish goals
 		if(delay>=0)
 		{
 			cout << "Publish goal : " << agent_managers_[agent1]->getName() << endl;
-			agent_managers_[agent1]->publishGoal(list_goals_[agent1_goal]);
+			agent_managers_[agent1]->publishGoal(scenarios_goals_[choice_scenario-1][agent1_goal]);
 			wait(delay);
 			cout << "Publish goal : " << agent_managers_[agent2]->getName() << endl;
-			agent_managers_[agent2]->publishGoal(list_goals_[agent2_goal]);
+			agent_managers_[agent2]->publishGoal(scenarios_goals_[choice_scenario-1][agent2_goal]);
 		}
 		else
 		{
 			cout << "Publish goal : " << agent_managers_[agent2]->getName() << endl;
-			agent_managers_[agent2]->publishGoal(list_goals_[agent2_goal]);
+			agent_managers_[agent2]->publishGoal(scenarios_goals_[choice_scenario-1][agent2_goal]);
 			wait(-delay);
 			cout << "Publish goal : " << agent_managers_[agent1]->getName() << endl;
-			agent_managers_[agent1]->publishGoal(list_goals_[agent1_goal]);
+			agent_managers_[agent1]->publishGoal(scenarios_goals_[choice_scenario-1][agent1_goal]);
 		}
 	}
 	else // endless
@@ -738,8 +865,8 @@ void Boss::threadPubEndlessAgent1()
 		{
 			if(agent_managers_[endless_agent1_]->isGoalDone())
 			{
-				endless_agent1_i_ = (endless_agent1_i_ + 1)%endless_goals_agent1_.size();
-				agent_managers_[endless_agent1_]->publishGoal(endless_goals_agent1_[endless_agent1_i_]);
+				endless_agent1_i_ = (endless_agent1_i_ + 1)%endless_goals_[0].size();
+				agent_managers_[endless_agent1_]->publishGoal(endless_goals_[0][endless_agent1_i_]);
 				endless_delay_.sleep();
 			}
 		}
@@ -756,8 +883,8 @@ void Boss::threadPubEndlessAgent2()
 		{
 			if(agent_managers_[endless_agent2_]->isGoalDone())
 			{
-				endless_agent2_i_ = (endless_agent2_i_ + 1)%endless_goals_agent2_.size();
-				agent_managers_[endless_agent2_]->publishGoal(endless_goals_agent2_[endless_agent2_i_]);
+				endless_agent2_i_ = (endless_agent2_i_ + 1)%endless_goals_[1].size();
+				agent_managers_[endless_agent2_]->publishGoal(endless_goals_[1][endless_agent2_i_]);
 				endless_delay_.sleep();
 			}
 		}
@@ -787,7 +914,7 @@ int main(int argc, char** argv)
 	// Add agents
 	HumanManager human_manager1("human");
 	boss.appendAgent(&human_manager1);
-	RobotManager robot_manager1("robot", "/move_base_simple/goal", "/move_base/status");
+	RobotManager robot_manager1("robot");
 	boss.appendAgent(&robot_manager1);
 
 	while(ros::ok())

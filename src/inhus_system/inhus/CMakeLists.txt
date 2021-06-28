@@ -15,7 +15,10 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   move_base_msgs
   tf
+  cmake_modules
 )
+
+  find_package(TinyXML REQUIRED)
 
 add_message_files(
   FILES
@@ -43,7 +46,7 @@ catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES inhus
   CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs actionlib_msgs move_base_msgs message_runtime
-#  DEPENDS system_lib
+#  DEPENDS system_lib TinyXML
 )
 
 include_directories(
@@ -73,4 +76,4 @@ target_link_libraries(lowLevelController_node ${catkin_LIBRARIES})
 
 add_executable(boss_node src/boss_node.cpp)
 add_dependencies(boss_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(boss_node ${catkin_LIBRARIES})
+target_link_libraries(boss_node ${catkin_LIBRARIES} ${TinyXML_LIBRARIES})

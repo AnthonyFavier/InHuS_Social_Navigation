@@ -4,7 +4,9 @@
 	<node name="boss_node" type="boss_node" pkg="inhus" output="screen" launch-prefix="xterm -geometry '80x25+945+0' -e">
 		<remap from="/human/goal_done" to="/$(arg ns)/goal_done"/>
 		<remap from="/human/new_goal" to="/$(arg ns)/new_goal"/>
-		<remap from="/move_base_simple/goal" to="/smb/move_base_simple/goal"/>
+
+		<remap from="/robot/move_base_goal_status" to="/move_base_simple/status"/>
+		<remap from="/robot/move_base_goal" to="/move_base_simple/goal"/>
 	</node>
 
 </launch>

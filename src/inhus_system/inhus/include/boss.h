@@ -2,6 +2,7 @@
 #define BOSS
 
 #include "ros/ros.h"
+#include <ros/package.h>
 #include "inhus/Goal.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include "move_base_msgs/MoveBaseGoal.h"
@@ -11,6 +12,7 @@
 #include <std_msgs/Int32.h>
 #include <vector>
 #include <boost/thread/thread.hpp>
+#include <tinyxml.h>
 #include <iostream>
 #include "types.h"
 
@@ -64,7 +66,7 @@ private:
 class RobotManager : public AgentManager
 {
 public:
-	RobotManager(string name, string topic_goal, string topic_goal_status);
+	RobotManager(string name);
 	void publishGoal(GoalArea goal);
 	void showState();
 
@@ -81,7 +83,10 @@ class Boss
 {
 public:
 	Boss();
+	~Boss();
 	void initGoals();
+	void showGoals();
+	void readGoalsFromXML();
 
 	void spawnThreadEndless();
 
@@ -117,9 +122,12 @@ private:
 	int endless_agent2_i_;
 	ros::Duration endless_delay_;
 
+	string goal_file_name_;
+	TiXmlDocument* doc_;
+
 	vector<GoalArea> list_goals_;
-	vector<GoalArea> endless_goals_agent1_;
-	vector<GoalArea> endless_goals_agent2_;
+	vector<vector<GoalArea>> scenarios_goals_;
+	vector<vector<GoalArea>> endless_goals_;
 };
 //////////////////////////////////////////////////
 
