@@ -1,6 +1,7 @@
 build/
 devel/
 *.swp
+src/inhus_system/inhus/logs/log_data/cohan_logs/*.txt
 src/inhus_system/inhus/logs/log_data/*.txt
 
 *.pyc
