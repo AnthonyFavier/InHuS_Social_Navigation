@@ -28,7 +28,7 @@ void LogManagerCohan::odomRCB(const nav_msgs::Odometry::ConstPtr& msg)
 	odom_r_ = *msg;
 
 	if(goal_received_ && !goal_done_)
-		log_file_r_ << "pose: " << msg->pose.pose.position.x << ", " << msg->pose.pose.position.y << ", " << msg->pose.pose.position.z << ", " << msg->pose.pose.orientation.w << ", vel: " << msg->twist.twist.linear.x << ", " << msg->twist.twist.linear.y << ", " << msg->twist.twist.angular.z << endl;
+		log_file_r_ << "pose: " << msg->pose.pose.position.x << ", " << msg->pose.pose.position.y << ", " << msg->pose.pose.orientation.z << ", " << msg->pose.pose.orientation.w << ", vel: " << msg->twist.twist.linear.x << ", " << msg->twist.twist.linear.y << ", " << msg->twist.twist.angular.z << endl;
 }
 
 void LogManagerCohan::odomHCB(const nav_msgs::Odometry::ConstPtr& msg)
@@ -36,7 +36,7 @@ void LogManagerCohan::odomHCB(const nav_msgs::Odometry::ConstPtr& msg)
 	odom_h_ = *msg;
 
 	if(goal_received_ && !goal_done_)
-		log_file_h_ << "pose: " << msg->pose.pose.position.x << ", " << msg->pose.pose.position.y << ", " << msg->pose.pose.position.z << ", " << msg->pose.pose.orientation.w << ", vel: " << msg->twist.twist.linear.x << ", " << msg->twist.twist.linear.y << ", " << msg->twist.twist.angular.z << endl;
+		log_file_h_ << "pose: " << msg->pose.pose.position.x << ", " << msg->pose.pose.position.y << ", " << msg->pose.pose.orientation.z << ", " << msg->pose.pose.orientation.w << ", vel: " << msg->twist.twist.linear.x << ", " << msg->twist.twist.linear.y << ", " << msg->twist.twist.angular.z << endl;
 }
 
 void LogManagerCohan::robotGoalCB(const geometry_msgs::PoseStamped::ConstPtr& msg)
@@ -49,11 +49,11 @@ void LogManagerCohan::robotGoalCB(const geometry_msgs::PoseStamped::ConstPtr& ms
 	}
 
 	log_file_r_.open(path_ + "/logs/log_data/cohan_logs/log_cohan_" + std::to_string(id_) + "_r.txt");
-	log_file_r_ << "start: x= " << odom_r_.pose.pose.position.x << ", y= " << odom_r_.pose.pose.position.y << ", z= " << odom_r_.pose.pose.position.z << ", w= " << odom_r_.pose.pose.orientation.w << endl;
+	log_file_r_ << "start: x= " << odom_r_.pose.pose.position.x << ", y= " << odom_r_.pose.pose.position.y << ", z= " << odom_r_.pose.pose.orientation.z << ", w= " << odom_r_.pose.pose.orientation.w << endl;
 	log_file_r_ << "goal: x= " << msg->pose.position.x << ", y= " << msg->pose.position.y << ", z= " << msg->pose.position.z << ", w= " << msg->pose.orientation.w << endl;
 
 	log_file_h_.open(path_ + "/logs/log_data/cohan_logs/log_cohan_" + std::to_string(id_) + "_h.txt");
-	log_file_h_ << "start: x= " << odom_h_.pose.pose.position.x << ", y= " << odom_h_.pose.pose.position.y << ", z= " << odom_h_.pose.pose.position.z << ", w= " << odom_h_.pose.pose.orientation.w << endl;
+	log_file_h_ << "start: x= " << odom_h_.pose.pose.position.x << ", y= " << odom_h_.pose.pose.position.y << ", z= " << odom_h_.pose.pose.orientation.z << ", w= " << odom_h_.pose.pose.orientation.w << endl;
 
 	goal_received_ = true;
 	goal_done_ = false;
