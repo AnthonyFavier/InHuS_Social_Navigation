@@ -20,6 +20,12 @@ using namespace std;
 
 enum Type{HUMAN, ROBOT};
 
+struct Scenario
+{
+	string name;
+	vector<GoalArea> goals;
+};
+
 //////////////////////////////////////////////////
 
 ////////////////// AGENT MANAGER /////////////////
@@ -110,6 +116,7 @@ private:
 	void askEndlessMode();
 	void askSetAttitude();
 
+	bool showAskScenarios();
 	void readGoalsFromXML();
 
 	ros::NodeHandle nh_;
@@ -128,7 +135,7 @@ private:
 	TiXmlDocument* doc_;
 
 	vector<GoalArea> list_goals_;
-	vector<vector<GoalArea>> scenarios_goals_;
+	vector<Scenario> scenarios_;
 	vector<vector<GoalArea>> endless_goals_;
 };
 //////////////////////////////////////////////////
