@@ -536,50 +536,42 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	sub_stop_look_ = WAIT_ROBOT;
 	sub_harass_ = INIT;
 
-	// INIT GOALS //
+	// INIT GOALS
+	this->readGoalsFromXML();
+}
+
+void HumanBehaviorModel::readGoalsFromXML()
+{
+	TiXmlHandle docHandle(doc_);
 	GoalArea area;
-	area.goal.type="navigation";
 
-	//1//
-	area.goal.x=1.0; 	area.goal.y=0.9; 	area.goal.theta=-PI/2;	area.radius=0;
-	known_goals_.push_back(area);
-	//2//
-	area.goal.x=3.15; 	area.goal.y=3.2; 	area.goal.theta=PI/2;	area.radius=0;
-	known_goals_.push_back(area);
-	//3//
-	area.goal.x=10.2; 	area.goal.y=-3.98; 	area.goal.theta=0;	area.radius=0;
-	known_goals_.push_back(area);
-	//4//
-	area.goal.x=7.90; 	area.goal.y=5.1; 	area.goal.theta=-PI/2;	area.radius=0;
-	known_goals_.push_back(area);
-	//5//
-	area.goal.x=7.8; 	area.goal.y=9.98; 	area.goal.theta=-PI;	area.radius=0;
-	known_goals_.push_back(area);
-	//6//
-	area.goal.x=3.42; 	area.goal.y=9.48; 	area.goal.theta=PI/2;	area.radius=0;
-	known_goals_.push_back(area);
-	//7//
-	area.goal.x=4.72; 	area.goal.y=17.68; 	area.goal.theta=PI/2;	area.radius=0;
-	known_goals_.push_back(area);
-	//8//
-	area.goal.x=10.6; 	area.goal.y=15.8; 	area.goal.theta=0;	area.radius=0;
-	known_goals_.push_back(area);
-	//9//
-	area.goal.x=1.0; 	area.goal.y=15.8; 	area.goal.theta=-PI;	area.radius=0;
-	known_goals_.push_back(area);
-	//10//
-	area.goal.x=0.65; 	area.goal.y=8.50; 	area.goal.theta=-PI;	area.radius=0;
-	known_goals_.push_back(area);
+	// Extracting the list of goals
+	TiXmlElement* l_goal = docHandle.FirstChild("goals").FirstChild("goal_list").FirstChild("goal").ToElement();
+	while(l_goal)
+	{
+		TiXmlElement *l_type = l_goal->FirstChildElement("type");
 
-	//11//
-	area.goal.x=8.8; 	area.goal.y=0.8; 	area.goal.theta=0;	area.radius=1.3;
-	known_goals_.push_back(area);
-	//12//
-	area.goal.x=3.0; 	area.goal.y=15.3; 	area.goal.theta=0;	area.radius=2;
-	known_goals_.push_back(area);
-	//13//
-	area.goal.x=8.0; 	area.goal.y=15.5; 	area.goal.theta=0;	area.radius=2;
-	known_goals_.push_back(area);
+		if(NULL != l_type)
+			area.goal.type = l_type->GetText();
+		if(area.goal.type == "navigation")
+		{
+			TiXmlElement *l_x = l_goal->FirstChildElement("x");
+			if(NULL != l_x)
+				area.goal.x = std::stof(l_x->GetText());
+			TiXmlElement *l_y = l_goal->FirstChildElement("y");
+			if(NULL != l_y)
+				area.goal.y = std::stof(l_y->GetText());
+			TiXmlElement *l_theta = l_goal->FirstChildElement("theta");
+			if(NULL != l_theta)
+				area.goal.theta = std::stof(l_theta->GetText());
+			TiXmlElement *l_radius = l_goal->FirstChildElement("radius");
+			if(NULL != l_radius)
+				area.radius = std::stof(l_radius->GetText());
+		}
+		known_goals_.push_back(area);
+
+		l_goal = l_goal->NextSiblingElement("goal");
+	}
 }
 
 void HumanBehaviorModel::publishGoal(inhus::Goal& goal)
@@ -922,7 +914,7 @@ inhus::Goal HumanBehaviorModel::chooseGoal(bool random)
 	{
 		do
 		{
-			i=rand()%10 +1 ;
+			i=rand()%known_goals_.size() +1 ;
 		}while(known_goals_[i].goal.x==previous_goal_.x && known_goals_[i].goal.y==previous_goal_.y);
 	}
 	// follow list of known goals
@@ -932,39 +924,18 @@ inhus::Goal HumanBehaviorModel::chooseGoal(bool random)
 		i = index_list;
 	}
 
-	//ROS_INFO("i=%d", i);
-	//ROS_INFO("x=%f, y=%f, theta=%f, radius=%f", known_goals_[i].goal.x,known_goals_[i].goal.y,known_goals_[i].goal.theta,known_goals_[i].radius);
-
 	// if it's an area, pick a goal in it
-	if(known_goals_[i].radius!=0)
-	{
-		float alpha = (rand()%(2*314))/100 - PI;
-		float r = (rand()%(int(known_goals_[i].radius*100)))/100.0;
-
-		//ROS_INFO("alpha=%f, r=%f", alpha, r);
-
-		goal.type = "navigation";
-		goal.x = known_goals_[i].goal.x + r * cos(alpha);
-		goal.y = known_goals_[i].goal.y + r * sin(alpha);
-		goal.theta = 0;
-	}
-	else
-		goal = known_goals_[i].goal;
+	goal = computeGoalWithRadius(known_goals_[i]).goal;
 
 	current_goal_=goal;
-
-	//ROS_INFO("goal choosen !");
-	//ROS_INFO("%s (%f, %f, %f)", goal.type.c_str(), goal.x, goal.y, goal.theta);
 
 	return goal;
 }
 
 void HumanBehaviorModel::attNonStop()
 {
-//	ROS_INFO("NON_STOP");
 	if(!executing_plan_)
 	{
-		//ROS_INFO("CHOOSED new goal in NON STOP");
 		inhus::Goal goal = chooseGoal(true);
 
 		this->publishGoal(goal);
@@ -983,14 +954,7 @@ void HumanBehaviorModel::attRandom()
 			inhus::Goal previous_goal = current_goal_;
 			inhus::Goal new_goal = this->chooseGoal(true);
 			if(new_goal.x != previous_goal.x || new_goal.y != previous_goal.y)
-			{
 				this->publishGoal(new_goal);
-				//ROS_INFO("published");
-			}
-			else
-			{
-				//ROS_INFO("ALREADY GOING!");
-			}
 		}
 		last_time_=ros::Time::now();
 	}

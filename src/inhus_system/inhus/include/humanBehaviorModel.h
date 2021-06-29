@@ -2,6 +2,8 @@
 #define DEF_HUMAN_MODEL
 
 #include "ros/ros.h"
+#include <ros/package.h>
+#include <tinyxml.h>
 #include <vector>
 #include <boost/thread/thread.hpp>
 #include <time.h>
@@ -130,6 +132,7 @@ private:
 ////////// METHODS //////////
 
 	inhus::Goal chooseGoal(bool random);
+	void readGoalsFromXML();
 	void attNonStop();
 	void attRandom();
 	void attStopLook();
@@ -223,6 +226,8 @@ private:
 	inhus::Goal current_goal_;
 	inhus::Goal previous_goal_;
 
+	std::string goal_file_name_;
+	TiXmlDocument* doc_;
 	std::vector<GoalArea> known_goals_;
 
 	bool executing_plan_;

@@ -198,7 +198,7 @@ void Supervisor::FSM()
 										if(goal_status_.status == actionlib::SimpleClientGoalState::LOST
 										|| (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
 										{
-											ROS_INFO("=> Resend !");
+											// ROS_INFO("=> Resend !");
 
 											move_base_msgs::MoveBaseActionGoal nav_goal;
 											nav_goal.goal.target_pose.header.frame_id = "map";

@@ -49,6 +49,7 @@ HumanManager::HumanManager(string name) : AgentManager(name)
 
 void HumanManager::publishGoal(GoalArea goal)
 {
+	goal = computeGoalWithRadius(goal);
 	pub_goal_.publish(goal.goal);
 }
 
@@ -115,6 +116,7 @@ RobotManager::RobotManager(string name) : AgentManager(name)
 
 void RobotManager::publishGoal(GoalArea goal)
 {
+	goal = computeGoalWithRadius(goal);
 	pub_goal_.publish(this->getPose(goal.goal));
 }
 

@@ -138,19 +138,15 @@
     <endless_agent1>
       <goal>
         <type>navigation</type>
-        <x>7.90</x> <y>5.1</y> <theta>-1.57</theta> <radius>0.0</radius>
+        <x>9.5</x> <y>-4.3</y> <theta>0.0</theta> <radius>1.0</radius>
       </goal>
       <goal>
         <type>navigation</type>
-        <x>5.4</x> <y>7.3</y> <theta>-3.14</theta> <radius>0.0</radius>
+        <x>7.5</x> <y>0.5</y> <theta>1.57</theta> <radius>1.5</radius>
       </goal>
       <goal>
         <type>navigation</type>
-        <x>4.0</x> <y>9.5</y> <theta>1.57</theta> <radius>0.0</radius>
-      </goal>
-      <goal>
-        <type>navigation</type>
-        <x>9.0</x> <y>10.2</y> <theta>0.0</theta> <radius>0.0</radius>
+        <x>10.8</x> <y>0.7</y> <theta>0</theta> <radius>0.0</radius>
       </goal>
     </endless_agent1>
 

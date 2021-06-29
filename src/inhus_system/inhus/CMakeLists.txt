@@ -60,7 +60,7 @@ target_link_libraries(supervisor_node ${catkin_LIBRARIES})
 
 add_executable(humanBehaviorModel_node src/humanBehaviorModel_node.cpp)
 add_dependencies(humanBehaviorModel_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(humanBehaviorModel_node ${catkin_LIBRARIES})
+target_link_libraries(humanBehaviorModel_node ${catkin_LIBRARIES} ${TinyXML_LIBRARIES})
 
 add_executable(taskPlanner_node src/taskPlanner_node.cpp src/task.cpp)
 add_dependencies(taskPlanner_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
