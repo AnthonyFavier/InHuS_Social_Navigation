@@ -198,24 +198,18 @@ void Boss::readGoalsFromXML()
 	TiXmlElement* l_goal = docHandle.FirstChild("goals").FirstChild("goal_list").FirstChild("goal").ToElement();
 	while(l_goal)
 	{
-		TiXmlElement *l_type = l_goal->FirstChildElement("type");
-
-		if(NULL != l_type)
-			area.goal.type = l_type->GetText();
+		if(NULL != l_goal->Attribute("type"))
+			area.goal.type = l_goal->Attribute("type");
 		if(area.goal.type == "navigation")
 		{
-			TiXmlElement *l_x = l_goal->FirstChildElement("x");
-			if(NULL != l_x)
-				area.goal.x = stof(l_x->GetText());
-			TiXmlElement *l_y = l_goal->FirstChildElement("y");
-			if(NULL != l_y)
-				area.goal.y = stof(l_y->GetText());
-			TiXmlElement *l_theta = l_goal->FirstChildElement("theta");
-			if(NULL != l_theta)
-				area.goal.theta = stof(l_theta->GetText());
-			TiXmlElement *l_radius = l_goal->FirstChildElement("radius");
-			if(NULL != l_radius)
-				area.radius = stof(l_radius->GetText());
+			if(NULL != l_goal->Attribute("x"))
+				area.goal.x = stof(l_goal->Attribute("x"));
+			if(NULL != l_goal->Attribute("y"))
+				area.goal.y = stof(l_goal->Attribute("y"));
+			if(NULL != l_goal->Attribute("theta"))
+				area.goal.theta = stof(l_goal->Attribute("theta"));
+			if(NULL != l_goal->Attribute("radius"))
+				area.radius = stof(l_goal->Attribute("radius"));
 		}
 		list_goals_.push_back(area);
 
@@ -235,24 +229,18 @@ void Boss::readGoalsFromXML()
 		TiXmlElement *l_goal = l_scenario->FirstChildElement();
 		while(l_goal)
 		{
-			TiXmlElement *l_type = l_goal->FirstChildElement("type");
-
-			if(NULL != l_type)
-				area.goal.type = l_type->GetText();
+			if(NULL != l_goal->Attribute("type"))
+				area.goal.type = l_goal->Attribute("type");
 			if(area.goal.type == "navigation")
 			{
-				TiXmlElement *l_x = l_goal->FirstChildElement("x");
-				if(NULL != l_x)
-					area.goal.x = stof(l_x->GetText());
-				TiXmlElement *l_y = l_goal->FirstChildElement("y");
-				if(NULL != l_y)
-					area.goal.y = stof(l_y->GetText());
-				TiXmlElement *l_theta = l_goal->FirstChildElement("theta");
-				if(NULL != l_theta)
-					area.goal.theta = stof(l_theta->GetText());
-				TiXmlElement *l_radius = l_goal->FirstChildElement("radius");
-				if(NULL != l_radius)
-					area.radius = stof(l_radius->GetText());
+				if(NULL != l_goal->Attribute("x"))
+					area.goal.x = stof(l_goal->Attribute("x"));
+				if(NULL != l_goal->Attribute("y"))
+					area.goal.y = stof(l_goal->Attribute("y"));
+				if(NULL != l_goal->Attribute("theta"))
+					area.goal.theta = stof(l_goal->Attribute("theta"));
+				if(NULL != l_goal->Attribute("radius"))
+					area.radius = stof(l_goal->Attribute("radius"));
 			}
 			scenario.goals.push_back(area);
 
@@ -273,24 +261,18 @@ void Boss::readGoalsFromXML()
 		TiXmlElement *l_goal = l_endless_scenario->FirstChildElement("goal");
 		while(l_goal)
 		{
-			TiXmlElement *l_type = l_goal->FirstChildElement("type");
-
-			if(NULL != l_type)
-				area.goal.type = l_type->GetText();
+			if(NULL != l_goal->Attribute("type"))
+				area.goal.type = l_goal->Attribute("type");
 			if(area.goal.type == "navigation")
 			{
-				TiXmlElement *l_x = l_goal->FirstChildElement("x");
-				if(NULL != l_x)
-					area.goal.x = stof(l_x->GetText());
-				TiXmlElement *l_y = l_goal->FirstChildElement("y");
-				if(NULL != l_y)
-					area.goal.y = stof(l_y->GetText());
-				TiXmlElement *l_theta = l_goal->FirstChildElement("theta");
-				if(NULL != l_theta)
-					area.goal.theta = stof(l_theta->GetText());
-				TiXmlElement *l_radius = l_goal->FirstChildElement("radius");
-				if(NULL != l_radius)
-					area.radius = stof(l_radius->GetText());
+				if(NULL != l_goal->Attribute("x"))
+					area.goal.x = stof(l_goal->Attribute("x"));
+				if(NULL != l_goal->Attribute("y"))
+					area.goal.y = stof(l_goal->Attribute("y"));
+				if(NULL != l_goal->Attribute("theta"))
+					area.goal.theta = stof(l_goal->Attribute("theta"));
+				if(NULL != l_goal->Attribute("radius"))
+					area.radius = stof(l_goal->Attribute("radius"));
 			}
 			endless_scenario.push_back(area);
 
