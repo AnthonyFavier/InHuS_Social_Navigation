@@ -53,10 +53,10 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	server_init_conflict_ = 		nh_.advertiseService("init_check_conflict", &ConflictManager::srvInitCheckConflict, this);
 
 	// Service clients
-	client_cancel_goal_and_stop_ = 	nh_.serviceClient<inhus::Signal>("cancel_goal_and_stop");
+	client_cancel_goal_and_stop_ = 	nh_.serviceClient<std_srvs::Empty>("cancel_goal_and_stop");
 	client_make_plan_ =				nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
-	client_update_robot_map_ = nh_.serviceClient<inhus::Signal>("update_robot_map");
-	client_resume_supervisor_ = nh_.serviceClient<inhus::Signal>("resumeSupervisor");
+	client_update_robot_map_ = nh_.serviceClient<std_srvs::Empty>("update_robot_map");
+	client_resume_supervisor_ = nh_.serviceClient<std_srvs::Empty>("resumeSupervisor");
 }
 
 bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::ActionBool::Response &res)
@@ -146,7 +146,7 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 	return true;
 }
 
-bool ConflictManager::srvInitCheckConflict(inhus::Signal::Request &req, inhus::Signal::Response &res)
+bool ConflictManager::srvInitCheckConflict(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 {
 	//ROS_INFO("Check conflict init");
 	current_path_.poses.clear();
@@ -481,11 +481,11 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
 
 	// Service clients
-	client_set_wait_goal_ = 		nh_.serviceClient<inhus::Signal>("set_wait_goal");
-	client_cancel_goal_and_stop_ = 	nh_.serviceClient<inhus::Signal>("cancel_goal_and_stop");
+	client_set_wait_goal_ = 		nh_.serviceClient<std_srvs::Empty>("set_wait_goal");
+	client_cancel_goal_and_stop_ = 	nh_.serviceClient<std_srvs::Empty>("cancel_goal_and_stop");
 	client_place_robot_ = 		nh_.serviceClient<inhus_navigation::PlaceRobot>("place_robot");
-	client_suspend_supervisor_ = nh_.serviceClient<inhus::Signal>("suspendSupervisor");
-	client_resume_supervisor_ = nh_.serviceClient<inhus::Signal>("resumeSupervisor");
+	client_suspend_supervisor_ = nh_.serviceClient<std_srvs::Empty>("suspendSupervisor");
+	client_resume_supervisor_ = nh_.serviceClient<std_srvs::Empty>("resumeSupervisor");
 
 	// Service server
 	server_place_robot_ = nh_.advertiseService("place_robot_hm", &HumanBehaviorModel::srvPlaceRobotHM, this);
@@ -1147,7 +1147,7 @@ void HumanBehaviorModel::conflictManagerLoop()
 
 /////////////////// Service servers ///////////////////////
 
-bool HumanBehaviorModel::srvUpdateRobotMap(inhus::Signal::Request& req, inhus::Signal::Response& res)
+bool HumanBehaviorModel::srvUpdateRobotMap(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
 	this->updateRobotOnMap();
 	return true;

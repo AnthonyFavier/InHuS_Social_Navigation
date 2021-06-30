@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  std_srvs
   geometry_msgs
   genmsg
   actionlib_msgs
@@ -29,8 +30,6 @@ add_message_files(
 add_service_files(
   FILES
   ComputePlan.srv
-  Signal.srv
-  Bool.srv
   ActionBool.srv
 )
 
