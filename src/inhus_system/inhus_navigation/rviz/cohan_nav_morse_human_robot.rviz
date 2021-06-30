@@ -4,8 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
         - /TF1/Frames1
       Splitter Ratio: 0.3720930218696594
     Tree Height: 479
@@ -1161,11 +1159,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 130.53781127929688
+      Scale: 59.74933624267578
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 1.267265796661377
-      Y: 8.364444732666016
+      X: 5.579792499542236
+      Y: 8.16619873046875
     Saved: ~
 Window Geometry:
   Displays:
@@ -1183,5 +1181,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: 0
+  X: 1920
   Y: 25
