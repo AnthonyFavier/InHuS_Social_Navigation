@@ -6,13 +6,13 @@ LogManager::LogManager()
 {
 	path_ = ros::package::getPath("inhus");
 
-	log_file_inhus_.open(path_ + "/logs/log_data/log.txt");
+	log_file_inhus_.open(path_ + "/logs/inhus_logs/log.txt");
 	log_file_inhus_ << "LOG STARTS : " << ros::Time::now() << endl;
 	sub_log_ = nh_.subscribe("log", 100, &LogManager::logCallback, this);
 	sub_vel_H_ = nh_.subscribe("known/human_vel", 100, &LogManager::velHCallback, this);
 	sub_vel_R_ = nh_.subscribe("known/robot_vel", 100, &LogManager::velRCallback, this);
 
-	log_file_inhus_poses_.open(path_ + "/logs/log_data/poseLog.txt");
+	log_file_inhus_poses_.open(path_ + "/logs/inhus_logs/poseLog.txt");
 	log_file_inhus_poses_ << "LOG STARTS : " << ros::Time::now() << endl;
 	sub_pose_H_ = nh_.subscribe("interface/in/human_pose", 100, &LogManager::poseHCallback, this);
 	sub_pose_R_ = nh_.subscribe("interface/in/robot_pose", 100, &LogManager::poseRCallback, this);

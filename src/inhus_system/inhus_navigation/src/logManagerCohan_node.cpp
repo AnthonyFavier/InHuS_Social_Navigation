@@ -48,11 +48,11 @@ void LogManagerCohan::robotGoalCB(const geometry_msgs::PoseStamped::ConstPtr& ms
 		id_++;
 	}
 
-	log_file_r_.open(path_ + "/logs/log_data/cohan_logs/log_cohan_" + std::to_string(id_) + "_r.txt");
+	log_file_r_.open(path_ + "/logs/cohan_logs/log_cohan_" + std::to_string(id_) + "_r.txt");
 	log_file_r_ << "start: x= " << odom_r_.pose.pose.position.x << ", y= " << odom_r_.pose.pose.position.y << ", z= " << odom_r_.pose.pose.orientation.z << ", w= " << odom_r_.pose.pose.orientation.w << endl;
 	log_file_r_ << "goal: x= " << msg->pose.position.x << ", y= " << msg->pose.position.y << ", z= " << msg->pose.position.z << ", w= " << msg->pose.orientation.w << endl;
 
-	log_file_h_.open(path_ + "/logs/log_data/cohan_logs/log_cohan_" + std::to_string(id_) + "_h.txt");
+	log_file_h_.open(path_ + "/logs/cohan_logs/log_cohan_" + std::to_string(id_) + "_h.txt");
 	log_file_h_ << "start: x= " << odom_h_.pose.pose.position.x << ", y= " << odom_h_.pose.pose.position.y << ", z= " << odom_h_.pose.pose.orientation.z << ", w= " << odom_h_.pose.pose.orientation.w << endl;
 
 	goal_received_ = true;
