@@ -13,18 +13,10 @@
     <arg name="fast_mode" value="$(arg fast_mode)"/>
   </include>
 
-  <!-- localization and maps -->
-  <!-- <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_locate_odom.launch"> -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_locate_pub.launch">
-    <arg name="ns" value="$(arg ns)"/>
-    <arg name="map_name" value="$(arg map_name)"/>
-  </include>
+  <!-- <include file="$(find inhus_navigation)/launch/morse_pr2_multi_launch/morse_human_agent.launch"/> -->
 
-  <!-- navigation -->
-  <include file="$(find inhus_navigation)/launch/stage_launch/include/stage_nav.launch">
-    <arg name="ns" value="$(arg ns)"/>
-    <arg name="node_start_delay" value="$(arg node_start_delay)"/>
-  </include>
+  <!-- handle when to consider the robot or not -->
+  <node name="placeRobot_client_node" type="placeRobot_client_node" pkg="inhus_navigation" ns="$(arg ns)"/>
 
   <!-- human controller and boss -->
   <include file="$(find inhus)/launch/all.launch">

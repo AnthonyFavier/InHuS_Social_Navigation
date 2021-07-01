@@ -3,18 +3,20 @@
   <arg name="map_name" default="laas_adream"/>
   <arg name="node_start_delay" default="4.0"/>
 
+  <!-- handle when to consider the robot or not -->
+  <node name="placeRobot_client_node" type="placeRobot_client_node" pkg="inhus_navigation" output="screen" ns="$(arg ns)"/>
+
   <!-- human controller and boss -->
   <include file="$(find inhus)/launch/all.launch">
     <arg name="ns" value="$(arg ns)"/>
   </include>
-
-  <node name="placeRobot_client_node" type="placeRobot_client_node" pkg="inhus_navigation" output="screen" ns="$(arg ns)"/>
 
   <!-- Interface with the simulator -->
   <include file="$(find inhus_navigation)/launch/stage_launch/include/stage_interface.launch">
     <arg name="ns" value="$(arg ns)"/>
   </include>
 
+  <!-- visualization with Rviz -->
   <include file="$(find inhus_navigation)/launch/rviz.launch"/>
 
 </launch>

@@ -1325,13 +1325,13 @@ int main(int argc, char** argv)
 
 	ros::Rate rate(30);
 
-	//ROS_INFO("Waiting for init ...");
+	ROS_INFO("Waiting for init ... (navigation and localization)");
 	while(ros::ok() && !human_model.initDone())
 	{
 		ros::spinOnce();
 		rate.sleep();
 	}
-	//ROS_INFO("LETS_GO");
+	ROS_INFO("Ready");
 
 	while(ros::ok())
 	{

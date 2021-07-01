@@ -26,6 +26,7 @@
     <arg name="ns" value="$(arg ns)"/>
   </include>
 
+  <!-- visualization with Rviz -->
   <include file="$(find inhus_navigation)/launch/rviz.launch"/>
 
 </launch>
