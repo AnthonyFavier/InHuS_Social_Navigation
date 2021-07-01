@@ -13,6 +13,9 @@
 
   <node pkg="stage_ros" type="stageros" name="stageros" args="$arg -u $(arg graphics) $(arg mode) $(arg world_file)" respawn="false">
     <param name="base_watchdog_timeout" value="0.2"/>
+    <remap from="base_scan" to="scan"/>
+    <remap from="human1/base_scan" to="human1/scan"/>
+    <remap from="human2/base_scan" to="human2/scan"/>
   </node>
 
 </launch>
