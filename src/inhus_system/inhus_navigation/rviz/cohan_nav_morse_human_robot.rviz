@@ -556,7 +556,7 @@ Visualization Manager:
       Marker Topic: /move_base/HATebLocalPlannerROS/agent_marker
       Name: HumanMarker
       Namespaces:
-        {}
+        body: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -564,7 +564,7 @@ Visualization Manager:
       Marker Topic: /move_base/HATebLocalPlannerROS/agent_arrow
       Name: HumanDirection
       Namespaces:
-        {}
+        direction: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -771,6 +771,10 @@ Visualization Manager:
           Value: false
         human1/base_footprint:
           Value: true
+        human1/base_laser_link:
+          Value: false
+        human1/base_link:
+          Value: false
         human1/odom:
           Value: false
         human2/base_footprint:
@@ -1142,7 +1146,7 @@ Visualization Manager:
       X std deviation: 0.5
       Y std deviation: 0.5
     - Class: rviz/SetGoal
-      Topic: /smb/move_base_simple/goal
+      Topic: /move_base_simple/goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
