@@ -73,7 +73,9 @@ PlaceRobotMap::PlaceRobotMap()
 	place_robot_server_ = nh_.advertiseService("place_robot", &PlaceRobotMap::placeRobotSrv, this);
 
 	// Client
+	ros::service::waitForService("move_base/global_costmap/human_layer_static/shutdown_layer");
 	client_shutdown_layer_static_human_ = nh_.serviceClient<std_srvs::SetBool>("move_base/global_costmap/human_layer_static/shutdown_layer");
+	ros::service::waitForService("move_base/global_costmap/human_layer_visible/shutdown_layer");
 	client_shutdown_layer_visible_human_ = nh_.serviceClient<std_srvs::SetBool>("move_base/global_costmap/human_layer_visible/shutdown_layer");
 
 	// Publisher
@@ -169,13 +171,13 @@ int main(int argc, char** argv)
 	ros::Rate loop(60);
 
 	// wait init
-	ROS_INFO("Waiting for init ...");
+	ROS_INFO("PlaceRobot: Waiting for init ...");
 	while(ros::ok() && !place_robot_map.initDone())
 	{
 		ros::spinOnce();
 		loop.sleep();
 	}
-	ROS_INFO("INIT done");
+	ROS_INFO("PlaceRobot: INIT done");
 
 	place_robot_map.start();
 

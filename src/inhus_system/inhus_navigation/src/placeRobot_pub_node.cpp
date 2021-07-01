@@ -152,13 +152,13 @@ int main(int argc, char** argv)
 	ros::Rate loop(60);
 
 	// wait init
-	ROS_INFO("Waiting for init ...");
+	ROS_INFO("PlaceRobot: Waiting for init ...");
 	while(ros::ok() && !place_robot_map.initDone())
 	{
 		ros::spinOnce();
 		loop.sleep();
 	}
-	ROS_INFO("INIT done");
+	ROS_INFO("PlaceRobot: INIT done");
 
 	place_robot_map.start();
 

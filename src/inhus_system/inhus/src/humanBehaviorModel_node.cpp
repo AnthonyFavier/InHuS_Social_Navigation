@@ -53,9 +53,13 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	server_init_conflict_ = 		nh_.advertiseService("init_check_conflict", &ConflictManager::srvInitCheckConflict, this);
 
 	// Service clients
+	ros::service::waitForService("cancel_goal_and_stop");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<std_srvs::Empty>("cancel_goal_and_stop");
+	ros::service::waitForService("move_base/GlobalPlanner/make_plan");
 	client_make_plan_ =				nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
+	ros::service::waitForService("update_robot_map");
 	client_update_robot_map_ = nh_.serviceClient<std_srvs::Empty>("update_robot_map");
+	ros::service::waitForService("resumeSupervisor");
 	client_resume_supervisor_ = nh_.serviceClient<std_srvs::Empty>("resumeSupervisor");
 }
 
@@ -481,10 +485,15 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
 
 	// Service clients
+	ros::service::waitForService("set_wait_goal");
 	client_set_wait_goal_ = 		nh_.serviceClient<std_srvs::Empty>("set_wait_goal");
+	ros::service::waitForService("cancel_goal_and_stop");
 	client_cancel_goal_and_stop_ = 	nh_.serviceClient<std_srvs::Empty>("cancel_goal_and_stop");
+	ros::service::waitForService("place_robot");
 	client_place_robot_ = 		nh_.serviceClient<inhus_navigation::PlaceRobot>("place_robot");
+	ros::service::waitForService("suspendSupervisor");
 	client_suspend_supervisor_ = nh_.serviceClient<std_srvs::Empty>("suspendSupervisor");
+	ros::service::waitForService("resumeSupervisor");
 	client_resume_supervisor_ = nh_.serviceClient<std_srvs::Empty>("resumeSupervisor");
 
 	// Service server
@@ -1325,13 +1334,13 @@ int main(int argc, char** argv)
 
 	ros::Rate rate(30);
 
-	ROS_INFO("Waiting for init ... (navigation and localization)");
+	ROS_INFO("HBM: Waiting for init ... (navigation and localization)");
 	while(ros::ok() && !human_model.initDone())
 	{
 		ros::spinOnce();
 		rate.sleep();
 	}
-	ROS_INFO("Ready");
+	ROS_INFO("HBM: Ready");
 
 	while(ros::ok())
 	{
