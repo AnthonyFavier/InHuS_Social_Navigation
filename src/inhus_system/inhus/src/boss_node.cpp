@@ -437,7 +437,7 @@ void Boss::askSendGoal()
 				// Ask goal coordinates
 				GoalArea goal;
 				goal.radius = 0;
-				goal.goal.type = "position";
+				goal.goal.type = "navigation";
 				while(ros::ok() && (cout 	<< "Goal x : ")
 				&& (!(cin >> goal.goal.x)))
 					cleanInput();
