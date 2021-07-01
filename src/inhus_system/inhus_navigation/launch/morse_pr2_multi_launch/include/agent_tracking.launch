@@ -35,12 +35,23 @@
     <!-- MORSE agents to /tracked_agents -->
     <node name="agents" pkg="morse_ros" type="agents_bridge.py" args="$(arg num_agents) $(arg ns)" output="screen"/>
 
+    <!-- Global Planner for the agent path prediction -->
+    <node pkg="global_planner" type="planner" name="global_planner_for_agent_path_prediction">
+      <remap from="/map" to="map_static"/>
+      <remap from="/tracked_agents" to="tracked_agents"/>
+      <remap from="/move_base/HATebLocalPlannerROS/agents_states" to="move_base/HATebLocalPlannerROS/agents_states"/>
+      <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/global_costmap_params_human.yaml" command="load" ns="costmap"/>
+      <param name="ns" value="$(arg ns)"/>
+      <param name="costmap/robot_base_frame" value="$(arg ns)/base_link"/>
+    </node>
+
     <!-- agent pose prediction, for the local-planning -->
     <node pkg="agent_path_prediction" type="agent_path_prediction" name="agent_path_predict" output="screen" >
       <remap from="map" to="/map"/>
-      <remap from="/$(arg ns)/agent_path_predict/tracked_agents" to="/$(arg ns)/tracked_agents"/>
-      <remap from="/$(arg ns)/agent_path_predict/external_agent_trajs" to="/move_base_node/HATebLocalPlannerROS/agent_local_trajs"/>
-      <remap from="/move_base/GlobalPlanner/make_plan" to="/smb/move_base/GlobalPlanner/make_plan"/>
+      <remap from="/agent_goal_predict/predicted_goal" to="agent_goal_predict/predicted_goal"/>
+      <remap from="agent_path_predict/tracked_agents" to="tracked_agents"/>
+      <remap from="/move_base_node/HATebLocalPlannerROS/agent_local_trajs" to="move_base_node/HATebLocalPlannerROS/agent_local_trajs"/>
+      <remap from="/move_base/GlobalPlanner/make_plan" to="global_planner_for_agent_path_prediction/planner/make_plan"/>
 
       <param name="velobs_mul" value="1.0"/>
       <param name="velscale_mul" value="2.0"/>
