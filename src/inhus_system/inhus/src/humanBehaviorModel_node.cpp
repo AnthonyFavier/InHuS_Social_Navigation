@@ -546,6 +546,13 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	sub_harass_ = INIT;
 
 	// INIT GOALS
+	goal_file_name_ = "goals.xml";
+	std::string goal_file_path = ros::package::getPath("inhus") + "/config/" + goal_file_name_;
+	doc_ = new TiXmlDocument(goal_file_path);
+	if(!doc_->LoadFile())
+		ROS_ERROR("Failed to load %s", goal_file_path.c_str());
+	else
+		ROS_INFO("HBM: Goals file loaded");
 	this->readGoalsFromXML();
 }
 
