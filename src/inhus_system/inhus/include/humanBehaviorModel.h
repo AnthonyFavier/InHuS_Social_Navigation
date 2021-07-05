@@ -131,13 +131,14 @@ private:
 
 ////////// METHODS //////////
 
-	inhus::Goal chooseGoal(bool random);
+	GoalArea chooseGoal(bool random);
+	void showGoals();
 	void readGoalsFromXML();
 	void attNonStop();
 	void attRandom();
 	void attStopLook();
 	void attHarass();
-	void publishGoal(inhus::Goal& goal);
+	void publishGoal(GoalArea goal);
 	bool testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real);
 	bool testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov);
 	void updateRobotOnMap();

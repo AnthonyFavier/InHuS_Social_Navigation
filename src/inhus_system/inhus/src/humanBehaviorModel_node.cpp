@@ -554,6 +554,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	else
 		ROS_INFO("HBM: Goals file loaded");
 	this->readGoalsFromXML();
+	// this->showGoals();
 }
 
 void HumanBehaviorModel::readGoalsFromXML()
@@ -584,10 +585,19 @@ void HumanBehaviorModel::readGoalsFromXML()
 	}
 }
 
-void HumanBehaviorModel::publishGoal(inhus::Goal& goal)
+void HumanBehaviorModel::showGoals()
 {
+	// list goals
+	std::cout << "=> list_goals <=" << std::endl;
+	for(unsigned int i=0; i<known_goals_.size(); i++)
+		std::cout << "\t" << known_goals_[i].goal.type << " " << known_goals_[i].goal.x << " " << known_goals_[i].goal.y << " " << known_goals_[i].goal.theta << " " << known_goals_[i].radius << std::endl;
+}
+
+void HumanBehaviorModel::publishGoal(GoalArea goal)
+{
+	goal = computeGoalWithRadius(goal);
 	executing_plan_ = true;
-	pub_new_goal_.publish(goal);
+	pub_new_goal_.publish(goal.goal);
 }
 
 void HumanBehaviorModel::processSimData()
@@ -914,9 +924,9 @@ void HumanBehaviorModel::testSeeRobot()
 
 ////////////////////// Attitudes //////////////////////////
 
-inhus::Goal HumanBehaviorModel::chooseGoal(bool random)
+GoalArea HumanBehaviorModel::chooseGoal(bool random)
 {
-	inhus::Goal goal;
+	GoalArea goal;
 	static int index_list=-1;
 	int i=0;
 
@@ -924,7 +934,7 @@ inhus::Goal HumanBehaviorModel::chooseGoal(bool random)
 	{
 		do
 		{
-			i=rand()%known_goals_.size() +1 ;
+			i=rand()%known_goals_.size();
 		}while(known_goals_[i].goal.x==previous_goal_.x && known_goals_[i].goal.y==previous_goal_.y);
 	}
 	// follow list of known goals
@@ -935,9 +945,9 @@ inhus::Goal HumanBehaviorModel::chooseGoal(bool random)
 	}
 
 	// if it's an area, pick a goal in it
-	goal = computeGoalWithRadius(known_goals_[i]).goal;
+	goal = computeGoalWithRadius(known_goals_[i]);
 
-	current_goal_=goal;
+	current_goal_=goal.goal;
 
 	return goal;
 }
@@ -946,7 +956,7 @@ void HumanBehaviorModel::attNonStop()
 {
 	if(!executing_plan_)
 	{
-		inhus::Goal goal = chooseGoal(true);
+		GoalArea goal = chooseGoal(true);
 
 		this->publishGoal(goal);
 	}
@@ -962,8 +972,8 @@ void HumanBehaviorModel::attRandom()
 		{
 			//ROS_INFO("DECIDE NEW GOAL ! ");
 			inhus::Goal previous_goal = current_goal_;
-			inhus::Goal new_goal = this->chooseGoal(true);
-			if(new_goal.x != previous_goal.x || new_goal.y != previous_goal.y)
+			GoalArea new_goal = this->chooseGoal(true);
+			if(new_goal.goal.x != previous_goal.x || new_goal.goal.y != previous_goal.y)
 				this->publishGoal(new_goal);
 		}
 		last_time_=ros::Time::now();
@@ -1246,7 +1256,10 @@ void HumanBehaviorModel::newGoalCallback(const inhus::Goal::ConstPtr& goal)
 	previous_goal_ = 	current_goal_;
 	current_goal_ = 	*goal;
 
-	this->publishGoal(current_goal_);
+	GoalArea goal_area;
+	goal_area.goal = *goal;
+	goal_area.radius = 0.0;
+	this->publishGoal(goal_area);
 }
 
 void HumanBehaviorModel::setAttitudeCallback(const std_msgs::Int32::ConstPtr& msg)
