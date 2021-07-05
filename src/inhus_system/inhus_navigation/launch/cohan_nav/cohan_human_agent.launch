@@ -6,19 +6,19 @@
   <arg name="node_start_delay" default="2.0"/>
 
 <!-- MAP SERVERS -->
-  
+
   <!-- static map server -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_map_static.launch">
+  <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/map_static.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
   <!-- pov map server -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_map_pov.launch">
+  <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/map_pov.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
-  <include file="$(find inhus_navigation)/launch/morse_pr2_multi_launch/include/agent_with_ns.launch">
+  <include file="$(find inhus_navigation)/launch/cohan_nav/include/agent_with_ns.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="node_start_delay" value="$(arg node_start_delay)" />
     <arg name="localize" value="$(arg localize)"/>

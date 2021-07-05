@@ -1,28 +1,23 @@
 <launch>
   <arg name="ns" default="human1"/>
   <arg name="map_name" default="laas_adream"/>
-  <arg name="node_start_delay" default="4.0"/>
+  <arg name="node_start_delay" default="2.0"/>
 
   <!-- localization and maps -->
-  <!-- <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_locate_odom.launch"/>  -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_locate_pub.launch">
+  <!-- <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/locate_odom.launch"/> -->
+  <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/locate_pub.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
   <!-- navigation -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_nav.launch">
+  <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/nav.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="node_start_delay" value="$(arg node_start_delay)"/>
   </include>
 
   <!-- human controller and boss -->
   <include file="$(find inhus)/launch/all.launch">
-    <arg name="ns" value="$(arg ns)"/>
-  </include>
-
-  <!-- Interface with the simulator -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_interface.launch">
     <arg name="ns" value="$(arg ns)"/>
   </include>
 

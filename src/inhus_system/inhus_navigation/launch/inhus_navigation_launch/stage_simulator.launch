@@ -24,4 +24,9 @@
     </include>
   </group>
 
+  <!-- Interface with the simulator -->
+  <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/stage_interface.launch">
+    <arg name="ns" value="$(arg ns)"/>
+  </include>
+
 </launch>

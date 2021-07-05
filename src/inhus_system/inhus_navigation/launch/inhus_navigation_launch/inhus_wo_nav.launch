@@ -11,11 +11,6 @@
     <arg name="ns" value="$(arg ns)"/>
   </include>
 
-  <!-- Interface with the simulator -->
-  <include file="$(find inhus_navigation)/launch/morse_launch/include/morse_interface.launch">
-    <arg name="ns" value="$(arg ns)"/>
-  </include>
-
   <!-- visualization with Rviz -->
   <include file="$(find inhus_navigation)/launch/rviz.launch"/>
 

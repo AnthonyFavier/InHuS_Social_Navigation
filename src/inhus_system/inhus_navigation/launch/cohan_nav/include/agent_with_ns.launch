@@ -6,17 +6,17 @@
   <arg name="num_agents" default="2"/>
 
   <group ns="$(arg ns)">
-    <include file="$(find inhus_navigation)/launch/morse_pr2_multi_launch/include/agent_tracking.launch">
+    <include file="$(find inhus_navigation)/launch/cohan_nav/include/agent_tracking.launch">
       <arg name="ns" value="$(arg ns)"/>
       <arg name="num_agents" value="$(arg num_agents)"/>
     </include>
 
-    <include file="$(find inhus_navigation)/launch/morse_pr2_multi_launch/include/move_base_nav.launch">
+    <include file="$(find inhus_navigation)/launch/cohan_nav/include/move_base_nav.launch">
       <arg name="ns" value="$(arg ns)"/>
       <arg name="node_start_delay" value="$(arg node_start_delay)"/>
     </include>
 
-    <include file="$(find inhus_navigation)/launch/morse_pr2_multi_launch/include/localization.launch">
+    <include file="$(find inhus_navigation)/launch/cohan_nav/include/localization.launch">
       <arg name="ns" value="$(arg ns)"/>
       <arg name="localize" value="$(arg localize)"/>
     </include>
