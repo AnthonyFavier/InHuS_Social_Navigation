@@ -1,7 +1,7 @@
 <launch>
 	<arg name="ns" default="human1"/>
 
-	<node name="boss_node" type="boss_node" pkg="inhus" output="screen" launch-prefix="xterm -geometry '80x25+945+0' -e">
+	<node name="boss_node" type="boss_node" pkg="inhus" output="screen" launch-prefix="xterm -geometry '80x25' -e">
 		<remap from="/human/goal_done" to="/$(arg ns)/goal_done"/>
 		<remap from="/human/new_goal" to="/$(arg ns)/new_goal"/>
 
