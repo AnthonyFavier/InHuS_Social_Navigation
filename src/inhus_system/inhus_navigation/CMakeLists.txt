@@ -4,6 +4,7 @@ project(inhus_navigation)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   tf
+  roslib
 )
 
 add_service_files(
@@ -27,9 +28,13 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(placeRobot_node src/placeRobot_node.cpp)
-add_dependencies(placeRobot_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(placeRobot_node ${catkin_LIBRARIES})
+add_executable(placeRobot_pub_node src/placeRobot_pub_node.cpp)
+add_dependencies(placeRobot_pub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(placeRobot_pub_node ${catkin_LIBRARIES})
+
+add_executable(placeRobot_client_node src/placeRobot_client_node.cpp)
+add_dependencies(placeRobot_client_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(placeRobot_client_node ${catkin_LIBRARIES})
 
 add_executable(input_stage_node src/interface_stage_input_node.cpp)
 add_dependencies(input_stage_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -46,6 +51,10 @@ target_link_libraries(input_morse_node ${catkin_LIBRARIES})
 add_executable(output_morse_node src/interface_morse_output_node.cpp)
 add_dependencies(output_morse_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(output_morse_node ${catkin_LIBRARIES})
+
+add_executable(logManagerCohan_node src/logManagerCohan_node.cpp)
+add_dependencies(logManagerCohan_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(logManagerCohan_node ${catkin_LIBRARIES})
 
 # install
 foreach(dir maps launch/stage_launch config/stage_pr2_move_base_config)

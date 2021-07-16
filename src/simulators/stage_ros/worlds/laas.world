@@ -368,8 +368,8 @@ interval_sim 20  # simulation timestep in milliseconds
 
 window
 (
-  size [ 745.000 448.000 ]
-  rotate [ 0.000 0.000 ]
+  size [ 900.000 600.000 ]
+  rotate [ 0.000 90.000 ]
   scale 28.806
 )
 
@@ -378,11 +378,13 @@ floorplan
 (
   name "laas"
   bitmap "maps/laas_adream.pgm"
-  size [19.2 41.6 2.0 ]
-  pose [4.606 10.744 0.000 0.000 ]
+  gui_move 0
+  size [19.2 40 2.0 ]
+  pose [4.6 10.00 0.000 0.000 ]
 )
 
 # throw in a robot (always the robot first)
-pr2( pose [ 2.0 2.0 0 0 ] name "pr2" color "gray")
-human( pose [ 3.0 1.0 0 0 ] name "human1" color "blue")
-human( pose [ 7.5 5.0 0 90.0 ] name "human2" color "green")
+pr2( pose [ 1.3 13.5 0 -90.0 ] name "pr2" color "gray")
+human( pose [ 1.3 3.0 0 90.0 ] name "human1" color "blue")
+human( pose [ 4.0 -2.0 0 45.0 ] name "human2" color "green")
+human( pose [ 4.4 11.6 0 90.0 ] name "human3" color "red")

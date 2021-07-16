@@ -1,0 +1,10 @@
+<launch>
+
+	<node name="logManagerCohan_node" type="logManagerCohan_node" pkg="inhus_navigation" output="screen" launch-prefix="bash -c 'rm -f $(find inhus)/logs/log_data/cohan_logs/*.txt; $0 $@ '">
+		<remap from="/robot_goal" to="/move_base_simple/goal"/>
+		<remap from="/robot_goal_status" to="/move_base/status"/>
+		<remap from="/robot_odom" to="/odom"/>
+		<remap from="/human_odom" to="/human1/odom"/>
+	</node>
+
+</launch>

@@ -11,4 +11,19 @@ struct GoalArea
 	float radius;
 };
 
+GoalArea computeGoalWithRadius(GoalArea goal)
+{
+	if(goal.radius > 0)
+	{
+		float alpha = (rand()%(2*314))/100 - PI;
+		float r = (rand()%(int(goal.radius*100)))/100.0;
+
+		goal.goal.x = goal.goal.x + r * cos(alpha);
+		goal.goal.y = goal.goal.y + r * sin(alpha);
+
+		goal.radius = 0;
+	}
+	return goal;
+}
+
 #endif

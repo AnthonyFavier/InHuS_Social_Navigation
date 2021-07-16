@@ -1,0 +1,28 @@
+<launch>
+  <arg name="ns" default="human1"/>
+  <arg name="map_name" default="laas_adream"/>
+  <arg name="localize" default="fake"/>
+  <arg name="num_agents" default="3"/>
+  <arg name="node_start_delay" default="2.0"/>
+
+<!-- MAP SERVERS -->
+
+  <!-- static map server -->
+  <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/map_static.launch">
+    <arg name="ns" value="$(arg ns)"/>
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+  <!-- pov map server -->
+  <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/map_pov.launch">
+    <arg name="ns" value="$(arg ns)"/>
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+
+  <include file="$(find inhus_navigation)/launch/cohan_nav/include/agent_with_ns.launch">
+    <arg name="ns" value="$(arg ns)"/>
+    <arg name="node_start_delay" value="$(arg node_start_delay)" />
+    <arg name="localize" value="$(arg localize)"/>
+    <arg name="num_agents" value="$(arg num_agents)"/>
+  </include>
+
+</launch>

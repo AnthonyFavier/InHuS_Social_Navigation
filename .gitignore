@@ -1,9 +1,5 @@
 build/
 devel/
 *.swp
-src/inhus_system/inhus/logs/log_data/log.txt
-src/inhus_system/inhus/logs/log_data/poseLog.txt
 
-src/navigation/
-src/hanp_msgs/
-src/hanp_prediction/
+*.pyc

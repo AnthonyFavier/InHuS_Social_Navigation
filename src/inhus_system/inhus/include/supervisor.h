@@ -10,7 +10,7 @@
 #include "geometry_msgs/Pose2D.h"
 #include "inhus/ComputePlan.h"
 #include "inhus/Goal.h"
-#include "inhus/Signal.h"
+#include "std_srvs/Empty.h"
 #include "inhus/ActionBool.h"
 #include "inhus_navigation/PlaceRobot.h"
 #include "std_msgs/Int32.h"
@@ -72,11 +72,11 @@ private:
 
 	// Service servers //
 	ros::ServiceServer server_set_wait_goal_;
-	bool srvSetWaitGoal(inhus::Signal::Request &req, inhus::Signal::Response &res);
+	bool srvSetWaitGoal(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 	ros::ServiceServer server_suspend_;
-	bool srvSuspend(inhus::Signal::Request &req, inhus::Signal::Response &res);
+	bool srvSuspend(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 	ros::ServiceServer server_resume_;
-	bool srvResume(inhus::Signal::Request &req, inhus::Signal::Response &res);
+	bool srvResume(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
 	//// Variables ////
 	ros::NodeHandle nh_;

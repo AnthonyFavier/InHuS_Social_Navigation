@@ -84,8 +84,8 @@ class StageAgents(object):
             self.agents.header.frame_id = "map"
             if(self.ns is not ""):
                 self.agents.agents.append(self.robot)
-            for agent_id in (1, len(self.agents.agents)):
-                self.agents.agents[agent_id-1].track_id = agent_id
+            for agent_id in range(0, len(self.agents.agents)):
+                self.agents.agents[agent_id].track_id = agent_id+1
             self.tracked_agents_pub.publish(self.agents)
             if self.num_hum is not 0:
                 self.sig_1 = False

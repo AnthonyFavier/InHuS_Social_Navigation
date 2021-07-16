@@ -2,6 +2,7 @@
 #define BOSS
 
 #include "ros/ros.h"
+#include <ros/package.h>
 #include "inhus/Goal.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include "move_base_msgs/MoveBaseGoal.h"
@@ -11,12 +12,19 @@
 #include <std_msgs/Int32.h>
 #include <vector>
 #include <boost/thread/thread.hpp>
+#include <tinyxml.h>
 #include <iostream>
 #include "types.h"
 
 using namespace std;
 
 enum Type{HUMAN, ROBOT};
+
+struct Scenario
+{
+	string name;
+	vector<GoalArea> goals;
+};
 
 //////////////////////////////////////////////////
 
@@ -64,7 +72,7 @@ private:
 class RobotManager : public AgentManager
 {
 public:
-	RobotManager(string name, string topic_goal, string topic_goal_status);
+	RobotManager(string name);
 	void publishGoal(GoalArea goal);
 	void showState();
 
@@ -81,7 +89,9 @@ class Boss
 {
 public:
 	Boss();
-	void initGoals();
+	~Boss();
+
+	void showGoals();
 
 	void spawnThreadEndless();
 
@@ -103,7 +113,11 @@ private:
 
 	void askSendGoal();
 	void askScenario();
+	void askEndlessMode();
 	void askSetAttitude();
+
+	bool showAskScenarios();
+	void readGoalsFromXML();
 
 	ros::NodeHandle nh_;
 	vector<AgentManager*> agent_managers_;
@@ -117,9 +131,12 @@ private:
 	int endless_agent2_i_;
 	ros::Duration endless_delay_;
 
+	string goal_file_name_;
+	TiXmlDocument* doc_;
+
 	vector<GoalArea> list_goals_;
-	vector<GoalArea> endless_goals_agent1_;
-	vector<GoalArea> endless_goals_agent2_;
+	vector<Scenario> scenarios_;
+	vector<vector<GoalArea>> endless_goals_;
 };
 //////////////////////////////////////////////////
 
