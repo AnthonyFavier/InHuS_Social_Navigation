@@ -42,11 +42,13 @@ InHuS is an architecture thought to be as generic and modular as possible. It's 
 ## Tailored to navigation
 
 The provided implemented version is tailored to social robot navigation. Thus, plans are composed of positions to reach. Thanks to some unique features the system offers several rational human behaviors. 
+
 ![corridor](https://github.com/AnthonyFavier/images/blob/master/nav_hateb.gif)
 
 1. Navigation Conflict Manager
 
 One of the unique features is the ability to detect and act over path blockage by other agents. Instead of taking a detour, the agent performs an approach and waits for the path to be cleared. The behavior to follow when a navigation conflict is encountered is described in the Navigation Conflict Manager component, itself in the Human Behavior Model component.
+
 ![path blockage](https://github.com/AnthonyFavier/images/blob/master/path_blocked.gif)
 
 2. Attitudes
