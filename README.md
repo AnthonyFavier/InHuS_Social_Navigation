@@ -11,9 +11,9 @@ Here is a list of all the dependencies to get with `sudo apt install [package]` 
 sudo apt install xterm libsdl-image1.2-dev libsuitesparse-dev ros-melodic-move-base-msgs ros-melodic-pr2-msgs ros-melodic-tf2-sensor-msgs ros-melodic-mbf-msgs ros-melodic-mbf-costmap-core ros-melodic-joint-trajectory-action ros-melodic-costmap-converter ros-melodic-libg2o ros-melodic-pointcloud-to-laserscan ros-melodic-teb-local-planner
 ```
 
-### Clone and compile InHuS
+### Clone, init the submodules and compile InHuS
 
-Once all dependencies installed, clone the workspace repository wherever you want. Then init the submodules then compile evertyhing using catkin_make :
+Once all dependencies installed, clone the workspace repository wherever you want. Then init the submodules and compile evertyhing using catkin_make :
 ```
 git clone https://github.com/AnthonyFavier/InHuS_Social_Navigation
 cd InHuS_Social_Navigation/
