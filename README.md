@@ -102,7 +102,9 @@ python all.py 175 180
 
 More details about show the log data are available in the file *readme.txt* in the same folder.
 
-## Simple example to run
+## Examples to run
+
+### Simple example
 
 In order to first try the system, you can run the following example. You can use a simple robot controller provided named "smb".
 Just edit one of the last line of the file *InHuS_Social_Navigation/src/inhus_system/inhus/launch/boss.launch* like below :
@@ -125,6 +127,16 @@ After, in the Boss interface you can input the following to init a conflict scen
 Then, once both agents are in place, choose :
 
 > "2-Scenario (2) => 2-narrow_passage (2) => 2-Start (2) => -2 seconds (-2)"
+
+### Enhanced navigation example
+
+This example launches InHuS with the enhanced navigation and uses the Human Aware Robot Planner CoHAN under developpement at LAAS-CNRS.
+
+```
+roslaunch inhus_navigation morse_simulator.launch
+roslaunch inhus_navigation inhus_wo_nav.launch
+roslaunch inhus_navigation cohan_pr2 with_human_agent.launch
+```
 
 ## InHuS : A generic architecture
 
