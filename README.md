@@ -11,9 +11,9 @@ Here is a list of all the dependencies to get with `sudo apt install [package]` 
 sudo apt install xterm libsdl-image1.2-dev libsuitesparse-dev ros-melodic-move-base-msgs ros-melodic-pr2-msgs ros-melodic-tf2-sensor-msgs ros-melodic-mbf-msgs ros-melodic-mbf-costmap-core ros-melodic-joint-trajectory-action ros-melodic-costmap-converter ros-melodic-libg2o ros-melodic-pointcloud-to-laserscan ros-melodic-teb-local-planner
 ```
 
-### Clone, init the submodules and compile InHuS
+### InHuS clone, init submodules and compile 
 
-Once all dependencies installed, clone the workspace repository wherever you want. Then init the submodules and compile evertyhing using catkin_make :
+Once all the dependencies are installed, clone the workspace repository wherever you want. Then init the submodules and compile evertyhing using catkin_make :
 ```
 git clone https://github.com/AnthonyFavier/InHuS_Social_Navigation
 cd InHuS_Social_Navigation/
@@ -21,7 +21,7 @@ git submodule update --init --recursive
 catkin_make
 ```
 
-### MORSE Simulator installation
+### [optional] MORSE Simulator installation 
 
 The Stage simulator is in-build in the package and can be used without any additional actions. However, to be able to start the system with the MORSE simulator you will need a separated installation and thus to follow the next instructions. Despite the fact MORSE is heavier, it gives more precise movements and we recommand to use it for experimenting. But you can skip this step if you only want to use the way lighter Stage simulator for a quick test.
 
@@ -29,14 +29,13 @@ You first need to clone the following repository :
 ```
 git clone https://github.com/sphanit/morse
 ```
-Then go in the downloaded directory to build and install the simulator :
+Then go in the downloaded directory to build and install the simulator (Make sure *python-dev* and *python3-dev* are installed) :
 ```
 cd morse
 mkdir build && cd build
 cmake ..
 sudo make install
 ```
-(Make sure *python-dev* and *python3-dev* are installed)
 
 After that, you can check if the installation and configuration is ok :
 ```
