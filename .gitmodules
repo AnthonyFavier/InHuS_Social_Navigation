@@ -4,3 +4,6 @@
 [submodule "src/navigation"]
 	path = src/navigation
 	url = https://github.com/AnthonyFavier/navigation
+[submodule "src/smb"]
+	path = src/smb
+	url = https://github.com/AnthonyFavier/smb
