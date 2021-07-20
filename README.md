@@ -50,6 +50,8 @@ morse check
 
 ## Usage
 
+A simple example to run is presented in next section below. This section details how to use InHuS.
+
 **0. Sourcing**
 
 Don't forget in each shell to source the workspace :
@@ -118,11 +120,11 @@ roslaunch smb all.launch
 ```
 After, in the Boss interface you can input the following to init a conflict scenario :
 
-> "2-Scenario => 2-narrow_passage => 1-Init"
+> "2-Scenario (2) => 2-narrow_passage (2) => 1-Init (1)"
 
 Then, once both agents are in place, choose :
 
-> "2-Scenario => 2-narrow_passage => 2-Start => 3 seconds"
+> "2-Scenario (2) => 2-narrow_passage (2) => 2-Start (2) => -2 seconds (-2)"
 
 ## InHuS : A generic architecture
 
