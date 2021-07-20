@@ -87,6 +87,7 @@ Now use the Boss interface to send goals individually to different agents, start
 **4. View logs**
 Once the system is shut down. Go to *InHuS_Social_Navigation/src/inhus_system/inhus/logs/* and run the following python script to show both the time colored path of agents and graphs of the metrics :
 ```
+cd InHuS_Social_Navigation/src/inhus_system/inhus/logs/
 python all.py
 ```
 Note that you can add 2 arguments to show only a specified temporal window :
@@ -97,7 +98,7 @@ python all.py 175 180
 ![path](https://github.com/AnthonyFavier/images/blob/master/paths_OO_smb_replan_new.png)
 ![legend](https://github.com/AnthonyFavier/images/blob/master/legend.png)
 
-More details about show the log data are avaible in the file *readme.txt* in the same folder.
+More details about show the log data are available in the file *readme.txt* in the same folder.
 
 ## InHuS : A generic architecture
 
