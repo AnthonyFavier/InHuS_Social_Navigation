@@ -17,9 +17,9 @@ sudo apt install python-pip
 pip install scipy
 ```
 
-### InHuS clone, init submodules and compile 
+### InHuS clone, init submodules and compile
 
-Once all the dependencies are installed, clone the workspace repository wherever you want. Then init the submodules and compile evertyhing using catkin_make :
+Once all the dependencies are installed, clone the workspace repository wherever you want. Then init the submodules and compile everything using catkin_make :
 ```
 git clone https://github.com/AnthonyFavier/InHuS_Social_Navigation
 cd InHuS_Social_Navigation/
@@ -27,9 +27,9 @@ git submodule update --init --recursive
 catkin_make
 ```
 
-### [optional] MORSE Simulator installation 
+### [optional] MORSE Simulator installation
 
-The Stage simulator is in-build in the package and can be used without any additional actions. However, to be able to start the system with the MORSE simulator you will need a separated installation and thus to follow the next instructions. Despite the fact MORSE is heavier, it gives more precise movements and we recommand to use it for experimenting. But you can skip this step if you only want to use the way lighter Stage simulator for a quick test.
+The Stage simulator is in-build in the package and can be used without any additional actions. However, to be able to start the system with the MORSE simulator you will need a separated installation and thus to follow the next instructions. Despite the fact MORSE is heavier, it gives more precise movements and we recommend to use it for experimenting. But you can skip this step if you only want to use the way lighter Stage simulator for a quick test.
 
 You first need to clone the following repository :
 ```
@@ -60,14 +60,14 @@ source devel/setup.bach
 **1. Start the simulator**
 * With Stage :
 ```
-roslaunch inhus_navigation stage_simulator.launch 
+roslaunch inhus_navigation stage_simulator.launch
 ```
 * With MORSE (if installed thanks to the instructions above) :
 ```
-roslaunch inhus_navigation morse_simulator.launch 
+roslaunch inhus_navigation morse_simulator.launch
 ```
 **2. Start InHuS**
-* With basic navigation : 
+* With basic navigation :
 ```
 roslaunch inhus_navigation inhus_nav.launch
 ```
@@ -76,11 +76,11 @@ roslaunch inhus_navigation inhus_nav.launch
 roslaunch inhus_navigation inhus_wo_nav.launch
 ```
 ```
-roslaunch inhus_navigation cohan_human_agent.launch 
+roslaunch inhus_navigation cohan_human_agent.launch
 ```
 **3. Send goals**
 
-Now use the Boss interface to send goals individually to different agents, start scenarios, activate attitudes or endless mode. Predifined goals are specified in the *goals.xml* file.
+Now use the Boss interface to send goals individually to different agents, start scenarios, activate attitudes or endless mode. Predefined goals are specified in the *goals.xml* file.
 
 ![boss](https://github.com/AnthonyFavier/images/blob/master/boss.png)
 
@@ -100,6 +100,30 @@ python all.py 175 180
 
 More details about show the log data are available in the file *readme.txt* in the same folder.
 
+## Simple example to run
+
+In order to first try the system, you can run the following example. You can use a simple robot controller provided named "smb".
+Just edit one of the last line of the file *InHuS_Social_Navigation/src/inhus_system/inhus/launch/boss.launch* like below :
+``` xml
+from :
+<remap from="/robot/move_base_goal" to="/move_base_simple/goal"/>
+to :
+<remap from="/robot/move_base_goal" to="/smb/move_base_simple/goal"/>
+```
+Then, referring to the previous section, launch the following :
+```
+roslaunch inhus_navigation stage_simulator.launch
+roslaunch inhus_navigation inhus_nav.launch
+roslaunch smb all.launch
+```
+After, in the Boss interface you can input the following to init a conflict scenario :
+
+> "2-Scenario => 2-narrow_passage => 1-Init"
+
+Then, once both agents are in place, choose :
+
+> "2-Scenario => 2-narrow_passage => 2-Start => 3 seconds"
+
 ## InHuS : A generic architecture
 
 InHuS is an architecture thought to be as generic and modular as possible. It's purpose is to control a simulated autonomous human agent which is both reactive and rational. Given a goal, the agent plans and executes a set of actions in order to fulfill its goal. A user interface is provided to easily send goals to both other agents and the human one present in the scene. The interface makes it easy to repeat scenarios and run long term activity. A log manager is also part of the system. It records and computes execution data.
@@ -107,7 +131,7 @@ InHuS is an architecture thought to be as generic and modular as possible. It's 
 
 ## Tailored to navigation
 
-The provided implemented version is tailored to social robot navigation. Thus, plans are composed of positions to reach. Thanks to some unique features the system offers several rational human behaviors. 
+The provided implemented version is tailored to social robot navigation. Thus, plans are composed of positions to reach. Thanks to some unique features the system offers several rational human behaviors.
 
 ![corridor](https://github.com/AnthonyFavier/images/blob/master/nav_hateb.gif)
 
@@ -119,9 +143,7 @@ One of the unique features is the ability to detect and act over path blockage b
 
 **2. Attitudes**
 
-Another unique feature is the ability to activate Attitudes. Attitudes are modes that affect goal decisions and reactions regarding other agents. They can create several very different behaviors and long term activity. Four attitudes are currently implemented, two of them are represented below (Harass and StopAndLook) : 
+Another unique feature is the ability to activate Attitudes. Attitudes are modes that affect goal decisions and reactions regarding other agents. They can create several very different behaviors and long term activity. Four attitudes are currently implemented, two of them are represented below (Harass and StopAndLook) :
 
 ![harass](https://github.com/AnthonyFavier/images/blob/master/attitude_harass.gif)
 ![stop and look](https://github.com/AnthonyFavier/images/blob/master/attitude_non_coop_stopLook.gif)
-
-
