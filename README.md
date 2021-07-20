@@ -13,10 +13,11 @@ sudo apt install xterm libsdl-image1.2-dev libsuitesparse-dev ros-melodic-move-b
 
 ### Clone and compile InHuS
 
-Once all dependencies installed, clone the workspace repository wherever you want and then compile it using catkin_make :
+Once all dependencies installed, clone the workspace repository wherever you want. Then init the submodules then compile evertyhing using catkin_make :
 ```
 git clone https://github.com/AnthonyFavier/InHuS_Social_Navigation
 cd InHuS_Social_Navigation/
+git submodule update --init --recursive
 catkin_make
 ```
 
