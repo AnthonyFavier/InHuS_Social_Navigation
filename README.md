@@ -34,6 +34,21 @@ Now use the Boss interface to send goals individually to different agents, start
 
 ![boss](https://github.com/AnthonyFavier/images/blob/master/boss.png)
 
+4. View logs
+Once the system is shut down. Go to *InHuS_Social_Navigation/src/inhus_system/inhus/logs/* and run the following python script to show both the time colored path of agents and graphs of the metrics :
+```
+python all.py
+```
+Note that you can add 2 arguments to show only a specified temporal window :
+```
+python all.py 175 180
+```
+![graph](https://github.com/AnthonyFavier/images/blob/master/OO_replan.png)
+![path](https://github.com/AnthonyFavier/images/blob/master/paths_OO_smb_replan_new.png)
+![legend](https://github.com/AnthonyFavier/images/blob/master/legend.png)
+
+More details about show the log data are avaible in the file *readme.txt* in the same folder.
+
 ## InHuS : A generic architecture
 
 InHuS is an architecture thought to be as generic and modular as possible. It's purpose is to control a simulated autonomous human agent which is both reactive and rational. Given a goal, the agent plans and executes a set of actions in order to fulfill its goal. A user interface is provided to easily send goals to both other agents and the human one present in the scene. The interface makes it easy to repeat scenarios and run long term activity. A log manager is also part of the system. It records and computes execution data.
