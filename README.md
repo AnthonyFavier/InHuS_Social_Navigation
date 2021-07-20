@@ -137,6 +137,13 @@ roslaunch inhus_navigation morse_simulator.launch
 roslaunch inhus_navigation inhus_wo_nav.launch
 roslaunch inhus_navigation cohan_pr2 with_human_agent.launch
 ```
+In the Boss interface :
+
+> "2-Scenario (2) => 4-narrow_corridor (4) => 1-Init (1)"
+
+Then, once both agents are in place (there should already be and thus not move), choose :
+
+> "2-Scenario (2) => 4-narrow_corridor (4) => 2-Start (2) => 0 seconds (0)"
 
 ## InHuS : A generic architecture
 
