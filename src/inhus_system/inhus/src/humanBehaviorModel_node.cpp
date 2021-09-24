@@ -101,7 +101,7 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 			ROS_INFO("CLIENT STATE : LOST");
 			break;
 	}*/
-	if(goal_status_.status==actionlib::SimpleClientGoalState::ABORTED)
+	if(goal_status_.status==4) // ABORTED
 	{
 		ROS_INFO("Checked NO_PATH");
 		state_blocked_ = NO_PATH;
