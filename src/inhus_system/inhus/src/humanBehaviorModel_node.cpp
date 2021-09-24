@@ -685,8 +685,8 @@ bool HumanBehaviorModel::testObstacleView(geometry_msgs::Pose2D A_real, geometry
 	B_map_x = (int)(B_real.x / resol_pov_map_); B_map_y = (int)(B_real.y / resol_pov_map_);
 
 	// if outside the map
-	if(A_map_x < 0 || A_map_x >= g_map_[0].size() || A_map_y < 0 || A_map_x >= g_map_.size()
-	|| B_map_x < 0 || B_map_x >= g_map_[0].size() || B_map_y < 0 || B_map_x >= g_map_.size())
+	if(A_map_x < 0 || A_map_x >= (int)g_map_[0].size() || A_map_y < 0 || A_map_y >= (int)g_map_.size()
+	|| B_map_x < 0 || B_map_x >= (int)g_map_[0].size() || B_map_y < 0 || B_map_y >= (int)g_map_.size())
 		return false;
 
 	// particular cases
