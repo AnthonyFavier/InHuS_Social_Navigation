@@ -1,7 +1,8 @@
   <launch>
     <!-- <arg name="map_name" default="laas_adream"/> -->
     <!-- <arg name="map_name" default="corridor_hri"/> -->
-    <arg name="map_name" default="passage_hri"/>
+    <!-- <arg name="map_name" default="passage_hri"/> -->
+    <arg name="map_name" default="narr_corridor_hri"/>
     <arg name="with_humans" default="true" />
 
     <!-- Launch morse simualator in the scenario -->

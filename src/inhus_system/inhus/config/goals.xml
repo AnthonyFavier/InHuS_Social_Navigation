@@ -50,6 +50,13 @@
       <goal_r type="navigation" x="18.0" y="1.5" theta="0.0" radius="0.0"/>
     </corridor_hri>
 
+    <narr_corridor_hri>
+      <init_h type="navigation" x="16.0" y="0.9" theta="-3.14" radius="0.0"/>
+      <goal_h type="navigation" x="2.0" y="0.9" theta="-3.14" radius="0.0"/>
+      <init_r type="navigation" x="4.0" y="0.9" theta="0.0" radius="0.0"/>
+      <goal_r type="navigation" x="18.0" y="0.9" theta="0.0" radius="0.0"/>
+    </narr_corridor_hri>
+
     <passage_hri>
       <init_h type="navigation" x="18.0" y="7.0" theta="-3.14" radius="0.0"/>
       <goal_h type="navigation" x="4.0" y="7.0" theta="-3.14" radius="0.0"/>

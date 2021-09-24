@@ -1,0 +1,6 @@
+<launch>
+
+  <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/locate_odom.launch"/>
+  <node name="rqt_robot_steering" type="rqt_robot_steering" pkg="rqt_robot_steering" output="screen"/>
+
+</launch>
