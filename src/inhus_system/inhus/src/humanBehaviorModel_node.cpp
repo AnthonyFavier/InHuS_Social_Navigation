@@ -1105,7 +1105,7 @@ void HumanBehaviorModel::attHarass()
 				geometry_msgs::Pose2D in_front;
 				in_front.x = model_robot_pose_.x + cos(model_robot_pose_.theta)*b_harass_dist_in_front_;
 				in_front.y = model_robot_pose_.y + sin(model_robot_pose_.theta)*b_harass_dist_in_front_;
-				in_front.theta = model_robot_pose_.theta;
+				in_front.theta = model_robot_pose_.theta-3.14;
 
 				move_base_msgs::MoveBaseActionGoal goal;
 				goal.goal.target_pose.header.frame_id = "map";
