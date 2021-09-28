@@ -1,6 +1,5 @@
 <launch>
   <arg name="ns" default="human1"/>
-  <arg name="map_name" default="laas_adream"/>
   <arg name="node_start_delay" default="4.0"/>
 
   <!-- handle when to consider the robot or not -->
