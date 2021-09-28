@@ -222,6 +222,7 @@ private:
 	double relative_speed_;
 	float human_radius_;
 	float robot_radius_;
+	float dist_radius_inflation_;
 	float radius_sum_sq_;
 
 	inhus::Goal current_goal_;

@@ -442,6 +442,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	private_nh.param(std::string("delay_forget_robot"), f_nb, float(1.5)); delay_forget_robot_ = ros::Duration(f_nb);
 	private_nh.param(std::string("human_radius"), human_radius_, float(0.25));
 	private_nh.param(std::string("robot_radius"), robot_radius_, float(0.3));
+	private_nh.param(std::string("dist_radius_inflation"), dist_radius_inflation_, float(0.5));
 	private_nh.param(std::string("b_random_chance_choose"), b_random_chance_choose_, int(30));
 	private_nh.param(std::string("b_random_try_freq"), f_nb, float(0.5)); b_random_try_freq_ = ros::Rate(f_nb);
 	private_nh.param(std::string("b_stop_look_dist_near_robot"), b_stop_look_dist_near_robot_, float(2.0));
@@ -455,6 +456,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	ROS_INFO("delay_forget_robot=%f", delay_forget_robot_.toSec());
 	ROS_INFO("human_radius=%f", human_radius_);
 	ROS_INFO("robot_radius=%f", robot_radius_);
+	ROS_INFO("dist_radius_inflation=%f", dist_radius_inflation_);
 	ROS_INFO("b_random_chance_choose=%d", b_random_chance_choose_);
 	ROS_INFO("b_random_try_freq=%f", 1/b_random_try_freq_.expectedCycleTime().toSec());
 	ROS_INFO("b_stop_look_dist_near_robot=%f", b_stop_look_dist_near_robot_);
@@ -627,11 +629,16 @@ void HumanBehaviorModel::computeTTC()
 {
 	ttc_ = -1.0; // ttc infinite
 
-	geometry_msgs::Pose2D C; // robot to human distance
+	geometry_msgs::Pose2D C; // robot human relative position
 	C.x = model_pose_.x - model_robot_pose_.x;
 	C.y = model_pose_.y - model_robot_pose_.y;
-	double C_sq = C.x*C.x + C.y*C.y; // dot product C.C
+	double C_sq = C.x*C.x + C.y*C.y; // dot product C.C, distance robot human
 
+	double robot_inflated_radius = robot_radius_*C_sq/dist_radius_inflation_;
+	if(robot_inflated_radius < robot_radius_)
+		robot_inflated_radius = robot_radius_;
+	radius_sum_sq_ = human_radius_ + robot_inflated_radius;
+	radius_sum_sq_ *= radius_sum_sq_;
 	if(C_sq <= radius_sum_sq_) // already touching
 		ttc_ = 0.0;
 	else
@@ -640,8 +647,6 @@ void HumanBehaviorModel::computeTTC()
 		V.linear.x = model_robot_vel_.linear.x - model_vel_.linear.x;
 		V.linear.y = model_robot_vel_.linear.y - model_vel_.linear.y;
 
-		//V.linear.x = model_vel_.linear.x - model_robot_vel_.linear.x;
-		//V.linear.y = model_vel_.linear.y - model_robot_vel_.linear.y;
 		double C_dot_V = C.x*V.linear.x + C.y*V.linear.y;
 
 		if(C_dot_V > 0) // otherwise ttc infinite
@@ -655,7 +660,7 @@ void HumanBehaviorModel::computeTTC()
 
 	if(ttc_ != -1)
 	{
-	//	ROS_INFO("TTC = %f", ttc_);
+		// ROS_INFO("TTC = %f", ttc_);
 		msg_log_.data = "HUMAN_MODEL TTC " + std::to_string(ttc_) + " " + std::to_string(ros::Time::now().toSec());
 		pub_log_.publish(msg_log_);
 	}

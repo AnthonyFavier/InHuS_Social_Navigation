@@ -33,8 +33,9 @@ humanBehaviorModel_node: ##
     #=> delay after the last time the robot has been seen to forget the robot pose
 
 ### TTC
-  human_radius: 0.30
-  robot_radius: 0.325
+  human_radius: 0.3
+  robot_radius: 0.3
+  dist_radius_inflation: 10
     #=> radius of both human and robot to compute TTC (Time To Collision)
 
 ###############
