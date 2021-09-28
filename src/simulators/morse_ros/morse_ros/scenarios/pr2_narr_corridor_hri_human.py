@@ -7,7 +7,7 @@ from morse.builder import *
 from morse.core.services import service
 
 num_humans = 1
-locations = [[16.0, 0.9, 0.0],[7, -2.0, 0.0],[4.4, 11.6, 0.0]]
+locations = [[16.0, 0.85, 0.0],[7, -2.0, 0.0],[4.4, 11.6, 0.0]]
 orientations = [3.14, 0.7, 1.57]
 
 # add clock
@@ -27,9 +27,9 @@ def add_human(h_id):
     name = "human" + str(h_id)
 
     ## human_marker sensor for the human
-    #human_marker = AgentMarker()
-    #human.append(human_marker)
-    #human_marker.add_interface("ros", topic="/"+name)
+    human_marker = AgentMarker()
+    human.append(human_marker)
+    human_marker.add_interface("ros", topic="/"+name)
 
     human_motion = MotionXYW()
     human_motion.properties(ControlType='Position')
@@ -75,8 +75,13 @@ ground_truth = Odometry()
 pr2.append(ground_truth)
 ground_truth.add_interface("ros", topic="base_pose_ground_truth")
 
+# Agent Marker to get the absolute position and velocity
+robot_marker = AgentMarker()
+robot_marker.add_interface("ros", topic="pr2_pose_vel")
+pr2.append(robot_marker)
+
 # put the robot and humans in some good places and add clock
-pr2.translate(4.0, 0.9, 0.0)
+pr2.translate(7.0, 0.85, 0.0)
 pr2.rotate(z=0.0)
 pr2.append(clock)
 

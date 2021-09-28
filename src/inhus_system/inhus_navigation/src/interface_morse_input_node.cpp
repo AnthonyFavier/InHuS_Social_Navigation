@@ -5,6 +5,7 @@
 #include "nav_msgs/Odometry.h"
 #include <math.h>
 #include <tf/transform_broadcaster.h>
+#include "cohan_msgs/AgentMarkerStamped.h"
 
 // Get inputs from the simulator
 // Only change "Input Calbacks" and "Input Subscribers"
@@ -30,31 +31,31 @@ geometry_msgs::Twist r_vel;
 /////////////////////////
 //// Input Callbacks //// Part to modify for another simulator
 /////////////////////////
-void humanOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
+void humanCallback(const cohan_msgs::AgentMarkerStamped::ConstPtr& msg)
 {
-	tf::Quaternion q(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
+	tf::Quaternion q(msg->agent.pose.orientation.x,msg->agent.pose.orientation.y,msg->agent.pose.orientation.z,msg->agent.pose.orientation.w);
 	tf::Matrix3x3 m(q);
 	m.getRPY(h_roll, h_pitch, h_yaw);
 	h_pose.theta=h_yaw;
-	h_pose.x=msg->pose.pose.position.x;
-	h_pose.y=msg->pose.pose.position.y;
+	h_pose.x=msg->agent.pose.position.x;
+	h_pose.y=msg->agent.pose.position.y;
 
-	h_vel = msg->twist.twist;
+	h_vel = msg->agent.velocity;
 
 	pub_sim_human_pose.publish(h_pose);
 	pub_sim_human_vel.publish(h_vel);
 }
 
-void robotOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
+void robotCallback(const cohan_msgs::AgentMarkerStamped::ConstPtr& msg)
 {
-	tf::Quaternion q(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
+	tf::Quaternion q(msg->agent.pose.orientation.x,msg->agent.pose.orientation.y,msg->agent.pose.orientation.z,msg->agent.pose.orientation.w);
 	tf::Matrix3x3 m(q);
 	m.getRPY(r_roll, r_pitch, r_yaw);
 	r_pose.theta=r_yaw;
-	r_pose.x=msg->pose.pose.position.x;
-	r_pose.y=msg->pose.pose.position.y;
+	r_pose.x=msg->agent.pose.position.x;
+	r_pose.y=msg->agent.pose.position.y;
 
-	r_vel = msg->twist.twist;
+	r_vel = msg->agent.velocity;
 
 	pub_sim_robot_pose.publish(r_pose);
 	pub_sim_robot_vel.publish(r_vel);
@@ -72,8 +73,8 @@ int main(int argc, char** argv)
 	////////////////////////////
 	////  Input Subscribers //// Part to modify for another simulator
   ////////////////////////////
-	ros::Subscriber sub_human_odom = nh.subscribe("/human1/odom", 10, humanOdomCallback);
-	ros::Subscriber sub_robot_odom = nh.subscribe("/odom", 10, robotOdomCallback);
+	ros::Subscriber sub_human_odom = nh.subscribe("/human1", 10, humanCallback);
+	ros::Subscriber sub_robot_odom = nh.subscribe("/pr2_pose_vel", 10, robotCallback);
 	////////////////////////////
 	////////////////////////////
 	////////////////////////////

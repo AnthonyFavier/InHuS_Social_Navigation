@@ -13,6 +13,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>tf</build_depend>
+  <depend>cohan_msgs</depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>tf</build_export_depend>
   <exec_depend>roscpp</exec_depend>
