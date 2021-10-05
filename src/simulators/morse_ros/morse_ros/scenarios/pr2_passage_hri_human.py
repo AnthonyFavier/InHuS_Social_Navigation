@@ -93,8 +93,8 @@ for h_id in range(0,num_humans):
 
 # set the environment to laas_adream
 env = Environment("passage_hri.blend", fastmode=False)
-env.set_camera_location([-1.0, -1.0, 14.0])
-env.set_camera_rotation([0.7, 0.0 , -0.9])
+env.set_camera_location([8.0, -2.0, 16.0])
+env.set_camera_rotation([0.48, 0.0 , 0.0])
 
 cameras = []
 
