@@ -67,18 +67,18 @@
 
   <endless>
     <endless_agent1>
-      <goal type="navigation" x="9.5" y="-4.3" theta="0.0" radius="1.0"/>
-      <goal type="navigation" x="7.5" y="0.5" theta="1.57" radius="1.5"/>
-      <goal type="navigation" x="10.8" y="0.7" theta="0.0" radius="0.0"/>
+      <goal type="navigation" x="13.0" y="10.0" theta="1.57" radius="1.0"/>
+      <goal type="navigation" x="7.0" y="10.0" theta="1.57" radius="1.0"/>
+      <goal type="navigation" x="7.0" y="4.0" theta="-1.57" radius="1.0"/>
+      <goal type="navigation" x="13.0" y="4.0" theta="-1.57" radius="1.0"/>
     </endless_agent1>
 
     <endless_agent2>
-      <goal type="navigation" x="3.15" y="3.2" theta="0.0" radius="0.0"/>
-      <goal type="navigation" x="8.0" y="7.6" theta="0.0" radius="0.0"/>
-      <goal type="navigation" x="7.5" y="11.0" theta="-3.14" radius="0.0"/>
-      <goal type="navigation" x="5.4" y="11.3" theta="-1.57" radius="0.0"/>
-      <goal type="navigation" x="4.3" y="6.3" theta="-1.57" radius="0.0"/>
-      <goal type="navigation" x="8.00" y="7.60" theta="0.0" radius="0.0"/>
+      <goal type="navigation" x="7.0" y="10.0" theta="1.57" radius="1.0"/>
+      <goal type="navigation" x="13.0" y="10.0" theta="1.57" radius="1.0"/>
+      <goal type="navigation" x="13.0" y="4.0" theta="-1.57" radius="1.0"/>
+      <goal type="navigation" x="7.0" y="7.0" theta="0.0" radius="1.0"/>
+      <goal type="navigation" x="5.0" y="4.0" theta="-1.57" radius="1.0"/>
     </endless_agent2>
   </endless>
 
