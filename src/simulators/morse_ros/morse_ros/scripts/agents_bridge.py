@@ -39,8 +39,8 @@ class MorseAgents(object):
         for agent_id in range(1,self.num_hum+1):
             name = 'human'+str(agent_id)
             if self.ns is not name:
-                # agent_sub.append(message_filters.Subscriber("/" + name + "/base_pose_ground_truth", Odometry))
-                agent_sub.append(message_filters.Subscriber("/pr2_pose_vel", AgentMarkerStamped))
+                agent_sub.append(message_filters.Subscriber("/" + name, AgentMarkerStamped))
+                # agent_sub.append(message_filters.Subscriber("/pr2_pose_vel", AgentMarkerStamped))
 
         # Subscribe to the robot
         if False:
@@ -60,14 +60,14 @@ class MorseAgents(object):
         for agent_id in range(1,self.num_hum+1):
             # if self.ns == "human"+str(agent_id):
                 # continue
-            name = "robot"
             agent_segment = TrackedSegment()
             agent_segment.type = self.Segment_Type
             agent_segment.pose.pose = msg[agent_id-1].agent.pose
             agent_segment.twist.twist = msg[agent_id-1].agent.velocity
             tracked_agent = TrackedAgent()
             tracked_agent.type = AgentType.HUMAN
-            tracked_agent.name = name
+            tracked_agent.name = "human"+str(agent_id)
+            # tracked_agent.name = "robot"
             tracked_agent.segments.append(agent_segment)
             tracked_agents.agents.append(tracked_agent)
         if(tracked_agents.agents):
