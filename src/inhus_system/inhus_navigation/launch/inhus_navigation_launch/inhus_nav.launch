@@ -1,13 +1,9 @@
 <launch>
   <arg name="ns" default="human1"/>
-  <arg name="map_name" default="passage_hri"/>
-  <!-- <arg name="map_name" default="corridor_hri"/> -->
-  <!-- <arg name="map_name" default="narr_corridor_hri"/> -->
-  <!-- <arg name="map_name" default="laas_adream"/> -->
+  <arg name="map_name" default="laas_adream"/>
   <arg name="node_start_delay" default="2.0"/>
 
   <!-- localization and maps -->
-  <!-- <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/locate_odom.launch"/> -->
   <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/locate_pub.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="map_name" value="$(arg map_name)"/>

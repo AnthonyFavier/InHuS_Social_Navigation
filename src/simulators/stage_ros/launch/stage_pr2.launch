@@ -5,8 +5,8 @@
   <arg name="mode" value="-f" if="$(arg fast_mode)"/>
   <arg name="graphics" default="-g" unless="$(arg gui)"/>
   <arg name="graphics" value="" if="$(arg gui)"/>
-  <arg name="world_file" default="$(find stage_ros)/worlds/laas_simplified.world" unless="$(arg gui)"/>
-  <arg name="world_file" value="$(find stage_ros)/worlds/laas.world" if="$(arg gui)"/>
+  <arg name="map_name" default="laas_adream"/>
+  <arg name="world_file" value="$(find stage_ros)/worlds/$(arg map_name).world"/>
 
   <master auto="start"/>
   <param name="/use_sim_time" value="true"/>
@@ -14,8 +14,6 @@
   <node pkg="stage_ros" type="stageros" name="stageros" args="$arg -u $(arg graphics) $(arg mode) $(arg world_file)" respawn="false">
     <param name="base_watchdog_timeout" value="0.2"/>
     <remap from="base_scan" to="scan"/>
-    <remap from="human1/base_scan" to="human1/scan"/>
-    <remap from="human2/base_scan" to="human2/scan"/>
   </node>
 
 </launch>
