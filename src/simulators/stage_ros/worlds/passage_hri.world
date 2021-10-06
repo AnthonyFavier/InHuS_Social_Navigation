@@ -10,13 +10,13 @@ define block_box model
 
 define lidar model
 (
-  size [0.15 0.1 0.1]
+  size [0.150 0.100 0.100]
   gui_nose 1
 )
 
 define torso_bottom model
 (
-  size [0.2 0.6 0.75]
+  size [0.200 0.600 0.750]
   gui_nose 1
   block
     (
@@ -35,7 +35,7 @@ define torso_bottom model
 
 define torso_top model
 (
-  size [0.6 0.6 0.1]
+  size [0.600 0.600 0.100]
   gui_nose 1
   block
     (
@@ -54,7 +54,7 @@ define torso_top model
 
 define hand_box1 model
 (
-  size [0.35 0.25 0.25]
+  size [0.350 0.250 0.250]
   gui_nose 1
   block
     (
@@ -73,7 +73,7 @@ define hand_box1 model
 
 define hand_box2 model
 (
-  size [0.25 0.15 0.42]
+  size [0.250 0.150 0.420]
   gui_nose 1
   block
     (
@@ -92,7 +92,7 @@ define hand_box2 model
 
 define hand_box3 model
 (
-  size [0.13 0.29 0.1]
+  size [0.130 0.290 0.100]
   gui_nose 1
   block
     (
@@ -111,7 +111,7 @@ define hand_box3 model
 
 define head model
 (
-  size [0.35 0.4 0.15]
+  size [0.350 0.400 0.150]
   gui_nose 1
   block
     (
@@ -130,7 +130,7 @@ define head model
 
 define face model
 (
-  size [0.1 0.35 0.25]
+  size [0.100 0.350 0.250]
   gui_nose 1
   block
     (
@@ -162,7 +162,7 @@ define laser_sensor ranger
 define pr2 position
 (
   size [0.650 0.650 0.250]
-  origin [-0.050 0 0 0]
+  origin [-0.050 0.000 0.000 0.000]
   gui_nose 1
   drive "omni"
   laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
@@ -180,23 +180,23 @@ define pr2 position
       point[0] [0.95 0]
       z [0 0.25]
     )
-  lidar(pose [ 0.19 0.0 0.0 0.0 ] color "black")
-  torso_bottom(pose [ -0.25 0.0 0.0 0.0 ] color "white")
-  torso_top(pose [-0.05 0.0 0.75 0.0 ] color "white")
-  hand_box3(pose [0 -0.15 0.1 0.0 ] color "gray")
-  hand_box2(pose [-0.05 -0.25 0.08 0.0 ] color "green")
-  hand_box1(pose [0 -0.2 0.5 0.0 ] color "blue")
-  hand_box3(pose [0 0.15 0.1 0.0 ] color "gray")
-  hand_box2(pose [-0.05 0.25 0.08 0.0 ] color "green")
-  hand_box1(pose [0 0.2 0.5 0.0 ] color "blue")
-  head(pose [-0.1 0.0 0.85 0 ] color "blue")
-  face(pose [0.0 0.0 0.85 0 ] color "green")
+  lidar(pose [ 0.190 0.000 0.000 0.000 ] color "black")
+  torso_bottom(pose [ -0.250 0.000 0.000 0.000 ] color "white")
+  torso_top(pose [-0.050 0.000 0.750 0.000 ] color "white")
+  hand_box3(pose [0.000 -0.150 0.100 0.000 ] color "gray")
+  hand_box2(pose [-0.050 -0.250 0.080 0.000 ] color "green")
+  hand_box1(pose [0.000 -0.200 0.500 0.000 ] color "blue")
+  hand_box3(pose [0.000 0.150 0.100 0.000 ] color "gray")
+  hand_box2(pose [-0.050 0.250 0.080 0.000 ] color "green")
+  hand_box1(pose [0.000 0.200 0.500 0.000 ] color "blue")
+  head(pose [-0.100 0.000 0.850 0.000 ] color "blue")
+  face(pose [0.000 0.000 0.850 0.000 ] color "green")
 )
 
 
 define human_leg model
 (
-  size [0.15 0.15 0.6]
+  size [0.150 0.150 0.600]
   gui_nose 0
   block
     (
@@ -215,7 +215,7 @@ define human_leg model
 
 define human_hand model
 (
-  size [0.08 0.08 0.25]
+  size [0.080 0.080 0.250]
   gui_nose 0
   block
     (
@@ -234,7 +234,7 @@ define human_hand model
 
 define human_fist model
 (
-  size [0.1 0.1 0.1]
+  size [0.100 0.100 0.100]
   gui_nose 0
   block
     (
@@ -253,7 +253,7 @@ define human_fist model
 
 define human_shoulder model
 (
-  size [0.2 0.12 0.15]
+  size [0.200 0.120 0.150]
   gui_nose 0
   block
     (
@@ -272,7 +272,7 @@ define human_shoulder model
 
 define human_torso model
 (
-  size [0.2 0.4 0.5]
+  size [0.200 0.400 0.500]
   gui_nose 0
   block
     (
@@ -291,7 +291,7 @@ define human_torso model
 
 define human_head model
 (
-  size [0.25 0.25 0.15]
+  size [0.250 0.250 0.150]
   gui_nose 0
   block
     (
@@ -310,38 +310,38 @@ define human_head model
 
 define cap_b model
 (
-  size [0.35 0.26 0.02]
+  size [0.350 0.260 0.020]
   gui_nose 0
 )
 
 define cap model
 (
-  size [0.26 0.26 0.15]
+  size [0.260 0.260 0.150]
   gui_nose 0
 )
 
 define human position
 (
   bitmap "images/human_base.png"
-  size [0.60 0.60 0.25]
-  origin [0.0 0 0 0]
+  size [0.600 0.600 0.250]
+  origin [0.000 0.000 0.000 0.000]
   gui_nose 1
   localization "gps"
   drive "omni"
   laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
 
-    cap_b(pose [0.05 0.0 1.25 0 ] color "brown")
-    cap(pose [0.0 0.0 1.27 0 ] color "brown")
-    human_head(pose [0.0 0.0 1.1 0 ] color "khaki")
-    human_torso(pose [0.0  0.0 0.6 0 ] color "orange")
-    human_shoulder(pose [0.0  -0.25 0.95 0 ] color "orange")
-    human_shoulder(pose [0.0  0.25 0.95 0 ] color "orange")
-    human_hand(pose [0.0  0.25 0.7 0 ] color "khaki")
-    human_hand(pose [0.0 -0.25 0.7 0 ] color "khaki")
-    human_fist(pose [0.0 -0.25 0.6 0 ] color "khaki")
-    human_fist(pose [0.0 0.25 0.6 0 ] color "khaki")
-    human_leg(pose [0.0  0.1 0.0 0 ] color "gray")
-    human_leg(pose [0.0 -0.1 0.0 0 ] color "gray")
+    cap_b(pose [0.050 0.000 1.250 0.000 ] color "brown")
+    cap(pose [0.000 0.000 1.270 0.000 ] color "brown")
+    human_head(pose [0.000 0.000 1.100 0.000 ] color "khaki")
+    human_torso(pose [0.000  0.000 0.600 0.000 ] color "orange")
+    human_shoulder(pose [0.000  -0.250 0.950 0.000 ] color "orange")
+    human_shoulder(pose [0.000  0.250 0.950 0.000 ] color "orange")
+    human_hand(pose [0.000  0.250 0.700 0.000 ] color "khaki")
+    human_hand(pose [0.000 -0.250 0.700 0.000 ] color "khaki")
+    human_fist(pose [0.000 -0.250 0.600 0.000 ] color "khaki")
+    human_fist(pose [0.000 0.250 0.600 0.000 ] color "khaki")
+    human_leg(pose [0.000  0.100 0.000 0.000 ] color "gray")
+    human_leg(pose [0.000 -0.100 0.000 0.000 ] color "gray")
 )
 
 define floorplan model
@@ -358,7 +358,7 @@ define floorplan model
   gui_outline 1
   gripper_return 0
   fiducial_return 0
-  ranger_return 1
+  ranger_return 1.000
 )
 
 # set the resolution of the underlying raytrace model in meters
@@ -368,7 +368,7 @@ interval_sim 20  # simulation timestep in milliseconds
 
 window
 (
-  size [ 900.000 600.000 ]
+  size [ 900 600 ]
   rotate [ 0.000 0.000 ]
   scale 28.806
 )
@@ -379,12 +379,10 @@ floorplan
   name "passage_hri"
   bitmap "maps/passage_hri.pgm"
   gui_move 0
-  size [21 15 2.0 ]
-  pose [0.0 0.0 0.000 0.000 ]
+  size [21.000 15.000 2.000 ]
+  pose [10.000 7.000 0.000 0.000 ]
 )
 
 # throw in a robot (always the robot first)
-pr2( pose [ 1.3 13.5 0 -90.0 ] name "pr2" color "gray")
-human( pose [ 1.3 3.0 0 90.0 ] name "human1" color "blue")
-human( pose [ 4.0 -2.0 0 45.0 ] name "human2" color "green")
-human( pose [ 4.4 11.6 0 90.0 ] name "human3" color "red")
+pr2( pose [ 6.000 7.000 0.000 0.000 ] name "pr2" color "gray")
+human( pose [ 18.000 7.000 0.000 180.000 ] name "human1" color "blue")

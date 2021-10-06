@@ -1,0 +1,14 @@
+<launch>
+  <arg name="ns" default="human1"/>
+  <arg name="map_name" default="laas_adream"/>
+
+  <include file="$(find morse_ros)/launch/morse_pr2.launch">
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+
+  <!-- Interface with the simulator -->
+  <include file="$(find inhus_navigation)/launch/simulator_launch/include/morse_interface.launch">
+    <arg name="ns" value="$(arg ns)"/>
+  </include>
+
+</launch>

@@ -10,17 +10,9 @@
     <arg name="gui" value="$(arg gui)" unless="$(arg fast_mode)"/>
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
-  <!-- <group if="$(eval 'laas_adream'==arg('map_name'))">
-    <include file="$(find stage_ros)/launch/stage_pr2_corridor_hri.launch">
-      <arg name="fast_mode" value="$(arg fast_mode)"/>
-      <arg name="gui" value="$(arg gui)" unless="$(arg fast_mode)"/>
-    </include>
-  </group> -->
-
-
 
   <!-- Interface with the simulator -->
-  <include file="$(find inhus_navigation)/launch/inhus_navigation_launch/include/stage_interface.launch">
+  <include file="$(find inhus_navigation)/launch/simulator_launch/include/stage_interface.launch">
     <arg name="ns" value="$(arg ns)"/>
   </include>
 

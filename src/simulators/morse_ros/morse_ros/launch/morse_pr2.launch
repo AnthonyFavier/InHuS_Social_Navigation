@@ -1,20 +1,15 @@
   <launch>
-    <arg name="map_name" default="passage_hri"/>
-
-    <arg name="with_humans" default="true" />
+    <arg name="map_name" default="laas_adream"/>
+    <arg name="scenario_name" value="pr2_$(arg map_name)_human.py"/>
 
     <!-- Launch morse simualator in the scenario -->
-    <node pkg="morse_ros" type="start_morse.sh" args="$(find morse_ros)/scenarios/pr2_$(arg map_name)_human.py"
-          name="morse" output="screen" required="true" if="$(arg with_humans)"/>
-
-    <node pkg="morse_ros" type="start_morse.sh" args="$(find morse_ros)/scenarios/pr2_$(arg map_name).py"
-      name="morse" output="screen" required="true" unless="$(arg with_humans)"/>
+    <node pkg="morse_ros" type="start_morse.sh" args="$(find morse_ros)/scenarios/$(arg scenario_name)" name="morse" output="screen" required="true"/>
 
   	<!-- use simulated clock -->
     <param name="use_sim_time" type="bool" value="true" />
 
-    <!-- start pr2 robot -->
-    <include file="$(find morse_ros)/launch/pr2.launch"/>
+    <!-- start pr2 robot description -->
+    <include file="$(find inhus_navigation)/launch/other_launch/robot_description.launch"/>
 
     <!-- tuck the arms by default -->
     <include file="$(find morse_ros)/launch/pr2_tuck_arms.launch" />

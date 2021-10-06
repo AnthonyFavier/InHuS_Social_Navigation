@@ -16,4 +16,7 @@
     <remap from="base_scan" to="scan"/>
   </node>
 
+  <!-- start pr2 robot description -->
+  <include file="$(find inhus_navigation)/launch/other_launch/robot_description.launch"/>
+
 </launch>

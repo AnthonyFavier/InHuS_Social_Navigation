@@ -11,6 +11,6 @@
   </include>
 
   <!-- visualization with Rviz -->
-  <include file="$(find inhus_navigation)/launch/rviz.launch"/>
+  <include file="$(find inhus_navigation)/launch/other_launch/rviz.launch"/>
 
 </launch>
