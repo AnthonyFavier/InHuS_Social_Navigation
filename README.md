@@ -110,9 +110,9 @@ In order to first try the system, you can run the following example. You can use
 Just edit one of the last line of the file *InHuS_Social_Navigation/src/inhus_system/inhus/launch/boss.launch* like below :
 ``` xml
 from :
-<remap from="/robot/move_base_goal" to="/move_base_simple/goal"/>
+<arg name="ns_robot" default=""/>
 to :
-<remap from="/robot/move_base_goal" to="/smb/move_base_simple/goal"/>
+<arg name="ns_robot" default="smb"/>
 ```
 Then, referring to the previous section, launch the following :
 ```

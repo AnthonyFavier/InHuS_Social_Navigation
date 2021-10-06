@@ -10,7 +10,7 @@
 
 	<!-- Boss -->
 	<include file="$(find inhus)/launch/boss.launch">
-		<arg name="ns" value="$(arg ns)"/>
+		<arg name="ns_human" value="$(arg ns)"/>
 	</include>
 
 </launch>
