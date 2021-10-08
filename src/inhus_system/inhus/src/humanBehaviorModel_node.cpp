@@ -429,6 +429,8 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 , b_random_try_freq_(1)
 , b_stop_look_stop_dur_(1)
 , b_harass_replan_freq_(1)
+, surprise_full_increase_durr_(1)
+, surprise_full_decrease_durr_(1)
 {
 	nh_ = nh;
 
@@ -443,6 +445,9 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	private_nh.param(std::string("human_radius"), human_radius_, float(0.25));
 	private_nh.param(std::string("robot_radius"), robot_radius_, float(0.3));
 	private_nh.param(std::string("dist_radius_inflation"), dist_radius_inflation_, float(0.5));
+	private_nh.param(std::string("surprise_full_increase_durr"), f_nb, float(1.0)); surprise_full_increase_durr_ = ros::Duration(f_nb);
+	private_nh.param(std::string("surprise_full_decrease_durr"), f_nb, float(2.0)); surprise_full_decrease_durr_ = ros::Duration(f_nb);
+	private_nh.param(std::string("surprise_dist"), surprise_dist_, float(2.0));
 	private_nh.param(std::string("b_random_chance_choose"), b_random_chance_choose_, int(30));
 	private_nh.param(std::string("b_random_try_freq"), f_nb, float(0.5)); b_random_try_freq_ = ros::Rate(f_nb);
 	private_nh.param(std::string("b_stop_look_dist_near_robot"), b_stop_look_dist_near_robot_, float(2.0));
@@ -457,6 +462,10 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	ROS_INFO("human_radius=%f", human_radius_);
 	ROS_INFO("robot_radius=%f", robot_radius_);
 	ROS_INFO("dist_radius_inflation=%f", dist_radius_inflation_);
+	ROS_INFO("surprise_full_increase_durr=%f", surprise_full_increase_durr_.toSec());
+	ROS_INFO("surprise_full_decrease_durr=%f", surprise_full_decrease_durr_.toSec());
+	ROS_INFO("surprise_dist=%f", surprise_dist_);
+	ROS_INFO("human_radius=%f", human_radius_);
 	ROS_INFO("b_random_chance_choose=%d", b_random_chance_choose_);
 	ROS_INFO("b_random_try_freq=%f", 1/b_random_try_freq_.expectedCycleTime().toSec());
 	ROS_INFO("b_stop_look_dist_near_robot=%f", b_stop_look_dist_near_robot_);
@@ -530,6 +539,9 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	time_stopped_=		ros::Time::now();
 
 	see_ = false;
+	surprise_last_compute_ = ros::Time::now();
+	surprise_seen_ratio_ = 0.0;
+	dist_ = 100.0;
 
 	radius_sum_sq_ = human_radius_ + robot_radius_;
 	radius_sum_sq_ *= radius_sum_sq_;
@@ -620,8 +632,8 @@ void HumanBehaviorModel::publishModelData()
 
 void HumanBehaviorModel::pubDist()
 {
-	float dist = sqrt(pow(model_robot_pose_.x-model_pose_.x,2) + pow(model_robot_pose_.y-model_pose_.y,2));
-	msg_log_.data = "HUMAN_MODEL DIST " + std::to_string(dist) + " " + std::to_string(ros::Time::now().toSec());
+	dist_ = sqrt(pow(model_robot_pose_.x-model_pose_.x,2) + pow(model_robot_pose_.y-model_pose_.y,2));
+	msg_log_.data = "HUMAN_MODEL DIST " + std::to_string(dist_) + " " + std::to_string(ros::Time::now().toSec());
 	pub_log_.publish(msg_log_);
 }
 
@@ -925,6 +937,48 @@ void HumanBehaviorModel::testSeeRobot()
 
 		last_check_see_robot_ = ros::Time::now();
 	}
+}
+
+void HumanBehaviorModel::computeSurprise()
+{
+	ros::Duration delta_t = ros::Time::now() - surprise_last_compute_;
+	std::cout << "delta_t = " << delta_t.toSec() << " ";
+
+	if(see_)
+	{
+		std::cout << "seen ";
+
+		// Compute the seen ratio
+		surprise_seen_ratio_ += delta_t.toSec()/surprise_full_increase_durr_.toSec();
+		if(surprise_seen_ratio_ > 1.0)
+			surprise_seen_ratio_ = 1.0;
+
+		// Test if seen ratio high enough compared to distance
+		std::cout << "dist=" << dist_ << " "; 
+		if(dist_ < surprise_dist_ && surprise_seen_ratio_ < 0.6)
+		{
+			// Human is surprised
+			std::cout << "SURPRISED ";
+			msg_log_.data = "HUMAN_MODEL SURPRISED " + std::to_string(ros::Time::now().toSec());
+			pub_log_.publish(msg_log_);
+		}
+	}
+	else
+	{
+		std::cout << "not_seen ";
+
+		// slowly decrease the seen_ratio
+		surprise_seen_ratio_ -= delta_t.toSec()/surprise_full_decrease_durr_.toSec();
+		if(surprise_seen_ratio_ < 0.0)
+			surprise_seen_ratio_ = 0.0;
+	}
+
+	std::cout << "ratio=" << surprise_seen_ratio_ << std::endl;
+
+	msg_log_.data = "HUMAN_MODEL SEEN_RATIO " + std::to_string(surprise_seen_ratio_) + " " + std::to_string(ros::Time::now().toSec());
+	pub_log_.publish(msg_log_);
+
+	surprise_last_compute_ = ros::Time::now();
 }
 
 ////////////////////// Attitudes //////////////////////////
@@ -1398,6 +1452,9 @@ int main(int argc, char** argv)
 
 		// Publish human/robot distance to log
 		human_model.pubDist();
+
+		// Compute surprise effect
+		human_model.computeSurprise();
 
 		ros::spinOnce();
 		rate.sleep();

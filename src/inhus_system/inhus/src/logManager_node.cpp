@@ -44,12 +44,14 @@ void LogManager::velRCallback(const geometry_msgs::Twist::ConstPtr& msg)
 ///////////////// LOG_FILE_INHUS_POSES /////////////////////
 void LogManager::poseHCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
-	log_file_inhus_poses_ << ros::Time::now() << " : H " << std::to_string(ros::Time::now().toSec()) << " " << msg->x << " " << msg->y << endl;
+	if(ros::Time::now().toSec() != 0.0)
+		log_file_inhus_poses_ << ros::Time::now() << " : H " << std::to_string(ros::Time::now().toSec()) << " " << msg->x << " " << msg->y << endl;
 }
 
 void LogManager::poseRCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
-	log_file_inhus_poses_ << ros::Time::now() << " : R " << std::to_string(ros::Time::now().toSec()) << " " << msg->x << " " << msg->y << endl;
+	if(ros::Time::now().toSec() != 0.0)
+		log_file_inhus_poses_ << ros::Time::now() << " : R " << std::to_string(ros::Time::now().toSec()) << " " << msg->x << " " << msg->y << endl;
 }
 
 //////////////////////// MAIN ///////////////////////////////

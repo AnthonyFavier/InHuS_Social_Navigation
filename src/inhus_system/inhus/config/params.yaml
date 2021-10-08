@@ -38,6 +38,11 @@ humanBehaviorModel_node: ##
   dist_radius_inflation: 10
     #=> radius of both human and robot to compute TTC (Time To Collision)
 
+### Surprise
+  surprise_full_increase_durr : 1.0
+  surprise_full_decrease_durr : 2.0
+  surprise_dist : 2.0
+
 ###############
 ## Attitudes ##
 ###############

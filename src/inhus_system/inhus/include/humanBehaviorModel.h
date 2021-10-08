@@ -118,6 +118,7 @@ public:
 	void pubDist();
 	void computeTTC();
 	void computeRelSpd();
+	void computeSurprise();
 	void testSeeRobot();
 	void updateConflictManager();
 	void initConflictManager(ConflictManager* conflict_manager);
@@ -224,6 +225,7 @@ private:
 	float robot_radius_;
 	float dist_radius_inflation_;
 	float radius_sum_sq_;
+	float dist_;
 
 	inhus::Goal current_goal_;
 	inhus::Goal previous_goal_;
@@ -252,6 +254,13 @@ private:
 	ros::Time last_seen_robot_;
 	ros::Duration delay_forget_robot_;
 	bool see_;
+
+	// Surprise
+	ros::Duration surprise_full_increase_durr_;
+	ros::Duration surprise_full_decrease_durr_;
+	float surprise_dist_;
+	ros::Time surprise_last_compute_;
+	float surprise_seen_ratio_;
 
 	// ratio perturbation
 	float ratio_perturbation_cmd_;

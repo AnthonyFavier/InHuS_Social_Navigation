@@ -87,7 +87,7 @@ if len(sys.argv)>=3:
         show_R=True
 
 # get time start time end
-Td=0
+Td=min(path_H[0][0], path_R[0][0])
 Tf=max(path_H[-1][0], path_R[-1][0])
 if len(sys.argv)>=4:
     Td=float(sys.argv[3])
