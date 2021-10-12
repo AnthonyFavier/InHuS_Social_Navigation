@@ -58,17 +58,17 @@ for line in f:
         mylist = line.split(" ")
 
         if mylist[2] == 'H':
-            path_H.append((float(mylist[3]), (float(mylist[4]), float(mylist[5]))))
+            path_H.append( (float(mylist[0]), (float(mylist[3]), float(mylist[4]), float(mylist[5])) ) )
 
         elif mylist[2] == 'R':
-            path_R.append((float(mylist[3]), (float(mylist[4]), float(mylist[5]))))
+            path_R.append( (float(mylist[0]), (float(mylist[3]), float(mylist[4]), float(mylist[5])) ) )
 f.close()
 
 
-# im = Image.open("log_data/laas_adream.png").convert("RGBA")
-im = Image.open("log_data/passage_hri.png").convert("RGBA")
-# im = Image.open("log_data/corridor_hri.png").convert("RGBA")
-# im = Image.open("log_data/narr_corridor_hri.png").convert("RGBA")
+# im = Image.open("log_rsc/laas_adream.png").convert("RGBA")
+im = Image.open("log_rsc/passage_hri.png").convert("RGBA")
+# im = Image.open("log_rsc/corridor_hri.png").convert("RGBA")
+# im = Image.open("log_rsc/narr_corridor_hri.png").convert("RGBA")
 draw = ImageDraw.Draw(im)
 size_im = (draw.im.size[0],draw.im.size[1])
 size = 4
@@ -97,6 +97,7 @@ dT = Tf-Td
 
 # draw
 # H
+
 if show_H:
     for i in range(len(path_H)):
         if(path_H[i][0] >= Td and path_H[i][0] <= Tf):
@@ -106,6 +107,8 @@ if show_H:
             draw.rectangle((pose[0]-size, pose[1]-size, pose[0]+size, pose[1]+size), fill=color)
 
 # R
+size_arrow = 20
+angle_arrow = 20
 if show_R:
     for i in range(len(path_R)):
         if(path_R[i][0] >= Td and path_R[i][0] <= Tf):
@@ -113,6 +116,92 @@ if show_R:
             color = compute_color(ratio)
             pose = convert_pose_map(path_R[i][1])
             draw.rectangle((pose[0]-size, pose[1]-size, pose[0]+size, pose[1]+size), fill=color)
+
+
+
+
+
+img_h = Image.open("log_rsc/img_h.png", 'r').convert("RGBA")
+img_r = Image.open("log_rsc/img_r.png", 'r').convert("RGBA")
+offset = (15,15)
+data_h = np.array(img_h)   # "data" is a height x width x 4 numpy array
+red, green, blue, alpha = data_h.T # Temporarily unpack the bands for readability
+white_areas_h = (red == 255) & (blue == 255) & (green == 255)
+data_r = np.array(img_r)   # "data" is a height x width x 4 numpy array
+red, green, blue, alpha = data_r.T # Temporarily unpack the bands for readability
+white_areas_r = (red == 255) & (blue == 255) & (green == 255)
+
+
+delay_draw = 6.4
+nb_drawn_max = 5
+
+# Get i start, when one agent starts moving
+start_pose_h = path_H[0][1]
+for i in range(len(path_H)):
+    if path_H[i][1] != start_pose_h:
+        i_start_h = i-1
+        break
+start_pose_r = path_R[0][1]
+for i in range(len(path_R)):
+    if path_R[i][1] != start_pose_r:
+        i_start_r = i-1
+        break
+i_start = min(i_start_r, i_start_h)
+
+if show_H:
+    pose_start = convert_pose_map(path_H[0][1])
+    nb_draw = 0
+    last_drawn = -delay_draw
+    for i in range(i_start, len(path_H)):
+        if path_H[i][0] - last_drawn > delay_draw and nb_draw < nb_drawn_max:
+            if(path_H[i][0] >= Td and path_H[i][0] <= Tf):
+            
+                # Change color
+                data_h[..., :-1][white_areas_h.T] = compute_color((path_H[i][0] - Td)/dT)
+                img_h_colored = Image.fromarray(data_h)
+
+                # rotate
+                angle = path_H[i][1][2]*180/3.14159265
+                img_h_colored_rotated = img_h_colored.rotate(angle, resample=Image.BILINEAR)
+
+                # place
+                pose = convert_pose_map(path_H[i][1])
+                im.paste(img_h_colored_rotated, (pose[0]-offset[0], pose[1]-offset[1]), img_h_colored_rotated)
+
+                print("drawn h {} {} {} {}".format(pose[0], pose[1], angle, path_H[i][0]))
+                last_drawn = path_H[i][0]
+                nb_draw +=1
+                # draw.text((pose[0], pose[1]), "H", font=ImageFont.truetype("FreeMonoBold.ttf", 18), fill=(0,0,0))
+                # draw.pieslice([pose[0]-size_arrow, pose[1]-size_arrow, pose[0]+size_arrow, pose[1]+size_arrow], angle-angle_arrow, angle+angle_arrow, fill=(color), outline=(0,255,0))
+
+if show_R:
+    pose_start = convert_pose_map(path_R[0][1])
+    nb_draw = 0
+    last_drawn = -delay_draw
+    for i in range(i_start, len(path_R)):
+        if path_R[i][0] - last_drawn > delay_draw and nb_draw < nb_drawn_max:
+            if(path_R[i][0] >= Td and path_R[i][0] <= Tf):
+            
+                # Change color
+                data_r[..., :-1][white_areas_r.T] = compute_color((path_R[i][0] - Td)/dT)
+                img_r_colored = Image.fromarray(data_r)
+
+                # rotate
+                angle = path_R[i][1][2]*180/3.14159265
+                img_r_colored_rotated = img_r_colored.rotate(angle, resample=Image.BILINEAR)
+
+                # place
+                pose = convert_pose_map(path_R[i][1])
+                im.paste(img_r_colored_rotated, (pose[0]-offset[0], pose[1]-offset[1]), img_r_colored_rotated)
+
+
+                # draw.pieslice([pose[0]-size_arrow, pose[1]-size_arrow, pose[0]+size_arrow, pose[1]+size_arrow], angle-angle_arrow, angle+angle_arrow, fill=(color), outline=(255,0,0))
+                # draw.text((pose[0], pose[1]), "R", font=ImageFont.truetype("FreeMonoBold.ttf", 18), fill=(0,0,0))
+                last_drawn = path_R[i][0]
+                print("drawn r {} {} {} {}".format(pose[0], pose[1], angle, path_R[i][0]))
+                nb_draw +=1
+
+
 
 # Legend
 legend_on = True
