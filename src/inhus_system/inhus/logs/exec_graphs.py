@@ -115,7 +115,7 @@ for i, surp_time in enumerate(surprise_time):
         if diff_min == -1:
             diff_min = diff
         else:
-            if diff < diff_min:
+            if diff <= diff_min:
                 diff_min = diff
                 j_min = j
             else:
