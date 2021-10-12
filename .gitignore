@@ -3,3 +3,4 @@ devel/
 .vscode/
 *.swp
 *.pyc
+*.html
