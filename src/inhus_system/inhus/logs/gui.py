@@ -64,7 +64,6 @@ max_tcc = 0
 ######################################################################################################
 
 def readDataFromFile(filename):
-    print("read Data")
     f = open(filename, "r")
 
     value_state = -1
@@ -157,7 +156,6 @@ def readDataFromFile(filename):
     f.close()
 
 def treatData():
-    print("treat data")
     global min_x_default
     global max_x_default
     global max_vel
@@ -189,7 +187,6 @@ def treatData():
     max_tcc = computeYMax(ttc_data)
 
 def updateColumnDataSource():
-    print("update source")
     global path_source
     global first_source
     global state_exec_source
@@ -222,7 +219,7 @@ readDataFromFile("inhus_logs/log.txt")
 treatData()
 updateColumnDataSource()
 
-height = 180
+height = 170
 width = 800
 muted_alpha=0.2
 margin=-100
@@ -294,9 +291,28 @@ p4.legend.click_policy=default_click_policy
 #############
 
 # Div General tetxts
+inhus_div = Div(width_policy="auto",
+    text="""
+    <html>
+    <head>
+    <style>
+    h1 {text-align: center;}
+    p {text-align: center;}
+    div {text-align: center;}
+    </style>
+    </head>
+    <body>
+
+    <h2>InHuS Log Data Visualization</h2>
+
+    </body>
+    """,
+    margin=(-10,2,-10,200)
+    )
 plot_size_div = Div(text="<b>Plot size:</b>")
 legend_div = Div(text="<b>Legend:</b>")
 other_div = Div(text="<b>Other:</b>")
+range_div = Div(text="<b>Range:</b>")
 
 # Slider Height
 slider_height = Slider(title="height", start = 100, end = 500, step = 1, value = height)
@@ -319,7 +335,7 @@ slider_width.js_on_change("value",
         """))
 
 # Button Show Legend
-legend_button = CheckboxButtonGroup(labels=["Show legends"], active=[], width_policy="min")
+legend_button = CheckboxButtonGroup(labels=["Show legends"], active=[], width_policy="min", align="center")
 legend_button.js_on_change(
     "active", 
     CustomJS(args=dict(l1=p1.legend[0], l2=p2.legend[0], l3=p3.legend[0], l4=p4.legend[0]),
@@ -364,7 +380,7 @@ reset_size_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4, h=h
 
 # RadioButton Hide/Mute Legend
 hide_mute_button_div = Div(text="Legend click policy:")
-hide_mute_button = RadioButtonGroup(labels=["Mute", "Hide"], active=0, width_policy="min")
+hide_mute_button = RadioButtonGroup(labels=["Mute", "Hide"], active=0, width_policy="min", align="center")
 hide_mute_button.js_on_click(CustomJS(args=dict(l1=p1.legend[0], l2=p2.legend[0], l3=p3.legend[0], l4=p4.legend[0]), 
     code="""
     if(cb_obj.active==0)
@@ -385,7 +401,6 @@ hide_mute_button.js_on_click(CustomJS(args=dict(l1=p1.legend[0], l2=p2.legend[0]
 
 # Button Update Data 
 def updateFigureRange(min_x=None, max_x=None):
-    print("update figure range")
     global p1, p2, p3, p4
 
     if min_x==None and max_x==None:
@@ -424,33 +439,39 @@ def updateData(event=None):
     treatData()
     updateColumnDataSource()
     updateFigureRange()
-update_data_button = Button(label="Update data", button_type="success", width_policy="min")
+update_data_button = Button(label="Update data", button_type="success", width_policy="min", align="center")
 update_data_button.on_click(updateData)
 
 # TextInput t_min
 t_min_input = TextInput(value="{:.1f}".format(min_x_default), title="Time min:", width=70)
 def update_t_min(attr,old,new):
+    global t_min_input
     t_min = 0.0
     try:
         t_min = float(new)
+        t_min_input.background = None
         updateFigureRange(min_x=t_min)
     except:
-        print("Wrong input ...")
+        print("Wrong input time min ...")
+        t_min_input.background = "red"
 t_min_input.on_change("value", update_t_min)
 
 # TextInput t_max
 t_max_input = TextInput(value="{:.1f}".format(max_x_default), title="Time max:", width=70)
 def update_t_max(attr,old,new):
+    global t_max_input
     t_max = 0.0
     try:
         t_max = float(new)
+        t_max_input.background = None
         updateFigureRange(max_x=t_max)
     except:
-        print("Wrong input ...")
+        print("Wrong input time max ...")
+        t_max_input.background = "red"
 t_max_input.on_change("value", update_t_max)
 
 # Button Reset Plots
-reset_button = Button(label="Reset plots", button_type="primary", width_policy="min")
+reset_button = Button(label="Reset plots", button_type="primary", width_policy="min", align="center")
 def reset_buttonCB(event):
     global t_min_input
     global t_max_input
@@ -467,7 +488,7 @@ reset_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
     """))
 
 # Button Reset Plots Range
-reset_range_button = Button(label="Reset range plots", button_type="primary", width_policy="min")
+reset_range_button = Button(label="Reset range plots", button_type="primary", width_policy="min", align="center")
 def reset_range_buttonCB(event):
     global t_min_input
     global t_max_input
@@ -503,11 +524,12 @@ legend_column = column(legend_div, legend_button, hide_mute_button_div, hide_mut
 other_column = column(other_div, reset_button, update_data_button)
 
 t_range_row = row(t_min_input, t_max_input)
-range_column = column(t_range_row, reset_range_button)
+range_column = column(range_div,t_range_row, reset_range_button)
 
 layout = layout(
     [
-        [plot_size_column, legend_column, other_column, range_column],
+        [inhus_div],
+        [plot_size_column, legend_column, range_column, other_column],
         [p1],
         [p2],
         [p3],
