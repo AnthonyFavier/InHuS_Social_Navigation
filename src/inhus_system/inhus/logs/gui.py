@@ -1,6 +1,6 @@
 from bokeh.io import curdoc
-from bokeh.layouts import layout, column
-from bokeh.models import Div, Slider, LinearAxis, Range1d, CheckboxGroup, CheckboxButtonGroup, Button, HoverTool, RadioButtonGroup, ColumnDataSource
+from bokeh.layouts import layout, column, row
+from bokeh.models import Div, Slider, LinearAxis, Range1d, CheckboxGroup, CheckboxButtonGroup, Button, HoverTool, RadioButtonGroup, ColumnDataSource, TextInput
 from bokeh.models.callbacks import CustomJS
 from bokeh.plotting import figure, show, output_file
 import sys
@@ -55,9 +55,8 @@ seen_ratio_data = []
 seen_ratio_time = []
 seen_ratio_source = ColumnDataSource()
 
-value_state = -1
-min_x = 0
-max_x = 0
+min_x_default = 0
+max_x_default = 0
 max_vel = 0
 max_rel_vel = 0
 max_tcc = 0
@@ -67,6 +66,8 @@ max_tcc = 0
 def readDataFromFile(filename):
     print("read Data")
     f = open(filename, "r")
+
+    value_state = -1
 
     path_data.clear()
     path_time.clear()
@@ -157,8 +158,8 @@ def readDataFromFile(filename):
 
 def treatData():
     print("treat data")
-    global min_x
-    global max_x
+    global min_x_default
+    global max_x_default
     global max_vel
     global max_rel_vel
     global max_tcc
@@ -181,8 +182,8 @@ def treatData():
                 else:
                     break
         surprise_data[i] = seen_ratio_data[j_min]
-    min_x = min(dist_time[0], vel_h_time[0], vel_r_time[0], rel_spd_time[0], seen_ratio_time[0])
-    max_x = max(dist_time[-1], vel_h_time[-1], vel_r_time[-1], rel_spd_time[-1], seen_ratio_time[-1])
+    min_x_default = min(dist_time[0], vel_h_time[0], vel_r_time[0], rel_spd_time[0], seen_ratio_time[0])
+    max_x_default = max(dist_time[-1], vel_h_time[-1], vel_r_time[-1], rel_spd_time[-1], seen_ratio_time[-1])
     max_vel = max(computeYMax(vel_h_data), computeYMax(vel_r_data))
     max_rel_vel = computeYMax(rel_spd_data)
     max_tcc = computeYMax(ttc_data)
@@ -215,7 +216,6 @@ def updateColumnDataSource():
     surprise_source.data = dict(x=surprise_time, y=surprise_data)
     seen_ratio_source.data = dict(x=seen_ratio_time, y=seen_ratio_data)
 
-
 ######################################################################################################
 
 readDataFromFile("inhus_logs/log.txt")
@@ -230,10 +230,12 @@ default_click_policy = "mute"
 common_tools = "pan,wheel_zoom,box_zoom,save,crosshair"
 TOOLTIPS = [("(x,y)", "($x, $y)")]
 
-print("range x = ({}, {})".format(min_x, max_x))
+######################################################################################################
+#############
+## FIGURES ##
+#############
 
-# Figures
-p1 = figure(x_range=(min_x, max_x), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
+p1 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p1.toolbar.logo = None
 p1.toolbar.autohide = True
 p1.add_tools(HoverTool(tooltips=TOOLTIPS))
@@ -247,11 +249,11 @@ p1.legend.visible=False
 p1.legend.margin = margin
 p1.legend.click_policy=default_click_policy
 
-p2 = figure(x_range=(min_x, max_x), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
+p2 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p2.toolbar.logo = None
 p2.toolbar.autohide = True
 p2.add_tools(HoverTool(tooltips=TOOLTIPS))
-p2.yaxis.axis_label = "Human-Robot Distance (m)"
+p2.yaxis.axis_label = "H-R Distance (m)"
 p2.extra_y_ranges = {"foo": Range1d(start=0, end=max_vel)}
 p2.add_layout(LinearAxis(y_range_name="foo", axis_label="Speeds (m/s)"), 'right')
 dist = p2.line('x', 'y', source=dist_source, line_width=3, color='gray', muted_alpha=muted_alpha, line_dash="dashed", legend_label="distance", )
@@ -261,7 +263,7 @@ p2.legend.visible=False
 p2.legend.margin = margin
 p2.legend.click_policy=default_click_policy
 
-p3 = figure(x_range=(min_x, max_x), y_range=(0, max_tcc), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
+p3 = figure(x_range=(min_x_default, max_x_default), y_range=(0, max_tcc), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p3.toolbar.logo = None
 p3.toolbar.autohide = True
 p3.add_tools(HoverTool(tooltips=TOOLTIPS))
@@ -274,7 +276,7 @@ p3.legend.visible=False
 p3.legend.margin = margin
 p3.legend.click_policy=default_click_policy
 
-p4 = figure(x_range=(min_x, max_x), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
+p4 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p4.toolbar.logo = None
 p4.toolbar.autohide = True
 p4.add_tools(HoverTool(tooltips=TOOLTIPS, mode='vline'))
@@ -286,32 +288,37 @@ p4.legend.visible=False
 p4.legend.margin = margin
 p4.legend.click_policy=default_click_policy
 
-# Widgets
+######################################################################################################
+#############
+## WIDGETS ##
+#############
+
+# Div General tetxts
 plot_size_div = Div(text="<b>Plot size:</b>")
 legend_div = Div(text="<b>Legend:</b>")
 other_div = Div(text="<b>Other:</b>")
-hide_mute_button_div = Div(text="Legend click policy:")
 
+# Slider Height
 slider_height = Slider(title="height", start = 100, end = 500, step = 1, value = height)
 slider_height.js_link("value", p1, "height")
 slider_height.js_link("value", p2, "height")
 slider_height.js_link("value", p3, "height")
 slider_height.js_link("value", p4, "height")
 
-slider_width = Slider(title="width", start = 100, end = 1200, step = 1, value = width)
+# Slider Width
+slider_width = Slider(title="width", start = 100, end = 1800, step = 1, value = width)
 slider_width.js_on_change("value",
     CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
         code="""
             p1.frame_width = cb_obj.value
-            p1.height = p1.height+1
-            p1.height = p1.height-1
             p2.frame_width = cb_obj.value
             p3.frame_width = cb_obj.value
             p4.frame_width = cb_obj.value
-            div.text = cb_obj.value.toString()
-        """)
-)
+            p4.height = p1.height+1
+            p4.height = p1.height-1
+        """))
 
+# Button Show Legend
 legend_button = CheckboxButtonGroup(labels=["Show legends"], active=[], width_policy="min")
 legend_button.js_on_change(
     "active", 
@@ -337,19 +344,9 @@ legend_button.js_on_change(
             l4.visible = false
             l4.margin = -100
         }
-    """)
-)
+    """))
 
-reset_button = Button(label="Reset plots", button_type="primary", width_policy="min")
-reset_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4), 
-    code="""
-    p1.reset.emit()
-    p2.reset.emit()
-    p3.reset.emit()
-    p4.reset.emit()
-    """)
-)
-
+# Button Reset Size
 reset_size_button = Button(label="Reset plot sizes", button_type="primary", width_policy="min")
 reset_size_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4, h=height, w=width, sh=slider_height, sw=slider_width), 
     code="""
@@ -363,9 +360,10 @@ reset_size_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4, h=h
     p4.height = h
     sh.value = h
     sw.value = w
-    """)
-)
+    """))
 
+# RadioButton Hide/Mute Legend
+hide_mute_button_div = Div(text="Legend click policy:")
 hide_mute_button = RadioButtonGroup(labels=["Mute", "Hide"], active=0, width_policy="min")
 hide_mute_button.js_on_click(CustomJS(args=dict(l1=p1.legend[0], l2=p2.legend[0], l3=p3.legend[0], l4=p4.legend[0]), 
     code="""
@@ -383,58 +381,143 @@ hide_mute_button.js_on_click(CustomJS(args=dict(l1=p1.legend[0], l2=p2.legend[0]
         l3.click_policy="hide"
         l4.click_policy="hide"
     }
-    """)
-)
+    """))
 
-
-def updateFigureRange():
+# Button Update Data 
+def updateFigureRange(min_x=None, max_x=None):
     print("update figure range")
-    global p1
-    global p2
-    global p3
-    global p4
+    global p1, p2, p3, p4
 
-    p1.x_range.start=min_x
-    p1.x_range.end=max_x
+    if min_x==None and max_x==None:
+        min_x = min_x_default
+        max_x = max_x_default
 
-    p2.x_range.start=min_x
-    p2.x_range.end=max_x
-    # p2.extra_y_ranges = {"foo": Range1d(start=0, end=max_vel)}
-
-    p3.x_range.start=min_x
-    p3.x_range.end=max_x
-
-    p4.x_range.start=min_x
-    p4.x_range.end=max_x
-
-    print("range x = ({}, {})".format(min_x, max_x))
-
-    
-
+        p1.x_range.start=min_x
+        p1.x_range.end=max_x
+        p2.x_range.start=min_x
+        p2.x_range.end=max_x
+        p3.x_range.start=min_x
+        p3.x_range.end=max_x
+        p4.x_range.start=min_x
+        p4.x_range.end=max_x
+    elif max_x==None:
+        p1.x_range.start=min_x
+        p2.x_range.start=min_x
+        p3.x_range.start=min_x
+        p4.x_range.start=min_x
+    elif min_x==None:
+        p1.x_range.end=max_x
+        p2.x_range.end=max_x
+        p3.x_range.end=max_x
+        p4.x_range.end=max_x
+    else:
+        p1.x_range.start=min_x
+        p1.x_range.end=max_x
+        p2.x_range.start=min_x
+        p2.x_range.end=max_x
+        p3.x_range.start=min_x
+        p3.x_range.end=max_x
+        p4.x_range.start=min_x
+        p4.x_range.end=max_x
 def updateData(event=None):
     readDataFromFile("inhus_logs/log.txt")
     treatData()
     updateColumnDataSource()
     updateFigureRange()
-
 update_data_button = Button(label="Update data", button_type="success", width_policy="min")
 update_data_button.on_click(updateData)
 
-# create layout
+# TextInput t_min
+t_min_input = TextInput(value="{:.1f}".format(min_x_default), title="Time min:", width=70)
+def update_t_min(attr,old,new):
+    t_min = 0.0
+    try:
+        t_min = float(new)
+        updateFigureRange(min_x=t_min)
+    except:
+        print("Wrong input ...")
+t_min_input.on_change("value", update_t_min)
+
+# TextInput t_max
+t_max_input = TextInput(value="{:.1f}".format(max_x_default), title="Time max:", width=70)
+def update_t_max(attr,old,new):
+    t_max = 0.0
+    try:
+        t_max = float(new)
+        updateFigureRange(max_x=t_max)
+    except:
+        print("Wrong input ...")
+t_max_input.on_change("value", update_t_max)
+
+# Button Reset Plots
+reset_button = Button(label="Reset plots", button_type="primary", width_policy="min")
+def reset_buttonCB(event):
+    global t_min_input
+    global t_max_input
+  
+    t_min_input.value="{:.1f}".format(min_x_default)
+    t_max_input.value="{:.1f}".format(max_x_default)
+reset_button.on_click(reset_buttonCB)
+reset_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4), 
+    code="""
+    p1.reset.emit()
+    p2.reset.emit()
+    p3.reset.emit()
+    p4.reset.emit()
+    """))
+
+# Button Reset Plots Range
+reset_range_button = Button(label="Reset range plots", button_type="primary", width_policy="min")
+def reset_range_buttonCB(event):
+    global t_min_input
+    global t_max_input
+  
+    t_min=None
+    t_max=None
+    try:
+        t_min=float(t_min_input.value)
+    except:
+        print("reset range min wrong input ...")
+    try:
+        t_max=float(t_max_input.value)
+    except:
+        print("reset range max wrong input ...")
+
+    updateFigureRange(t_min, t_max)
+reset_range_button.on_click(reset_range_buttonCB)
+reset_range_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4), 
+    code="""
+    p1.reset.emit()
+    p2.reset.emit()
+    p3.reset.emit()
+    p4.reset.emit()
+    """))
+
+######################################################################################################
+############
+## LAYOUT ##
+############
+
 plot_size_column = column(plot_size_div, slider_height, slider_width, reset_size_button)
 legend_column = column(legend_div, legend_button, hide_mute_button_div, hide_mute_button)
 other_column = column(other_div, reset_button, update_data_button)
+
+t_range_row = row(t_min_input, t_max_input)
+range_column = column(t_range_row, reset_range_button)
+
 layout = layout(
     [
-        [plot_size_column, legend_column, other_column],
+        [plot_size_column, legend_column, other_column, range_column],
         [p1],
         [p2],
         [p3],
         [p4],
-    ]
-)
+    ])
 
-
+######################################################################################################
+##########
+## SHOW ##
+##########
 
 # show result
 # show(layout)
