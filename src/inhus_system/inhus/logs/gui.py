@@ -1,6 +1,7 @@
 from bokeh.layouts import layout
-from bokeh.models import Div, RangeSlider, Spinner, Slider, LinearAxis, Range1d, PanTool, WheelZoomTool, BoxZoomTool, SaveTool, ResetTool, CrosshairTool
-from bokeh.plotting import figure, show
+from bokeh.models import Div, RangeSlider, Slider, LinearAxis, Range1d, CheckboxGroup
+from bokeh.models.callbacks import CustomJS
+from bokeh.plotting import figure, show, output_file
 import sys
 
 ######################################################################################################
@@ -136,9 +137,11 @@ max_tcc = computeYMax(ttc_data)
 
 ######################################################################################################
 
-height = 206
+height = 180
 width = 800
-common_tools = "pan,wheel_zoom,box_zoom,save,reset,crosshair"
+common_tools = "pan,wheel_zoom,box_zoom,save,crosshair"
+
+# output_file("js_on_change.html")
 
 # Figures
 p1 = figure(x_range=(min_x, max_x), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
@@ -150,6 +153,7 @@ first = p1.circle(x=first_data, y=first_time, size=8, color='red', legend_label=
 state_exec = p1.square(x=state_exec_time, y=state_exec_data, size=8, color='green', legend_label="EXEC state")
 state_approach = p1.square(x=state_approach_time, y=state_approach_data, size=8, color='orange', legend_label="APPROACH state")
 state_blocked = p1.square(x=state_blocked_time, y=state_blocked_data, size=8, color='red', legend_label="BLOCKED state")
+p1.legend.visible=False
 
 p2 = figure(x_range=(min_x, max_x), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p2.toolbar.logo = None
@@ -160,6 +164,7 @@ p2.add_layout(LinearAxis(y_range_name="foo", axis_label="Speeds (m/s)"), 'right'
 dist = p2.line(x=dist_time, y=dist_data, line_width=3, color='gray', line_dash="dashed", legend_label="distance")
 vel_h = p2.line(x=vel_h_time, y=vel_h_data, line_width=3, color='blue', y_range_name="foo", legend_label="speed h")
 vel_r = p2.line(x=vel_r_time, y=vel_r_data, line_width=3, color='red', y_range_name="foo", legend_label="speed r")
+p2.legend.visible=False
 
 p3 = figure(x_range=(min_x, max_x), y_range=(0, max_tcc), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p3.toolbar.logo = None
@@ -169,6 +174,7 @@ p3.extra_y_ranges = {"foo2" : Range1d(start=0, end=max_rel_vel)}
 p3.add_layout(LinearAxis(y_range_name="foo2", axis_label="Relative speed (m/s)"), 'right')
 ttc = p3.cross(x=ttc_time, y=ttc_data, size=8, color='black', legend_label="TTC")
 rel_spd = p3.line(x=rel_spd_time, y=rel_spd_data, line_width=3, color='orange', y_range_name="foo2", legend_label="rel speed")
+p3.legend.visible=False
 
 p4 = figure(x_range=(min_x, max_x), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p4.toolbar.logo = None
@@ -177,24 +183,71 @@ p4.xaxis.axis_label = "Time (s)"
 p4.yaxis.axis_label = "Seen ratio  / Surprised"
 seen_ratio = p4.line(x=seen_ratio_time, y=seen_ratio_data, line_width=3, color='black', legend_label="seen ratio")
 surprise = p4.circle(x=surprise_time, y=surprise_data, size=8, color='red', legend_label="surprised")
+p4.legend.visible=False
 
 # Widgets
+div = Div(text="Salut")
+
 slider_height = Slider(
-    title="slider height",
-    start = 1,
+    title="height",
+    start = 50,
     end = 500,
     step = 1,
-    value = p1.height,
+    value = height,
 )
 slider_height.js_link("value", p1, "height")
 slider_height.js_link("value", p2, "height")
 slider_height.js_link("value", p3, "height")
 slider_height.js_link("value", p4, "height")
 
+slider_width_bis = Slider(
+    title="width",
+    start = 50,
+    end = 1000,
+    step = 1,
+    value = width,
+)
+slider_width_bis.js_on_change("value",
+    CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4, div=div),
+        code="""
+            p1.frame_width = cb_obj.value
+            p1.height = p1.height+1
+            p1.height = p1.height-1
+            p2.frame_width = cb_obj.value
+            p3.frame_width = cb_obj.value
+            p4.frame_width = cb_obj.value
+            div.text = cb_obj.value.toString()
+        """)
+)
+
+legend_button = CheckboxGroup(
+    labels=["Show legends"],
+    active=[],
+)
+legend_button.js_on_change(
+    "active", 
+    CustomJS(args=dict(l1=p1.legend[0], l2=p2.legend[0], l3=p3.legend[0], l4=p4.legend[0]),
+    code="""
+        const active = cb_obj.active
+        if(active.length){
+            l1.visible = true
+            l2.visible = true
+            l3.visible = true
+            l4.visible = true
+        }else{
+            l1.visible = false
+            l2.visible = false
+            l3.visible = false
+            l4.visible = false
+        }
+    """)
+)
+
 # create layout
 layout = layout(
     [
-        [slider_height],
+        [slider_height, legend_button],
+        [slider_width_bis],
         [p1],
         [p2],
         [p3],
