@@ -942,11 +942,11 @@ void HumanBehaviorModel::testSeeRobot()
 void HumanBehaviorModel::computeSurprise()
 {
 	ros::Duration delta_t = ros::Time::now() - surprise_last_compute_;
-	std::cout << "delta_t = " << delta_t.toSec() << " ";
+	// std::cout << "delta_t = " << delta_t.toSec() << " ";
 
 	if(see_)
 	{
-		std::cout << "seen ";
+		// std::cout << "seen ";
 
 		// Compute the seen ratio
 		surprise_seen_ratio_ += delta_t.toSec()/surprise_full_increase_durr_.toSec();
@@ -954,18 +954,18 @@ void HumanBehaviorModel::computeSurprise()
 			surprise_seen_ratio_ = 1.0;
 
 		// Test if seen ratio high enough compared to distance
-		std::cout << "dist=" << dist_ << " "; 
+		// std::cout << "dist=" << dist_ << " "; 
 		if(dist_ < surprise_dist_ && surprise_seen_ratio_ < 0.6)
 		{
 			// Human is surprised
-			std::cout << "SURPRISED ";
+			// std::cout << "SURPRISED ";
 			msg_log_.data = "HUMAN_MODEL SURPRISED " + std::to_string(ros::Time::now().toSec());
 			pub_log_.publish(msg_log_);
 		}
 	}
 	else
 	{
-		std::cout << "not_seen ";
+		// std::cout << "not_seen ";
 
 		// slowly decrease the seen_ratio
 		surprise_seen_ratio_ -= delta_t.toSec()/surprise_full_decrease_durr_.toSec();
@@ -973,7 +973,7 @@ void HumanBehaviorModel::computeSurprise()
 			surprise_seen_ratio_ = 0.0;
 	}
 
-	std::cout << "ratio=" << surprise_seen_ratio_ << std::endl;
+	// std::cout << "ratio=" << surprise_seen_ratio_ << std::endl;
 
 	msg_log_.data = "HUMAN_MODEL SEEN_RATIO " + std::to_string(surprise_seen_ratio_) + " " + std::to_string(ros::Time::now().toSec());
 	pub_log_.publish(msg_log_);
