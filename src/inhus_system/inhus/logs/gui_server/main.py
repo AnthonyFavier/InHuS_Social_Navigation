@@ -3,11 +3,11 @@ from bokeh.io import curdoc
 from bokeh.layouts import layout, column, row
 from bokeh.models import HoverTool, WheelZoomTool
 from bokeh.models import Div, Slider, CheckboxGroup, CheckboxButtonGroup, Button, RadioButtonGroup, TextInput, WheelZoomTool
-from bokeh.models import LinearAxis, Range1d, ColumnDataSource, ColorBar, CDSView, IndexFilter
+from bokeh.models import LinearAxis, Range1d, ColumnDataSource, ColorBar, CDSView, IndexFilter, CustomJSFilter
 from bokeh.models.callbacks import CustomJS
 from bokeh.plotting import figure, show, output_file
 from bokeh.palettes import Spectral6, Turbo256
-from bokeh.transform import linear_cmap
+from bokeh.transform import LinearColorMapper
 from bokeh.themes import built_in_themes
 import sys
 import numpy as np
@@ -301,6 +301,143 @@ p4.legend.margin = margin
 p4.legend.click_policy=default_click_policy
 
 ######################################################################################################
+######################################## COLORED PATH ################################################
+######################################################################################################
+#############
+## FIGURES ##
+#############
+
+map_name = "passage_hri"
+
+# Get info on map
+filename = "gui_server/static/" + map_name + "_data.txt"
+img_file = None
+img_size = None
+img_resolution = None
+img_offset = None
+f = open(filename, "r")
+for line in f:
+    if 'str' in line:
+        break
+    if line != "\n":
+        line = line.replace("\n","")
+        mylist = line.split(" ")
+
+        if mylist[0] == 'image:':
+            img_file = mylist[1]
+        elif mylist[0] == 'size:':
+            img_size = (int(mylist[1]), int(mylist[2]))
+        elif mylist[0] == 'resolution:':
+            img_resolution = float(mylist[1])
+        elif mylist[0] == 'offset:':
+            img_offset = (float(mylist[1]), float(mylist[2]))
+f.close()
+x_range = (0,img_size[0]*img_resolution)
+y_range = (0,img_size[1]*img_resolution)
+x_range = (x_range[0]+img_offset[0], x_range[1]+img_offset[0])
+y_range = (y_range[0]+img_offset[1], y_range[1]+img_offset[1])
+
+
+# Read data 
+filename = "inhus_logs/poseLog.txt"
+f = open(filename, "r")
+
+# start log line
+string = f.readline()
+
+path_H_stamp = []
+path_H_x = []
+path_H_y = []
+path_H_theta = []
+
+path_R_stamp = []
+path_R_x = []
+path_R_y =[]
+path_R_theta = []
+
+for line in f:
+    if 'str' in line:
+        break
+    if line != "\n":
+        line = line.replace("\n","")
+        mylist = line.split(" ")
+
+        if mylist[2] == 'H':
+            path_H_stamp.append(float(mylist[0]))
+            path_H_x.append(float(mylist[3]))
+            path_H_y.append(float(mylist[4]))
+            path_H_theta.append(float(mylist[5]))
+
+        elif mylist[2] == 'R':
+            path_R_stamp.append(float(mylist[0]))
+            path_R_x.append(float(mylist[3]))
+            path_R_y.append(float(mylist[4]))
+            path_R_theta.append(float(mylist[5]))
+f.close()
+
+path_H_source = ColumnDataSource(dict(x=path_H_x, y=path_H_y, theta=path_H_theta, stamp=path_H_stamp))
+path_R_source = ColumnDataSource(dict(x=path_R_x, y=path_R_y, theta=path_R_theta, stamp=path_R_stamp))
+
+resol = 1
+resol_filter_h = IndexFilter(np.arange(0, len(path_H_source.data["x"]), resol))
+resol_filter_r = IndexFilter(np.arange(0, len(path_R_source.data["x"]), resol))
+
+def updateFilters():
+    global view_h
+    global view_r
+
+    date_filter_h = CustomJSFilter(args=dict(t_min_g=t_min_g, t_max_g=t_max_g, source_data=path_H_source,), code="""
+    let start=t_min_g
+    let end=t_max_g;
+    let dates = source_data.data['stamp'];
+    let indices = [];
+    for (var i = 0; i <= dates.length; i++){
+        if (dates[i] >= start && dates[i] <= end) indices.push(i);
+    }
+    return indices;
+    """)
+
+    date_filter_r = CustomJSFilter(args=dict(t_min_g=t_min_g, t_max_g=t_max_g, source_data=path_R_source,), code="""
+    let start=t_min_g
+    let end=t_max_g;
+    let dates = source_data.data['stamp'];
+    let indices = [];
+    for (var i = 0; i <= dates.length; i++){
+        if (dates[i] >= start && dates[i] <= end) indices.push(i);
+    }
+    return indices;
+    """)
+
+    view_h.filters = [resol_filter_h, date_filter_h]
+    view_r.filters = [resol_filter_h, date_filter_r]
+
+view_h = CDSView(source=path_H_source, filters=[])
+view_r = CDSView(source=path_R_source, filters=[])
+updateFilters()
+
+TOOLTIPS_BIS = [("time", "@stamp")]
+
+mapper = LinearColorMapper(palette=Turbo256, low=t_min_g, high=t_max_g)
+colors = {'field': 'stamp', 'transform': mapper}
+
+p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,reset,hover", tooltips=TOOLTIPS_BIS, active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
+p_path.toolbar.logo = None
+p_path.toolbar_location = None
+p_path.image_url(url=['gui_server/static/' + img_file], x=x_range[0],y=y_range[1], w=x_range[1]-x_range[0],h=y_range[1]-y_range[0])
+path_H = p_path.circle('x', 'y', source=path_H_source, color=colors, size=8, muted_alpha=muted_alpha, legend_label="path H", view=view_h)
+path_R = p_path.circle('x', 'y', source=path_R_source, color=colors, size=8, muted_alpha=muted_alpha, legend_label="path R", view=view_r)
+p_path.legend.click_policy = "hide"
+
+def updateMapper():
+    global mapper
+    mapper.low = t_min_g
+    mapper.high = t_max_g
+color_bar = ColorBar(color_mapper=mapper, width=8)
+p_path.add_layout(color_bar, 'right')
+
+######################################################################################################
+######################################################################################################
+######################################################################################################
 #############
 ## WIDGETS ##
 #############
@@ -462,13 +599,15 @@ t_min_input = TextInput(value="{:.1f}".format(min_x_default), title="Time min:",
 def update_t_min(attr,old,new):
     global t_min_input
     global t_min_g
+    global view_h
     t_min = 0.0
     try:
         t_min = float(new)
         t_min_input.background = None
-        updateFigureRange(min_x=t_min)
         t_min_g = t_min
-
+        updateFigureRange(min_x=t_min)
+        updateFilters()
+        updateMapper()
     except:
         print("Wrong input time min ...")
         t_min_input.background = "red"
@@ -483,8 +622,10 @@ def update_t_max(attr,old,new):
     try:
         t_max = float(new)
         t_max_input.background = None
-        updateFigureRange(max_x=t_max)
         t_max_g = t_max
+        updateFigureRange(max_x=t_max)
+        updateFilters()
+        updateMapper()
     except:
         print("Wrong input time max ...")
         t_max_input.background = "red"
@@ -534,126 +675,6 @@ reset_range_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
     p4.reset.emit()
     """))
 
-######################################################################################################
-######################################## COLORED PATH ################################################
-######################################################################################################
-#############
-## FIGURES ##
-#############
-
-map_name = "passage_hri"
-
-# Get info on map
-filename = "gui_server/static/" + map_name + "_data.txt"
-
-img_file = None
-img_size = None
-img_resolution = None
-img_offset = None
-
-f = open(filename, "r")
-for line in f:
-    if 'str' in line:
-        break
-    if line != "\n":
-        line = line.replace("\n","")
-        mylist = line.split(" ")
-
-        if mylist[0] == 'image:':
-            img_file = mylist[1]
-        elif mylist[0] == 'size:':
-            img_size = (int(mylist[1]), int(mylist[2]))
-        elif mylist[0] == 'resolution:':
-            img_resolution = float(mylist[1])
-        elif mylist[0] == 'offset:':
-            img_offset = (float(mylist[1]), float(mylist[2]))
-f.close()
-
-print(img_file)
-print(img_size)
-print(img_resolution)
-print(img_offset)
-
-
-x_range = (0,img_size[0]*img_resolution)
-y_range = (0,img_size[1]*img_resolution)
-x_range = (x_range[0]+img_offset[0], x_range[1]+img_offset[0])
-y_range = (y_range[0]+img_offset[1], y_range[1]+img_offset[1])
-
-# get time start time end
-# Td=64
-# Tf=90
-# dT = Tf-Td
-
-filename = "inhus_logs/poseLog.txt"
-f = open(filename, "r")
-
-print("poseLog file open")
-
-# start log line
-string = f.readline()
-
-path_H_stamp = []
-path_H_x = []
-path_H_y = []
-path_H_theta = []
-
-path_R_stamp = []
-path_R_x = []
-path_R_y =[]
-path_R_theta = []
-
-for line in f:
-    if 'str' in line:
-        break
-    if line != "\n":
-        line = line.replace("\n","")
-        mylist = line.split(" ")
-
-        if mylist[2] == 'H':
-            path_H_stamp.append(float(mylist[0]))
-            path_H_x.append(float(mylist[3]))
-            path_H_y.append(float(mylist[4]))
-            path_H_theta.append(float(mylist[5]))
-
-        elif mylist[2] == 'R':
-            path_R_stamp.append(float(mylist[0]))
-            path_R_x.append(float(mylist[3]))
-            path_R_y.append(float(mylist[4]))
-            path_R_theta.append(float(mylist[5]))
-f.close()
-
-path_H_source = ColumnDataSource(dict(x=path_H_x, y=path_H_y, theta=path_H_theta, stamp=path_H_stamp))
-path_R_source = ColumnDataSource(dict(x=path_R_x, y=path_R_y, theta=path_R_theta, stamp=path_R_stamp))
-
-resol = 1
-resol_filter_h = IndexFilter(np.arange(0, len(path_H_source.data["x"]), resol))
-resol_filter_r = IndexFilter(np.arange(0, len(path_R_source.data["x"]), resol))
-
-view_h = CDSView(source=path_H_source, filters=[resol_filter_h])
-view_r = CDSView(source=path_R_source, filters=[resol_filter_r])
-
-mapper = linear_cmap(field_name='stamp', palette=Turbo256 ,low=t_min_g ,high=t_max_g)
-
-TOOLTIPS_BIS = [("time", "@stamp")]
-
-
-p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,reset,hover", tooltips=TOOLTIPS_BIS, active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
-# p_path.add_tools(HoverTool(tooltips=TOOLTIPS))
-p_path.toolbar.logo = None
-p_path.toolbar.autohide = True
-p_path.image_url(url=['gui_server/static/' + img_file], x=x_range[0],y=y_range[1], w=x_range[1]-x_range[0],h=y_range[1]-y_range[0])
-path_H = p_path.circle('x', 'y', source=path_H_source, color=mapper, size=8, muted_alpha=muted_alpha, legend_label="path H", view=view_h)
-path_R = p_path.circle('x', 'y', source=path_R_source, color=mapper, size=8, muted_alpha=muted_alpha, legend_label="path R", view=view_r)
-p_path.legend.click_policy = "hide"
-
-color_bar = ColorBar(color_mapper=mapper['transform'], width=8)
-p_path.add_layout(color_bar, 'right')
-
-######################################################################################################
-############
-## WIDGET ##
-############
 
 ######################################################################################################
 ######################################################################################################
