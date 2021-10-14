@@ -1,10 +1,19 @@
+from os import times
 from bokeh.io import curdoc
 from bokeh.layouts import layout, column, row
-from bokeh.models import Div, Slider, LinearAxis, Range1d, CheckboxGroup, CheckboxButtonGroup, Button, HoverTool, RadioButtonGroup, ColumnDataSource, TextInput
+from bokeh.models import HoverTool, WheelZoomTool
+from bokeh.models import Div, Slider, CheckboxGroup, CheckboxButtonGroup, Button, RadioButtonGroup, TextInput, WheelZoomTool
+from bokeh.models import LinearAxis, Range1d, ColumnDataSource, ColorBar, CDSView, IndexFilter
 from bokeh.models.callbacks import CustomJS
 from bokeh.plotting import figure, show, output_file
+from bokeh.palettes import Spectral6, Turbo256
+from bokeh.transform import linear_cmap
+from bokeh.themes import built_in_themes
 import sys
+import numpy as np
 
+
+######################################################################################################
 ######################################################################################################
 
 path_data = []
@@ -61,6 +70,7 @@ max_vel = 0
 max_rel_vel = 0
 max_tcc = 0
 
+######################################################################################################
 ######################################################################################################
 
 def readDataFromFile(filename):
@@ -214,6 +224,7 @@ def updateColumnDataSource():
     seen_ratio_source.data = dict(x=seen_ratio_time, y=seen_ratio_data)
 
 ######################################################################################################
+######################################################################################################
 
 readDataFromFile("inhus_logs/log.txt")
 treatData()
@@ -223,10 +234,14 @@ height = 170
 width = 800
 muted_alpha=0.2
 margin=-100
+t_min_g = min_x_default
+t_max_g = max_x_default
 default_click_policy = "mute"
 common_tools = "pan,wheel_zoom,box_zoom,save,crosshair"
 TOOLTIPS = [("(x,y)", "($x, $y)")]
 
+######################################################################################################
+############################################ GRAPHS ##################################################
 ######################################################################################################
 #############
 ## FIGURES ##
@@ -446,11 +461,14 @@ update_data_button.on_click(updateData)
 t_min_input = TextInput(value="{:.1f}".format(min_x_default), title="Time min:", width=70)
 def update_t_min(attr,old,new):
     global t_min_input
+    global t_min_g
     t_min = 0.0
     try:
         t_min = float(new)
         t_min_input.background = None
         updateFigureRange(min_x=t_min)
+        t_min_g = t_min
+
     except:
         print("Wrong input time min ...")
         t_min_input.background = "red"
@@ -460,11 +478,13 @@ t_min_input.on_change("value", update_t_min)
 t_max_input = TextInput(value="{:.1f}".format(max_x_default), title="Time max:", width=70)
 def update_t_max(attr,old,new):
     global t_max_input
+    global t_max_g
     t_max = 0.0
     try:
         t_max = float(new)
         t_max_input.background = None
         updateFigureRange(max_x=t_max)
+        t_max_g = t_max
     except:
         print("Wrong input time max ...")
         t_max_input.background = "red"
@@ -515,6 +535,128 @@ reset_range_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
     """))
 
 ######################################################################################################
+######################################## COLORED PATH ################################################
+######################################################################################################
+#############
+## FIGURES ##
+#############
+
+map_name = "passage_hri"
+
+# Get info on map
+filename = "gui_server/static/" + map_name + "_data.txt"
+
+img_file = None
+img_size = None
+img_resolution = None
+img_offset = None
+
+f = open(filename, "r")
+for line in f:
+    if 'str' in line:
+        break
+    if line != "\n":
+        line = line.replace("\n","")
+        mylist = line.split(" ")
+
+        if mylist[0] == 'image:':
+            img_file = mylist[1]
+        elif mylist[0] == 'size:':
+            img_size = (int(mylist[1]), int(mylist[2]))
+        elif mylist[0] == 'resolution:':
+            img_resolution = float(mylist[1])
+        elif mylist[0] == 'offset:':
+            img_offset = (float(mylist[1]), float(mylist[2]))
+f.close()
+
+print(img_file)
+print(img_size)
+print(img_resolution)
+print(img_offset)
+
+
+x_range = (0,img_size[0]*img_resolution)
+y_range = (0,img_size[1]*img_resolution)
+x_range = (x_range[0]+img_offset[0], x_range[1]+img_offset[0])
+y_range = (y_range[0]+img_offset[1], y_range[1]+img_offset[1])
+
+# get time start time end
+# Td=64
+# Tf=90
+# dT = Tf-Td
+
+filename = "inhus_logs/poseLog.txt"
+f = open(filename, "r")
+
+print("poseLog file open")
+
+# start log line
+string = f.readline()
+
+path_H_stamp = []
+path_H_x = []
+path_H_y = []
+path_H_theta = []
+
+path_R_stamp = []
+path_R_x = []
+path_R_y =[]
+path_R_theta = []
+
+for line in f:
+    if 'str' in line:
+        break
+    if line != "\n":
+        line = line.replace("\n","")
+        mylist = line.split(" ")
+
+        if mylist[2] == 'H':
+            path_H_stamp.append(float(mylist[0]))
+            path_H_x.append(float(mylist[3]))
+            path_H_y.append(float(mylist[4]))
+            path_H_theta.append(float(mylist[5]))
+
+        elif mylist[2] == 'R':
+            path_R_stamp.append(float(mylist[0]))
+            path_R_x.append(float(mylist[3]))
+            path_R_y.append(float(mylist[4]))
+            path_R_theta.append(float(mylist[5]))
+f.close()
+
+path_H_source = ColumnDataSource(dict(x=path_H_x, y=path_H_y, theta=path_H_theta, stamp=path_H_stamp))
+path_R_source = ColumnDataSource(dict(x=path_R_x, y=path_R_y, theta=path_R_theta, stamp=path_R_stamp))
+
+resol = 1
+resol_filter_h = IndexFilter(np.arange(0, len(path_H_source.data["x"]), resol))
+resol_filter_r = IndexFilter(np.arange(0, len(path_R_source.data["x"]), resol))
+
+view_h = CDSView(source=path_H_source, filters=[resol_filter_h])
+view_r = CDSView(source=path_R_source, filters=[resol_filter_r])
+
+mapper = linear_cmap(field_name='stamp', palette=Turbo256 ,low=t_min_g ,high=t_max_g)
+
+TOOLTIPS_BIS = [("time", "@stamp")]
+
+
+p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,reset,hover", tooltips=TOOLTIPS_BIS, active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
+# p_path.add_tools(HoverTool(tooltips=TOOLTIPS))
+p_path.toolbar.logo = None
+p_path.toolbar.autohide = True
+p_path.image_url(url=['gui_server/static/' + img_file], x=x_range[0],y=y_range[1], w=x_range[1]-x_range[0],h=y_range[1]-y_range[0])
+path_H = p_path.circle('x', 'y', source=path_H_source, color=mapper, size=8, muted_alpha=muted_alpha, legend_label="path H", view=view_h)
+path_R = p_path.circle('x', 'y', source=path_R_source, color=mapper, size=8, muted_alpha=muted_alpha, legend_label="path R", view=view_r)
+p_path.legend.click_policy = "hide"
+
+color_bar = ColorBar(color_mapper=mapper['transform'], width=8)
+p_path.add_layout(color_bar, 'right')
+
+######################################################################################################
+############
+## WIDGET ##
+############
+
+######################################################################################################
+######################################################################################################
 ############
 ## LAYOUT ##
 ############
@@ -522,20 +664,20 @@ reset_range_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
 plot_size_column = column(plot_size_div, slider_height, slider_width, reset_size_button)
 legend_column = column(legend_div, legend_button, hide_mute_button_div, hide_mute_button)
 other_column = column(other_div, reset_button, update_data_button)
-
 t_range_row = row(t_min_input, t_max_input)
 range_column = column(range_div,t_range_row, reset_range_button)
+first_row_graph = row(plot_size_column, legend_column, range_column, other_column)
+graph_column = column(first_row_graph, p1, p2, p3, p4)
+
+path_column = column(p_path)
 
 layout = layout(
     [
         [inhus_div],
-        [plot_size_column, legend_column, range_column, other_column],
-        [p1],
-        [p2],
-        [p3],
-        [p4],
+        [graph_column, path_column],
     ])
 
+######################################################################################################
 ######################################################################################################
 ##########
 ## SHOW ##
@@ -544,5 +686,6 @@ layout = layout(
 # show result
 # show(layout)
 
+# curdoc().theme = 'dark_minimal'
 curdoc().add_root(layout)
 curdoc().title = "InHuS Logs"
