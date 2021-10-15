@@ -224,7 +224,7 @@ margin=-100
 t_min_g = min_x_default
 t_max_g = max_x_default
 default_click_policy = "mute"
-common_tools = "pan,wheel_zoom,box_zoom,save,crosshair"
+common_tools = "pan,wheel_zoom,save,crosshair"
 TOOLTIPS = [("(x,y)", "($x, $y)")]
 
 ######################################################################################################
@@ -236,7 +236,8 @@ TOOLTIPS = [("(x,y)", "($x, $y)")]
 
 p1 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p1.toolbar.logo = None
-p1.toolbar.autohide = True
+p1.toolbar.autohide = False
+p1.toolbar_location = 'left'
 p1.add_tools(HoverTool(tooltips=TOOLTIPS))
 p1.yaxis.axis_label = "Path length (m)"
 path = p1.cross('x', 'y', source=path_source, size=8, line_width=2, muted_alpha=muted_alpha, legend_label="path length")
@@ -250,7 +251,8 @@ p1.legend.click_policy=default_click_policy
 
 p2 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p2.toolbar.logo = None
-p2.toolbar.autohide = True
+p2.toolbar.autohide = False
+p2.toolbar_location = 'left'
 p2.add_tools(HoverTool(tooltips=TOOLTIPS))
 p2.yaxis.axis_label = "H-R Distance (m)"
 p2.extra_y_ranges = {"foo": Range1d(start=0, end=max_vel)}
@@ -264,7 +266,8 @@ p2.legend.click_policy=default_click_policy
 
 p3 = figure(x_range=(min_x_default, max_x_default), y_range=(0, max_tcc), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p3.toolbar.logo = None
-p3.toolbar.autohide = True
+p3.toolbar.autohide = False
+p3.toolbar_location = 'left'
 p3.add_tools(HoverTool(tooltips=TOOLTIPS))
 p3.yaxis.axis_label = "TTC (s)"
 p3.extra_y_ranges = {"foo2" : Range1d(start=0, end=max_rel_vel)}
@@ -277,7 +280,8 @@ p3.legend.click_policy=default_click_policy
 
 p4 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p4.toolbar.logo = None
-p4.toolbar.autohide = True
+p4.toolbar.autohide = False
+p4.toolbar_location = 'left'
 p4.add_tools(HoverTool(tooltips=TOOLTIPS, mode='vline'))
 p4.xaxis.axis_label = "Time (s)"
 p4.yaxis.axis_label = "Seen ratio  / Surprised"
@@ -436,7 +440,7 @@ colors = {'field': 'stamp', 'transform': mapper}
 TOOLTIPS_BIS = [("time", "@stamp")]
 p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,reset,hover", tooltips=TOOLTIPS_BIS, active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
 p_path.toolbar.logo = None
-p_path.toolbar_location = None
+p_path.toolbar_location = 'below'
 p_path.image_url(url=['gui_server/static/' + img_file], x=x_range[0],y=y_range[1], w=x_range[1]-x_range[0],h=y_range[1]-y_range[0])
 path_H = p_path.circle('x', 'y', source=path_H_source, color=colors, size=8, muted_alpha=muted_alpha, legend_label="path H", view=view_h)
 path_R = p_path.circle('x', 'y', source=path_R_source, color=colors, size=8, muted_alpha=muted_alpha, legend_label="path R", view=view_r)
@@ -481,14 +485,14 @@ other_div = Div(text="<b>Other:</b>")
 range_div = Div(text="<b>Range:</b>")
 
 # Slider Height
-slider_height = Slider(title="height", start = 100, end = 500, step = 1, value = height)
+slider_height = Slider(title="height", start = 100, end = 500, step = 1, value = height, width=200)
 slider_height.js_link("value", p1, "height")
 slider_height.js_link("value", p2, "height")
 slider_height.js_link("value", p3, "height")
 slider_height.js_link("value", p4, "height")
 
 # Slider Width
-slider_width = Slider(title="width", start = 100, end = 1800, step = 1, value = width)
+slider_width = Slider(title="width", start = 100, end = 1800, step = 1, value = width, width=200)
 slider_width.js_on_change("value",
     CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
         code="""
@@ -608,6 +612,8 @@ def updateData(event=None):
 
     readPoseData()
     updatePoseSource()
+    updateFilters()
+    updateMapper()
 update_data_button = Button(label="Update data", button_type="success", width_policy="min", align="center")
 update_data_button.on_click(updateData)
 
@@ -647,6 +653,95 @@ def update_t_max(attr,old,new):
         print("Wrong input time max ...")
         t_max_input.background = "red"
 t_max_input.on_change("value", update_t_max)
+
+# Button t_min minus
+t_min_minus = Button(label="-", button_type="default", width_policy="min", margin=(0,2,2,2), align="center")
+def t_min_minusCB():
+    global t_min_input
+    global t_min_g
+
+    t_min_g -= 1.0
+    t_min_g = round(t_min_g)
+
+    t_min_input.value = str(t_min_g)
+t_min_minus.on_click(t_min_minusCB)
+
+# Button t_min plus
+t_min_plus = Button(label="+", button_type="default", width_policy="min", margin=(2,2,2,2), align="center")
+def t_min_plusCB():
+    global t_min_input
+    global t_min_g
+
+    t_min_g += 1.0
+    t_min_g = round(t_min_g)
+
+    t_min_input.value = str(t_min_g)
+t_min_plus.on_click(t_min_plusCB)
+
+# Button t_max minus
+t_max_minus = Button(label="-", button_type="default", width_policy="min", margin=(0,2,2,2), align="center")
+def t_max_minusCB():
+    global t_max_input
+    global t_max_g
+
+    t_max_g -= 1.0
+    t_max_g = round(t_max_g)
+
+    t_max_input.value = str(t_max_g)
+t_max_minus.on_click(t_max_minusCB)
+
+# Button t_max plus
+t_max_plus = Button(label="+", button_type="default", width_policy="min", margin=(2,2,2,2), align="center")
+def t_max_plusCB():
+    global t_max_input
+    global t_max_g
+
+    t_max_g += 1.0
+    t_max_g = round(t_max_g)
+
+    t_max_input.value = str(t_max_g)
+t_max_plus.on_click(t_max_plusCB)
+
+# Button set range mvt
+set_range_mvt_button = Button(label="Set movement range", button_type="default", width_policy="min", align="center")
+def set_range_mvt_buttonCB():
+    global t_min_g
+    global t_min_input
+    global t_max_g
+    global t_max_input
+
+    margin = 1.5
+
+    # Get min t mvt
+    for i, vel in enumerate(vel_h_source.data["y"]):
+        if vel != 0.0:
+            t_min_mvt_h = vel_h_source.data["x"][i]
+            break
+    for i, vel in enumerate(vel_r_source.data["y"]):
+        if vel != 0.0:
+            t_min_mvt_r = vel_r_source.data["x"][i]
+            break
+    t_min_mvt = min(t_min_mvt_h, t_min_mvt_r)-margin
+
+    # Get max t mvt
+    for i in range(len(vel_h_source.data["y"])-1, -1, -1):
+        vel = vel_h_source.data["y"][i]
+        if vel != 0.0:
+            t_max_mvt_h = vel_h_source.data["x"][i]
+            break
+    for i in range(len(vel_r_source.data["y"])-1, -1, -1):
+        vel = vel_r_source.data["y"][i]
+        if vel != 0.0:
+            t_max_mvt_r = vel_r_source.data["x"][i]
+            break
+    t_max_mvt = max(t_max_mvt_h, t_max_mvt_r)+margin
+
+    t_min_g = t_min_mvt
+    t_max_g = t_max_mvt
+
+    t_min_input.value = "{:.1f}".format(t_min_g)
+    t_max_input.value = "{:.1f}".format(t_max_g)
+set_range_mvt_button.on_click(set_range_mvt_buttonCB)
 
 # Button Reset Plots
 reset_button = Button(label="Reset plots", button_type="primary", width_policy="min", align="center")
@@ -701,9 +796,9 @@ reset_range_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
 
 plot_size_column = column(plot_size_div, slider_height, slider_width, reset_size_button)
 legend_column = column(legend_div, legend_button, hide_mute_button_div, hide_mute_button)
-other_column = column(other_div, reset_button, update_data_button)
-t_range_row = row(t_min_input, t_max_input)
-range_column = column(range_div, t_range_row, reset_range_button)
+other_column = column(other_div, reset_button, update_data_button, set_range_mvt_button)
+t_range = row(column(t_min_input, row(t_min_minus, t_min_plus, align='center')), column(t_max_input, row(t_max_minus, t_max_plus, align='center')))
+range_column = column(range_div, t_range, reset_range_button)
 first_row_graph = row(plot_size_column, legend_column, range_column, other_column)
 graph_column = column(first_row_graph, p1, p2, p3, p4)
 
