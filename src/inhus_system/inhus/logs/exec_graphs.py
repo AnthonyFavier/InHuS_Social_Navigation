@@ -187,13 +187,10 @@ ax6.set_ylim(bottom=0)
 ax7.set_xlabel('time (s)')
 ax7.set_ylabel('seen ratio')
 ax7.plot(seen_ratio_time, seen_ratio_data, '-k')
+surprise, = ax7.plot(surprise_time, surprise_data, 'ro')
+ax7.legend([surprise], ['surprise'])
 ax7.set_ylim(bottom=0, top=1)
 ax7.set_xlim(left=min_x, right=max_x)
-
-ax8 = ax7.twinx()
-ax8.set_ylabel('surprise')
-ax8.plot(surprise_time, surprise_data, 'ro')
-ax8.set_ylim(bottom=0, top=1)
 
 if len(sys.argv)>=3:
     left_lim = float(sys.argv[2])

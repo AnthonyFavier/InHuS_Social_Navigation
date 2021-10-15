@@ -65,10 +65,10 @@ for line in f:
 f.close()
 
 
-# im = Image.open("log_rsc/laas_adream.png").convert("RGBA")
-im = Image.open("log_rsc/passage_hri.png").convert("RGBA")
-# im = Image.open("log_rsc/corridor_hri.png").convert("RGBA")
-# im = Image.open("log_rsc/narr_corridor_hri.png").convert("RGBA")
+# im = Image.open("rsc/laas_adream.png").convert("RGBA")
+im = Image.open("rsc/passage_hri.png").convert("RGBA")
+# im = Image.open("rsc/corridor_hri.png").convert("RGBA")
+# im = Image.open("rsc/narr_corridor_hri.png").convert("RGBA")
 draw = ImageDraw.Draw(im)
 size_im = (draw.im.size[0],draw.im.size[1])
 size = 4
@@ -121,8 +121,8 @@ if show_R:
 
 
 
-img_h = Image.open("log_rsc/img_h.png", 'r').convert("RGBA")
-img_r = Image.open("log_rsc/img_r.png", 'r').convert("RGBA")
+img_h = Image.open("rsc/img_h.png", 'r').convert("RGBA")
+img_r = Image.open("rsc/img_r.png", 'r').convert("RGBA")
 offset = (15,15)
 data_h = np.array(img_h)   # "data" is a height x width x 4 numpy array
 red, green, blue, alpha = data_h.T # Temporarily unpack the bands for readability
@@ -132,8 +132,8 @@ red, green, blue, alpha = data_r.T # Temporarily unpack the bands for readabilit
 white_areas_r = (red == 255) & (blue == 255) & (green == 255)
 
 
-delay_draw = 6.4
-nb_drawn_max = 5
+delay_draw = 4.0
+nb_drawn_max = 10
 
 # Get i start, when one agent starts moving
 start_pose_h = path_H[0][1]
@@ -168,7 +168,6 @@ if show_H:
                 pose = convert_pose_map(path_H[i][1])
                 im.paste(img_h_colored_rotated, (pose[0]-offset[0], pose[1]-offset[1]), img_h_colored_rotated)
 
-                print("drawn h {} {} {} {}".format(pose[0], pose[1], angle, path_H[i][0]))
                 last_drawn = path_H[i][0]
                 nb_draw +=1
                 # draw.text((pose[0], pose[1]), "H", font=ImageFont.truetype("FreeMonoBold.ttf", 18), fill=(0,0,0))
@@ -198,7 +197,6 @@ if show_R:
                 # draw.pieslice([pose[0]-size_arrow, pose[1]-size_arrow, pose[0]+size_arrow, pose[1]+size_arrow], angle-angle_arrow, angle+angle_arrow, fill=(color), outline=(255,0,0))
                 # draw.text((pose[0], pose[1]), "R", font=ImageFont.truetype("FreeMonoBold.ttf", 18), fill=(0,0,0))
                 last_drawn = path_R[i][0]
-                print("drawn r {} {} {} {}".format(pose[0], pose[1], angle, path_R[i][0]))
                 nb_draw +=1
 
 
