@@ -7,17 +7,17 @@
 
   <!-- MAP SERVERS -->
   <!-- static map server -->
-  <include file="$(find inhus_navigation)/launch/inhus_nav_launch/include/map_static.launch">
+  <include file="$(find inhus_navigation)/launch/inhus_nav_launch/include/_map_static.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
   <!-- pov map server -->
-  <include file="$(find inhus_navigation)/launch/inhus_nav_launch/include/map_pov.launch">
+  <include file="$(find inhus_navigation)/launch/inhus_nav_launch/include/_map_pov.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
-  <include file="$(find inhus_navigation)/launch/cohan_nav/include/agent_with_ns.launch">
+  <include file="$(find inhus_navigation)/launch/cohan_nav/include/_agent_with_ns.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="node_start_delay" value="$(arg node_start_delay)" />
     <arg name="localize" value="$(arg localize)"/>

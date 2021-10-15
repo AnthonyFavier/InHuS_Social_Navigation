@@ -7,7 +7,7 @@
   </include>
 
   <!-- Interface with the simulator -->
-  <include file="$(find inhus_navigation)/launch/simulator_launch/include/morse_interface.launch">
+  <include file="$(find inhus_navigation)/launch/simulator_launch/include/_morse_interface.launch">
     <arg name="ns" value="$(arg ns)"/>
   </include>
 

@@ -12,7 +12,7 @@
   </include>
 
   <!-- Interface with the simulator -->
-  <include file="$(find inhus_navigation)/launch/simulator_launch/include/stage_interface.launch">
+  <include file="$(find inhus_navigation)/launch/simulator_launch/include/_stage_interface.launch">
     <arg name="ns" value="$(arg ns)"/>
   </include>
 

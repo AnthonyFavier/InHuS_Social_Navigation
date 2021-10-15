@@ -9,7 +9,7 @@
     <param name="use_sim_time" type="bool" value="true" />
 
     <!-- start pr2 robot description -->
-    <include file="$(find inhus_navigation)/launch/other_launch/robot_description.launch"/>
+    <include file="$(find inhus_navigation)/launch/other_launch/_robot_description.launch"/>
 
     <!-- tuck the arms by default -->
     <include file="$(find morse_ros)/launch/pr2_tuck_arms.launch" />

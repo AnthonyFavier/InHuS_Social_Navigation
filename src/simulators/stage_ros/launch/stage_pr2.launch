@@ -17,6 +17,6 @@
   </node>
 
   <!-- start pr2 robot description -->
-  <include file="$(find inhus_navigation)/launch/other_launch/robot_description.launch"/>
+  <include file="$(find inhus_navigation)/launch/other_launch/_robot_description.launch"/>
 
 </launch>
