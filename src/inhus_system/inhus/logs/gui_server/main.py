@@ -2,7 +2,7 @@ from os import times
 from bokeh.io import curdoc
 from bokeh.layouts import layout, column, row
 from bokeh.models import HoverTool, WheelZoomTool
-from bokeh.models import Div, Slider, CheckboxGroup, CheckboxButtonGroup, Button, RadioButtonGroup, TextInput, WheelZoomTool
+from bokeh.models import Div, Slider, CheckboxGroup, CheckboxButtonGroup, Button, RadioButtonGroup, TextInput
 from bokeh.models import LinearAxis, Range1d, ColumnDataSource, ColorBar, CDSView, IndexFilter, CustomJSFilter
 from bokeh.models.callbacks import CustomJS
 from bokeh.plotting import figure, show, output_file
@@ -197,19 +197,6 @@ def treatData():
     max_tcc = computeYMax(ttc_data)
 
 def updateColumnDataSource():
-    global path_source
-    global first_source
-    global state_exec_source
-    global state_approach_source
-    global state_blocked_source
-    global dist_source
-    global vel_h_source
-    global vel_r_source
-    global ttc_source
-    global rel_spd_source
-    global surprise_source
-    global seen_ratio_source
-
     path_source.data = dict(x=path_time, y=path_data)
     first_source.data = dict(x=first_time, y=first_data)
     state_exec_source.data = dict(x=state_exec_time, y=state_exec_data)
@@ -307,81 +294,112 @@ p4.legend.click_policy=default_click_policy
 ## FIGURES ##
 #############
 
-map_name = "passage_hri"
-
-# Get info on map
-filename = "gui_server/static/" + map_name + "_data.txt"
+# Global var 
 img_file = None
 img_size = None
 img_resolution = None
 img_offset = None
-f = open(filename, "r")
-for line in f:
-    if 'str' in line:
-        break
-    if line != "\n":
-        line = line.replace("\n","")
-        mylist = line.split(" ")
-
-        if mylist[0] == 'image:':
-            img_file = mylist[1]
-        elif mylist[0] == 'size:':
-            img_size = (int(mylist[1]), int(mylist[2]))
-        elif mylist[0] == 'resolution:':
-            img_resolution = float(mylist[1])
-        elif mylist[0] == 'offset:':
-            img_offset = (float(mylist[1]), float(mylist[2]))
-f.close()
-x_range = (0,img_size[0]*img_resolution)
-y_range = (0,img_size[1]*img_resolution)
-x_range = (x_range[0]+img_offset[0], x_range[1]+img_offset[0])
-y_range = (y_range[0]+img_offset[1], y_range[1]+img_offset[1])
-
-
-# Read data 
-filename = "inhus_logs/poseLog.txt"
-f = open(filename, "r")
-
-# start log line
-string = f.readline()
+x_range = None
+y_range = None
 
 path_H_stamp = []
 path_H_x = []
 path_H_y = []
 path_H_theta = []
+path_H_source = ColumnDataSource()
 
 path_R_stamp = []
 path_R_x = []
-path_R_y =[]
+path_R_y = []
 path_R_theta = []
+path_R_source = ColumnDataSource()
 
-for line in f:
-    if 'str' in line:
-        break
-    if line != "\n":
-        line = line.replace("\n","")
-        mylist = line.split(" ")
+def getMapInfo(map_name):
+    global x_range
+    global y_range
+    global img_file
+    global img_size
+    global img_resolution
+    global img_offset
 
-        if mylist[2] == 'H':
-            path_H_stamp.append(float(mylist[0]))
-            path_H_x.append(float(mylist[3]))
-            path_H_y.append(float(mylist[4]))
-            path_H_theta.append(float(mylist[5]))
+    filename = "gui_server/static/" + map_name + "_data.txt"
+    f = open(filename, "r")
+    for line in f:
+        if 'str' in line:
+            break
+        if line != "\n":
+            line = line.replace("\n","")
+            mylist = line.split(" ")
 
-        elif mylist[2] == 'R':
-            path_R_stamp.append(float(mylist[0]))
-            path_R_x.append(float(mylist[3]))
-            path_R_y.append(float(mylist[4]))
-            path_R_theta.append(float(mylist[5]))
-f.close()
+            if mylist[0] == 'image:':
+                img_file = mylist[1]
+            elif mylist[0] == 'size:':
+                img_size = (int(mylist[1]), int(mylist[2]))
+            elif mylist[0] == 'resolution:':
+                img_resolution = float(mylist[1])
+            elif mylist[0] == 'offset:':
+                img_offset = (float(mylist[1]), float(mylist[2]))
+    f.close()
 
-path_H_source = ColumnDataSource(dict(x=path_H_x, y=path_H_y, theta=path_H_theta, stamp=path_H_stamp))
-path_R_source = ColumnDataSource(dict(x=path_R_x, y=path_R_y, theta=path_R_theta, stamp=path_R_stamp))
+    x_range = (0,img_size[0]*img_resolution)
+    y_range = (0,img_size[1]*img_resolution)
+    x_range = (x_range[0]+img_offset[0], x_range[1]+img_offset[0])
+    y_range = (y_range[0]+img_offset[1], y_range[1]+img_offset[1])
+
+def readPoseData():
+    filename = "inhus_logs/poseLog.txt"
+    f = open(filename, "r")
+
+    path_H_stamp.clear()
+    path_H_x.clear()
+    path_H_y.clear()
+    path_H_theta.clear()
+
+    path_R_stamp.clear()
+    path_R_x.clear()
+    path_R_y.clear()
+    path_R_theta.clear()
+
+    # start log line
+    string = f.readline()
+
+    for line in f:
+        if 'str' in line:
+            break
+        if line != "\n":
+            line = line.replace("\n","")
+            mylist = line.split(" ")
+            # print(mylist)
+
+            if mylist[2] == 'H':
+                path_H_stamp.append(float(mylist[0]))
+                path_H_x.append(float(mylist[3]))
+                path_H_y.append(float(mylist[4]))
+                path_H_theta.append(float(mylist[5]))
+
+            elif mylist[2] == 'R':
+                path_R_stamp.append(float(mylist[0]))
+                path_R_x.append(float(mylist[3]))
+                path_R_y.append(float(mylist[4]))
+                path_R_theta.append(float(mylist[5]))
+    f.close()
+
+def updatePoseSource():
+    path_H_source.data = dict(x=path_H_x, y=path_H_y, theta=path_H_theta, stamp=path_H_stamp)
+    path_R_source.data = dict(x=path_R_x, y=path_R_y, theta=path_R_theta, stamp=path_R_stamp)
+
+#########################
+
+getMapInfo("passage_hri")
+readPoseData()
+updatePoseSource()
 
 resol = 1
 resol_filter_h = IndexFilter(np.arange(0, len(path_H_source.data["x"]), resol))
 resol_filter_r = IndexFilter(np.arange(0, len(path_R_source.data["x"]), resol))
 
+view_h = CDSView(source=path_H_source, filters=[])
+view_r = CDSView(source=path_R_source, filters=[])
 def updateFilters():
     global view_h
     global view_r
@@ -409,17 +427,13 @@ def updateFilters():
     """)
 
     view_h.filters = [resol_filter_h, date_filter_h]
-    view_r.filters = [resol_filter_h, date_filter_r]
-
-view_h = CDSView(source=path_H_source, filters=[])
-view_r = CDSView(source=path_R_source, filters=[])
+    view_r.filters = [resol_filter_r, date_filter_r]
 updateFilters()
-
-TOOLTIPS_BIS = [("time", "@stamp")]
 
 mapper = LinearColorMapper(palette=Turbo256, low=t_min_g, high=t_max_g)
 colors = {'field': 'stamp', 'transform': mapper}
 
+TOOLTIPS_BIS = [("time", "@stamp")]
 p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,reset,hover", tooltips=TOOLTIPS_BIS, active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
 p_path.toolbar.logo = None
 p_path.toolbar_location = None
@@ -591,6 +605,9 @@ def updateData(event=None):
     treatData()
     updateColumnDataSource()
     updateFigureRange()
+
+    readPoseData()
+    updatePoseSource()
 update_data_button = Button(label="Update data", button_type="success", width_policy="min", align="center")
 update_data_button.on_click(updateData)
 
@@ -686,7 +703,7 @@ plot_size_column = column(plot_size_div, slider_height, slider_width, reset_size
 legend_column = column(legend_div, legend_button, hide_mute_button_div, hide_mute_button)
 other_column = column(other_div, reset_button, update_data_button)
 t_range_row = row(t_min_input, t_max_input)
-range_column = column(range_div,t_range_row, reset_range_button)
+range_column = column(range_div, t_range_row, reset_range_button)
 first_row_graph = row(plot_size_column, legend_column, range_column, other_column)
 graph_column = column(first_row_graph, p1, p2, p3, p4)
 
