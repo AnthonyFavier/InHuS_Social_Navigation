@@ -438,29 +438,43 @@ mapper = LinearColorMapper(palette=Turbo256, low=t_min_g, high=t_max_g)
 colors = {'field': 'stamp', 'transform': mapper}
 
 TOOLTIPS_BIS = [("index", "$index"), ("time", "@stamp")]
-hover_source = ColumnDataSource(dict(x=[], y=[], theta=[], stamp=[]))
+hover_h_source = ColumnDataSource(dict(x=[], y=[], theta=[], stamp=[]))
+hover_r_source = ColumnDataSource(dict(x=[], y=[], theta=[], stamp=[]))
 previous_source = ColumnDataSource({'x':[0], 'y':[0]})
-hover_pathCB = CustomJS(args=dict(hover_source=hover_source, path_H_source=path_H_source, path_R_source=path_R_source, previous_len=previous_source), code="""
+hover_pathCB = CustomJS(args=dict(hover_h_source=hover_h_source, hover_r_source=hover_r_source, path_H_source=path_H_source, path_R_source=path_R_source, previous_len=previous_source), code="""
     let indices = cb_data['index'].indices
     if(indices.length > 0)
     {
         let index = indices.at(-1)
-        let data = {
-        'x':[path_H_source.data['x'][index], path_R_source.data['x'][index]],
-        'y':[path_H_source.data['y'][index], path_R_source.data['y'][index]],
-        'theta':[path_H_source.data['theta'][index], path_R_source.data['theta'][index]],
-        'stamp':[path_H_source.data['stamp'][index], path_R_source.data['stamp'][index]]
+
+        let data_h = {
+        'x':[path_H_source.data['x'][index]],
+        'y':[path_H_source.data['y'][index]],
+        'theta':[path_H_source.data['theta'][index]-1.571],
+        'stamp':[path_H_source.data['stamp'][index]]
         }
-        hover_source.data = data
-        hover_source.change.emit()
+        hover_h_source.data = data_h
+        hover_h_source.change.emit()
+
+        let data_r = {
+        'x':[path_R_source.data['x'][index]],
+        'y':[path_R_source.data['y'][index]],
+        'theta':[path_R_source.data['theta'][index]-1.571],
+        'stamp':[path_R_source.data['stamp'][index]]
+        }
+        console.log(data_h['theta'][0])
+        hover_r_source.data = data_r
+        hover_r_source.change.emit()
     }
     else
     {
         if(previous_len.data['x'][0] == 0)
         {
             let data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
-            hover_source.data = data
-            hover_source.change.emit()
+            hover_h_source.data = data
+            hover_r_source.data = data
+            hover_h_source.change.emit()
+            hover_r_source.change.emit()
         }
     }
     previous_len.data['x'][0] = indices.length
@@ -469,14 +483,15 @@ hover_pathCB = CustomJS(args=dict(hover_source=hover_source, path_H_source=path_
 hover_path_tool = HoverTool(tooltips=None, names=["path_h", "path_r"], callback = hover_pathCB)
 
 radius_agents = 0.1
-p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,reset", active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
+p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,save,reset", active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
 p_path.toolbar.logo = None
 p_path.toolbar_location = 'below'
 p_path.add_tools(hover_path_tool)
 map_img = p_path.image_url(url=['gui_server/static/' + img_file], x=x_range[0],y=y_range[1], w=x_range[1]-x_range[0],h=y_range[1]-y_range[0])
 path_H = p_path.circle('x', 'y', source=path_H_source, name="path_h", color=colors, radius=radius_agents, muted_alpha=muted_alpha, legend_label="path H", view=view_h)
 path_R = p_path.circle('x', 'y', source=path_R_source, name="path_r", color=colors, radius=radius_agents, muted_alpha=muted_alpha, legend_label="path R", view=view_r)
-highlight = p_path.circle('x', 'y', source=hover_source, color=colors, radius=radius_agents*3, line_color="black")
+highlight_h = p_path.triangle('x', 'y', source=hover_h_source, color=colors, angle="theta", angle_units='rad', size=30, line_color="black", line_width=3)
+highlight_r = p_path.triangle('x', 'y', source=hover_r_source, color=colors, angle="theta", angle_units='rad', size=30, line_color="black")
 p_path.legend.click_policy = "hide"
 
 
