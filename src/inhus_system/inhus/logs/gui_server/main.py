@@ -11,6 +11,7 @@ from bokeh.transform import LinearColorMapper
 from bokeh.themes import built_in_themes
 import sys
 import numpy as np
+import math
 
 
 ######################################################################################################
@@ -392,6 +393,20 @@ def updatePoseSource():
     path_H_source.data = dict(x=path_H_x, y=path_H_y, theta=path_H_theta, stamp=path_H_stamp)
     path_R_source.data = dict(x=path_R_x, y=path_R_y, theta=path_R_theta, stamp=path_R_stamp)
 
+def findIndexWithVal(list, val, f_i):
+    margin = 0.05
+    if len(list)==0:
+        return None
+    else:
+        m = math.floor(len(list)/2)
+        # print("val={} len={} m={} list[m]={} f_i={}".format(val, len(list), m, list[m], f_i))
+        if list[m] > val-margin and list[m] < val+margin:
+            return f_i+m
+        elif val < list[m]-margin:
+            return findIndexWithVal(list[:m-1], val, f_i)
+        elif val > list[m]+margin:
+            return findIndexWithVal(list[m+1:], val, f_i+m+1)
+
 #########################
 
 getMapInfo("passage_hri")
@@ -462,7 +477,7 @@ hover_pathCB = CustomJS(args=dict(hover_h_source=hover_h_source, hover_r_source=
         'theta':[path_R_source.data['theta'][index]-1.571],
         'stamp':[path_R_source.data['stamp'][index]]
         }
-        console.log(data_h['theta'][0])
+        //console.log(data_h['theta'][0])
         hover_r_source.data = data_r
         hover_r_source.change.emit()
     }
@@ -836,6 +851,89 @@ reset_range_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
     p4.reset.emit()
     """))
 
+play_button = Button(label="Play", button_type="success", width_policy="min", align="center")
+periodic_cb = None
+playing = False
+def play_buttonCBp():
+    global i_play
+    global hover_path_tool
+    global playing
+
+    # print("step i_play={}".format(i_play))
+    hover_h_source.data = {
+    'x':[path_H_source.data['x'][i_play]],
+    'y':[path_H_source.data['y'][i_play]],
+    'theta':[path_H_source.data['theta'][i_play]-1.571],
+    'stamp':[path_H_source.data['stamp'][i_play]]
+    }
+
+    hover_r_source.data = {
+    'x':[path_R_source.data['x'][i_play]],
+    'y':[path_R_source.data['y'][i_play]],
+    'theta':[path_R_source.data['theta'][i_play]-1.571],
+    'stamp':[path_R_source.data['stamp'][i_play]]
+    }
+
+    i_play+= 15
+    if i_play > i_max_play:
+        hover_r_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
+        hover_h_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
+        playing = False
+        hover_path_tool.callback = hover_pathCB
+        curdoc().remove_periodic_callback(periodic_cb)
+def play_buttonCB(event):
+    global i_min_play
+    global i_max_play
+    global i_play
+    global periodic_cb
+    global hover_path_tool
+    global playing
+    
+    if playing:
+        hover_r_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
+        hover_h_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
+        if periodic_cb!=None:
+            curdoc().remove_periodic_callback(periodic_cb)
+
+    i_min_play=findIndexWithVal(path_H_source.data["stamp"], t_min_g, 0)
+    i_max_play=findIndexWithVal(path_H_source.data["stamp"], t_max_g, 0)
+    i_play = i_min_play
+
+    playing = True
+    hover_path_tool.callback = None
+    periodic_cb = curdoc().add_periodic_callback(play_buttonCBp, 100)
+    # real time : 1000ms <=> 120 index
+play_button.on_click(play_buttonCB)
+
+pause_button = Button(label="Pause", button_type="primary", width_policy="min", align="center")
+def pause_buttonCB(event):
+    global periodic_cb
+    if playing and periodic_cb!=None:
+        curdoc().remove_periodic_callback(periodic_cb)
+        periodic_cb = None
+pause_button.on_click(pause_buttonCB)
+
+resume_button = Button(label="Resume", button_type="primary", width_policy="min", align="center")
+def resume_buttonCB(event):
+    global periodic_cb
+    if playing and periodic_cb==None:
+        periodic_cb = curdoc().add_periodic_callback(play_buttonCBp, 100)
+resume_button.on_click(resume_buttonCB)
+
+stop_play_button = Button(label="Stop", button_type="danger", width_policy="min", align="center")
+def stop_play_buttonCB(event):
+    global periodic_cb
+    global hover_path_tool
+    global playing
+    if playing:
+        hover_r_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
+        hover_h_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
+        playing = False
+        hover_path_tool.callback = hover_pathCB
+        if periodic_cb!=None:
+            curdoc().remove_periodic_callback(periodic_cb)
+            periodic_cb = None
+stop_play_button.on_click(stop_play_buttonCB)
 
 ######################################################################################################
 ######################################################################################################
@@ -850,8 +948,9 @@ t_range = row(column(t_min_input, row(t_min_minus, t_min_plus, align='center')),
 range_column = column(range_div, t_range, reset_range_button)
 first_row_graph = row(plot_size_column, legend_column, range_column, other_column)
 graph_column = column(first_row_graph, p1, p2, p3, p4)
+anim_row = row(play_button, column(pause_button, resume_button, align="center"), stop_play_button, align="center")
 
-path_column = column(p_path)
+path_column = column(p_path, anim_row)
 
 layout = layout(
     [
@@ -865,8 +964,6 @@ layout = layout(
 ## SHOW ##
 ##########
 
-# show result
-# show(layout)
 
 # curdoc().theme = 'dark_minimal'
 curdoc().add_root(layout)
