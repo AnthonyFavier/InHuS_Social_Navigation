@@ -2,7 +2,7 @@ from os import times
 from bokeh.io import curdoc
 from bokeh.layouts import layout, column, row
 from bokeh.models import HoverTool, WheelZoomTool
-from bokeh.models import Div, Slider, CheckboxGroup, CheckboxButtonGroup, Button, RadioButtonGroup, TextInput
+from bokeh.models import Div, Slider, CheckboxGroup, CheckboxButtonGroup, Button, RadioButtonGroup, TextInput, PreText
 from bokeh.models import LinearAxis, Range1d, ColumnDataSource, ColorBar, CDSView, IndexFilter, CustomJSFilter
 from bokeh.models.callbacks import CustomJS
 from bokeh.plotting import figure, show, output_file
@@ -858,6 +858,7 @@ def play_buttonCBp():
     global i_play
     global hover_path_tool
     global playing
+    global time_path_pretext
 
     # print("step i_play={}".format(i_play))
     hover_h_source.data = {
@@ -881,6 +882,7 @@ def play_buttonCBp():
         playing = False
         hover_path_tool.callback = hover_pathCB
         curdoc().remove_periodic_callback(periodic_cb)
+        time_path_pretext.text=init_text_time_path_pretext
 def play_buttonCB(event):
     global i_min_play
     global i_max_play
@@ -888,7 +890,8 @@ def play_buttonCB(event):
     global periodic_cb
     global hover_path_tool
     global playing
-    
+    global playing_div
+
     if playing:
         hover_r_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
         hover_h_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
@@ -901,22 +904,31 @@ def play_buttonCB(event):
 
     playing = True
     hover_path_tool.callback = None
+    playing_div.text=init_playing_div_text + "playing"
     periodic_cb = curdoc().add_periodic_callback(play_buttonCBp, 100)
+    
     # real time : 1000ms <=> 120 index
 play_button.on_click(play_buttonCB)
 
 pause_button = Button(label="Pause", button_type="primary", width_policy="min", align="center")
 def pause_buttonCB(event):
     global periodic_cb
+    global time_path_pretext
+    global playing_div
     if playing and periodic_cb!=None:
         curdoc().remove_periodic_callback(periodic_cb)
+        playing_div.text=init_playing_div_text + "paused"
         periodic_cb = None
+        time_path_pretext.text=init_text_time_path_pretext + "{:.1f}".format(path_H_source.data['stamp'][i_play]) + "s"
+
 pause_button.on_click(pause_buttonCB)
 
 resume_button = Button(label="Resume", button_type="primary", width_policy="min", align="center")
 def resume_buttonCB(event):
     global periodic_cb
+    global playing_div
     if playing and periodic_cb==None:
+        playing_div.text=init_playing_div_text + "playing"
         periodic_cb = curdoc().add_periodic_callback(play_buttonCBp, 100)
 resume_button.on_click(resume_buttonCB)
 
@@ -925,6 +937,8 @@ def stop_play_buttonCB(event):
     global periodic_cb
     global hover_path_tool
     global playing
+    global time_path_pretext
+    global playing_div
     if playing:
         hover_r_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
         hover_h_source.data = {'x':[], 'y':[], 'theta':[], 'stamp':[]}
@@ -933,7 +947,15 @@ def stop_play_buttonCB(event):
         if periodic_cb!=None:
             curdoc().remove_periodic_callback(periodic_cb)
             periodic_cb = None
+        time_path_pretext.text=init_text_time_path_pretext
+        playing_div.text=init_playing_div_text + "stopped"
 stop_play_button.on_click(stop_play_buttonCB)
+
+init_text_time_path_pretext = "time paused:"
+time_path_pretext = PreText(text=init_text_time_path_pretext)
+
+init_playing_div_text = "<b>Animation : </b>"
+playing_div = Div(text=init_playing_div_text + "stopped")
 
 ######################################################################################################
 ######################################################################################################
@@ -950,7 +972,7 @@ first_row_graph = row(plot_size_column, legend_column, range_column, other_colum
 graph_column = column(first_row_graph, p1, p2, p3, p4)
 anim_row = row(play_button, column(pause_button, resume_button, align="center"), stop_play_button, align="center")
 
-path_column = column(p_path, anim_row)
+path_column = column(p_path, anim_row, playing_div, time_path_pretext)
 
 layout = layout(
     [
