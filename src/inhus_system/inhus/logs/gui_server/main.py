@@ -547,17 +547,18 @@ plot_size_div = Div(text="<b>Plot size:</b>")
 legend_div = Div(text="<b>Legend:</b>")
 other_div = Div(text="<b>Other:</b>")
 range_div = Div(text="<b>Range:</b>")
+time_colored_path_div = Div(text="<b>Time Colored Paths:</b>")
 
 # Slider Height
-slider_height = Slider(title="height", start = 100, end = 500, step = 1, value = height, width=200)
-slider_height.js_link("value", p1, "height")
-slider_height.js_link("value", p2, "height")
-slider_height.js_link("value", p3, "height")
-slider_height.js_link("value", p4, "height")
+height_slider = Slider(title="height", start = 100, end = 500, step = 1, value = height, width=200)
+height_slider.js_link("value", p1, "height")
+height_slider.js_link("value", p2, "height")
+height_slider.js_link("value", p3, "height")
+height_slider.js_link("value", p4, "height")
 
 # Slider Width
-slider_width = Slider(title="width", start = 100, end = 1800, step = 1, value = width, width=200)
-slider_width.js_on_change("value",
+width_slider = Slider(title="width", start = 100, end = 1800, step = 1, value = width, width=200)
+width_slider.js_on_change("value",
     CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
         code="""
             p1.frame_width = cb_obj.value
@@ -569,8 +570,8 @@ slider_width.js_on_change("value",
         """))
 
 # Button Show Legend
-legend_button = CheckboxButtonGroup(labels=["Show legends"], active=[], width_policy="min", align="center")
-legend_button.js_on_change(
+show_legend_button = CheckboxButtonGroup(labels=["Show legends"], active=[], width_policy="min", align="center")
+show_legend_button.js_on_change(
     "active", 
     CustomJS(args=dict(l1=p1.legend[0], l2=p2.legend[0], l3=p3.legend[0], l4=p4.legend[0]),
     code="""
@@ -597,8 +598,8 @@ legend_button.js_on_change(
     """))
 
 # Button Reset Size
-reset_size_button = Button(label="Reset plot sizes", button_type="primary", width_policy="min")
-reset_size_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4, h=height, w=width, sh=slider_height, sw=slider_width), 
+reset_plot_size_button = Button(label="Reset plot sizes", button_type="primary", width_policy="min")
+reset_plot_size_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4, h=height, w=width, sh=height_slider, sw=width_slider), 
     code="""
     p1.frame_width = w
     p1.height = h
@@ -668,7 +669,7 @@ def updateFigureRange(min_x=None, max_x=None):
         p3.x_range.end=max_x
         p4.x_range.start=min_x
         p4.x_range.end=max_x
-def updateData(event=None):
+def updateDataCB(event=None):
     readDataFromFile("inhus_logs/log.txt")
     treatData()
     updateColumnDataSource()
@@ -679,7 +680,7 @@ def updateData(event=None):
     updateFilters()
     updateMapper()
 update_data_button = Button(label="Update data", button_type="success", width_policy="min", align="center")
-update_data_button.on_click(updateData)
+update_data_button.on_click(updateDataCB)
 
 # TextInput t_min
 t_min_input = TextInput(value="{:.1f}".format(min_x_default), title="Time min:", width=70)
@@ -705,7 +706,7 @@ t_max_input = TextInput(value="{:.1f}".format(max_x_default), title="Time max:",
 def update_t_max(attr,old,new):
     global t_max_input
     global t_max_g
-    t_max = 0.0
+    # t_max = 0.0
     try:
         t_max = float(new)
         t_max_input.background = None
@@ -719,8 +720,8 @@ def update_t_max(attr,old,new):
 t_max_input.on_change("value", update_t_max)
 
 # Button t_min minus
-t_min_minus = Button(label="-", button_type="default", width_policy="min", margin=(0,2,2,2), align="center")
-def t_min_minusCB():
+t_min_minus_button = Button(label="-", button_type="default", width_policy="min", margin=(0,2,2,2), align="center")
+def t_min_minus_buttonCB():
     global t_min_input
     global t_min_g
 
@@ -728,11 +729,11 @@ def t_min_minusCB():
     t_min_g = round(t_min_g)
 
     t_min_input.value = str(t_min_g)
-t_min_minus.on_click(t_min_minusCB)
+t_min_minus_button.on_click(t_min_minus_buttonCB)
 
 # Button t_min plus
-t_min_plus = Button(label="+", button_type="default", width_policy="min", margin=(2,2,2,2), align="center")
-def t_min_plusCB():
+t_min_plus_button = Button(label="+", button_type="default", width_policy="min", margin=(2,2,2,2), align="center")
+def t_min_plus_buttonCB():
     global t_min_input
     global t_min_g
 
@@ -740,11 +741,11 @@ def t_min_plusCB():
     t_min_g = round(t_min_g)
 
     t_min_input.value = str(t_min_g)
-t_min_plus.on_click(t_min_plusCB)
+t_min_plus_button.on_click(t_min_plus_buttonCB)
 
 # Button t_max minus
-t_max_minus = Button(label="-", button_type="default", width_policy="min", margin=(0,2,2,2), align="center")
-def t_max_minusCB():
+t_max_minus_button = Button(label="-", button_type="default", width_policy="min", margin=(0,2,2,2), align="center")
+def t_max_minus_buttonCB():
     global t_max_input
     global t_max_g
 
@@ -752,11 +753,11 @@ def t_max_minusCB():
     t_max_g = round(t_max_g)
 
     t_max_input.value = str(t_max_g)
-t_max_minus.on_click(t_max_minusCB)
+t_max_minus_button.on_click(t_max_minus_buttonCB)
 
 # Button t_max plus
-t_max_plus = Button(label="+", button_type="default", width_policy="min", margin=(2,2,2,2), align="center")
-def t_max_plusCB():
+t_max_plus_button = Button(label="+", button_type="default", width_policy="min", margin=(2,2,2,2), align="center")
+def t_max_plus_buttonCB():
     global t_max_input
     global t_max_g
 
@@ -764,7 +765,7 @@ def t_max_plusCB():
     t_max_g = round(t_max_g)
 
     t_max_input.value = str(t_max_g)
-t_max_plus.on_click(t_max_plusCB)
+t_max_plus_button.on_click(t_max_plus_buttonCB)
 
 # Button set range mvt
 set_range_mvt_button = Button(label="Set movement range", button_type="default", width_policy="min", align="center")
@@ -825,7 +826,7 @@ reset_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
     """))
 
 # Button Reset Plots Range
-reset_range_button = Button(label="Reset range plots", button_type="primary", width_policy="min", align="center")
+reset_range_button = Button(label="Reset plots with range", button_type="primary", width_policy="min", align="center")
 def reset_range_buttonCB(event):
     global t_min_input
     global t_max_input
@@ -963,16 +964,16 @@ playing_div = Div(text=init_playing_div_text + "stopped")
 ## LAYOUT ##
 ############
 
-plot_size_column = column(plot_size_div, slider_height, slider_width, reset_size_button)
-legend_column = column(legend_div, legend_button, hide_mute_button_div, hide_mute_button)
+plot_size_column = column(plot_size_div, height_slider, width_slider, reset_plot_size_button)
+legend_column = column(legend_div, show_legend_button, hide_mute_button_div, hide_mute_button)
 other_column = column(other_div, reset_button, update_data_button, set_range_mvt_button)
-t_range = row(column(t_min_input, row(t_min_minus, t_min_plus, align='center')), column(t_max_input, row(t_max_minus, t_max_plus, align='center')))
+t_range = row(column(t_min_input, row(t_min_minus_button, t_min_plus_button, align='center')), column(t_max_input, row(t_max_minus_button, t_max_plus_button, align='center')))
 range_column = column(range_div, t_range, reset_range_button)
 first_row_graph = row(plot_size_column, legend_column, range_column, other_column)
 graph_column = column(first_row_graph, p1, p2, p3, p4)
 anim_row = row(play_button, column(pause_button, resume_button, align="center"), stop_play_button, align="center")
 
-path_column = column(p_path, anim_row, playing_div, time_path_pretext)
+path_column = column(time_colored_path_div, p_path, anim_row, playing_div, time_path_pretext)
 
 layout = layout(
     [
