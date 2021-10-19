@@ -73,6 +73,124 @@ max_tcc = 0
 
 ######################################################################################################
 ######################################################################################################
+######################################################################################################
+############
+## HELPER ##
+############
+
+def findIndexWithVal(list, val, f_i):
+    margin = 0.05
+    if len(list)==0:
+        return None
+    else:
+        m = math.floor(len(list)/2)
+        # print("val={} len={} m={} list[m]={} f_i={}".format(val, len(list), m, list[m], f_i))
+        if list[m] > val-margin and list[m] < val+margin:
+            return f_i+m
+        elif val < list[m]-margin:
+            return findIndexWithVal(list[:m-1], val, f_i)
+        elif val > list[m]+margin:
+            return findIndexWithVal(list[m+1:], val, f_i+m+1)
+
+def update_t_g(t_min=None, t_max=None):
+    global t_min_g
+    global t_max_g
+
+    if t_min!=None:
+        t_min_g = t_min
+    if t_max!=None:
+        t_max_g = t_max
+    updateInputValue(t_min_g, t_max_g)
+    updateFigureRange(min_x=t_min_g, max_x=t_max_g)
+    updateFilters()
+    updateMapper()
+
+def updateInputValue(t_min=None, t_max=None):
+    global t_min_input
+    global t_max_input
+
+    t_min_new = t_min_input.value
+    t_max_new = t_max_input.value
+    if t_min!=None:
+        t_min_new = t_min
+    if t_max!=None:
+        t_max_new = t_max
+    
+    t_min_input.value = "{:.1f}".format(t_min_new)
+    t_max_input.value = "{:.1f}".format(t_max_new)
+
+def updateFigureRange(min_x=None, max_x=None):
+    global p1, p2, p3, p4
+
+    if min_x==None and max_x==None:
+        min_x = min_x_default
+        max_x = max_x_default
+
+        p1.x_range.start=min_x
+        p1.x_range.end=max_x
+        p2.x_range.start=min_x
+        p2.x_range.end=max_x
+        p3.x_range.start=min_x
+        p3.x_range.end=max_x
+        p4.x_range.start=min_x
+        p4.x_range.end=max_x
+    elif max_x==None:
+        p1.x_range.start=min_x
+        p2.x_range.start=min_x
+        p3.x_range.start=min_x
+        p4.x_range.start=min_x
+    elif min_x==None:
+        p1.x_range.end=max_x
+        p2.x_range.end=max_x
+        p3.x_range.end=max_x
+        p4.x_range.end=max_x
+    else:
+        p1.x_range.start=min_x
+        p1.x_range.end=max_x
+        p2.x_range.start=min_x
+        p2.x_range.end=max_x
+        p3.x_range.start=min_x
+        p3.x_range.end=max_x
+        p4.x_range.start=min_x
+        p4.x_range.end=max_x
+
+def updateMapper():
+    global mapper
+    mapper.low = t_min_g
+    mapper.high = t_max_g
+
+def updateFilters():
+    global view_h
+    global view_r
+
+    date_filter_h = CustomJSFilter(args=dict(t_min_g=t_min_g, t_max_g=t_max_g, source_data=path_H_source,), code="""
+    let start=t_min_g
+    let end=t_max_g;
+    let dates = source_data.data['stamp'];
+    let indices = [];
+    for (var i = 0; i <= dates.length; i++){
+        if (dates[i] >= start && dates[i] <= end) indices.push(i);
+    }
+    return indices;
+    """)
+
+    date_filter_r = CustomJSFilter(args=dict(t_min_g=t_min_g, t_max_g=t_max_g, source_data=path_R_source,), code="""
+    let start=t_min_g
+    let end=t_max_g;
+    let dates = source_data.data['stamp'];
+    let indices = [];
+    for (var i = 0; i <= dates.length; i++){
+        if (dates[i] >= start && dates[i] <= end) indices.push(i);
+    }
+    return indices;
+    """)
+
+    view_h.filters = [resol_filter_h, date_filter_h]
+    view_r.filters = [resol_filter_r, date_filter_r]
+
+
+######################################################################################################
+######################################################################################################
 
 def readDataFromFile(filename):
     f = open(filename, "r")
@@ -393,20 +511,6 @@ def updatePoseSource():
     path_H_source.data = dict(x=path_H_x, y=path_H_y, theta=path_H_theta, stamp=path_H_stamp)
     path_R_source.data = dict(x=path_R_x, y=path_R_y, theta=path_R_theta, stamp=path_R_stamp)
 
-def findIndexWithVal(list, val, f_i):
-    margin = 0.05
-    if len(list)==0:
-        return None
-    else:
-        m = math.floor(len(list)/2)
-        # print("val={} len={} m={} list[m]={} f_i={}".format(val, len(list), m, list[m], f_i))
-        if list[m] > val-margin and list[m] < val+margin:
-            return f_i+m
-        elif val < list[m]-margin:
-            return findIndexWithVal(list[:m-1], val, f_i)
-        elif val > list[m]+margin:
-            return findIndexWithVal(list[m+1:], val, f_i+m+1)
-
 #########################
 
 getMapInfo("passage_hri")
@@ -419,34 +523,6 @@ resol_filter_r = IndexFilter(np.arange(0, len(path_R_source.data["x"]), resol))
 
 view_h = CDSView(source=path_H_source, filters=[])
 view_r = CDSView(source=path_R_source, filters=[])
-def updateFilters():
-    global view_h
-    global view_r
-
-    date_filter_h = CustomJSFilter(args=dict(t_min_g=t_min_g, t_max_g=t_max_g, source_data=path_H_source,), code="""
-    let start=t_min_g
-    let end=t_max_g;
-    let dates = source_data.data['stamp'];
-    let indices = [];
-    for (var i = 0; i <= dates.length; i++){
-        if (dates[i] >= start && dates[i] <= end) indices.push(i);
-    }
-    return indices;
-    """)
-
-    date_filter_r = CustomJSFilter(args=dict(t_min_g=t_min_g, t_max_g=t_max_g, source_data=path_R_source,), code="""
-    let start=t_min_g
-    let end=t_max_g;
-    let dates = source_data.data['stamp'];
-    let indices = [];
-    for (var i = 0; i <= dates.length; i++){
-        if (dates[i] >= start && dates[i] <= end) indices.push(i);
-    }
-    return indices;
-    """)
-
-    view_h.filters = [resol_filter_h, date_filter_h]
-    view_r.filters = [resol_filter_r, date_filter_r]
 updateFilters()
 
 mapper = LinearColorMapper(palette=Turbo256, low=t_min_g, high=t_max_g)
@@ -509,13 +585,9 @@ highlight_h = p_path.triangle('x', 'y', source=hover_h_source, color=colors, ang
 highlight_r = p_path.triangle('x', 'y', source=hover_r_source, color=colors, angle="theta", angle_units='rad', size=30, line_color="black")
 p_path.legend.click_policy = "hide"
 
-
-def updateMapper():
-    global mapper
-    mapper.low = t_min_g
-    mapper.high = t_max_g
-color_bar = ColorBar(color_mapper=mapper, width=8)
+color_bar = ColorBar(title="Time (s)", color_mapper=mapper, width=8)
 p_path.add_layout(color_bar, 'right')
+
 
 ######################################################################################################
 ######################################################################################################
@@ -635,40 +707,7 @@ hide_mute_button.js_on_click(CustomJS(args=dict(l1=p1.legend[0], l2=p2.legend[0]
     """))
 
 # Button Update Data 
-def updateFigureRange(min_x=None, max_x=None):
-    global p1, p2, p3, p4
-
-    if min_x==None and max_x==None:
-        min_x = min_x_default
-        max_x = max_x_default
-
-        p1.x_range.start=min_x
-        p1.x_range.end=max_x
-        p2.x_range.start=min_x
-        p2.x_range.end=max_x
-        p3.x_range.start=min_x
-        p3.x_range.end=max_x
-        p4.x_range.start=min_x
-        p4.x_range.end=max_x
-    elif max_x==None:
-        p1.x_range.start=min_x
-        p2.x_range.start=min_x
-        p3.x_range.start=min_x
-        p4.x_range.start=min_x
-    elif min_x==None:
-        p1.x_range.end=max_x
-        p2.x_range.end=max_x
-        p3.x_range.end=max_x
-        p4.x_range.end=max_x
-    else:
-        p1.x_range.start=min_x
-        p1.x_range.end=max_x
-        p2.x_range.start=min_x
-        p2.x_range.end=max_x
-        p3.x_range.start=min_x
-        p3.x_range.end=max_x
-        p4.x_range.start=min_x
-        p4.x_range.end=max_x
+update_data_button = Button(label="Update data", button_type="success", width_policy="min", align="center")
 def updateDataCB(event=None):
     readDataFromFile("inhus_logs/log.txt")
     treatData()
@@ -679,102 +718,60 @@ def updateDataCB(event=None):
     updatePoseSource()
     updateFilters()
     updateMapper()
-update_data_button = Button(label="Update data", button_type="success", width_policy="min", align="center")
 update_data_button.on_click(updateDataCB)
 
 # TextInput t_min
 t_min_input = TextInput(value="{:.1f}".format(min_x_default), title="Time min:", width=70)
-def update_t_min(attr,old,new):
-    global t_min_input
-    global t_min_g
-    global view_h
-    t_min = 0.0
+def t_min_inputCB(attr,old,new):
     try:
         t_min = float(new)
         t_min_input.background = None
-        t_min_g = t_min
-        updateFigureRange(min_x=t_min)
-        updateFilters()
-        updateMapper()
+        update_t_g(t_min=t_min)
     except:
         print("Wrong input time min ...")
         t_min_input.background = "red"
-t_min_input.on_change("value", update_t_min)
+t_min_input.on_change("value", t_min_inputCB)
 
 # TextInput t_max
 t_max_input = TextInput(value="{:.1f}".format(max_x_default), title="Time max:", width=70)
-def update_t_max(attr,old,new):
+def t_max_inputCB(attr,old,new):
     global t_max_input
-    global t_max_g
-    # t_max = 0.0
     try:
         t_max = float(new)
         t_max_input.background = None
-        t_max_g = t_max
-        updateFigureRange(max_x=t_max)
-        updateFilters()
-        updateMapper()
+        update_t_g(t_max=t_max)
     except:
         print("Wrong input time max ...")
         t_max_input.background = "red"
-t_max_input.on_change("value", update_t_max)
+t_max_input.on_change("value", t_max_inputCB)
 
 # Button t_min minus
 t_min_minus_button = Button(label="-", button_type="default", width_policy="min", margin=(0,2,2,2), align="center")
 def t_min_minus_buttonCB():
-    global t_min_input
-    global t_min_g
-
-    t_min_g -= 1.0
-    t_min_g = round(t_min_g)
-
-    t_min_input.value = str(t_min_g)
+    update_t_g(t_min=round(t_min_g - 1.0))
 t_min_minus_button.on_click(t_min_minus_buttonCB)
 
 # Button t_min plus
 t_min_plus_button = Button(label="+", button_type="default", width_policy="min", margin=(2,2,2,2), align="center")
 def t_min_plus_buttonCB():
-    global t_min_input
-    global t_min_g
-
-    t_min_g += 1.0
-    t_min_g = round(t_min_g)
-
-    t_min_input.value = str(t_min_g)
+    update_t_g(t_min=round(t_min_g + 1.0))
 t_min_plus_button.on_click(t_min_plus_buttonCB)
 
 # Button t_max minus
 t_max_minus_button = Button(label="-", button_type="default", width_policy="min", margin=(0,2,2,2), align="center")
 def t_max_minus_buttonCB():
-    global t_max_input
-    global t_max_g
-
-    t_max_g -= 1.0
-    t_max_g = round(t_max_g)
-
-    t_max_input.value = str(t_max_g)
+    update_t_g(t_max=round(t_max_g - 1.0))
 t_max_minus_button.on_click(t_max_minus_buttonCB)
 
 # Button t_max plus
 t_max_plus_button = Button(label="+", button_type="default", width_policy="min", margin=(2,2,2,2), align="center")
 def t_max_plus_buttonCB():
-    global t_max_input
-    global t_max_g
-
-    t_max_g += 1.0
-    t_max_g = round(t_max_g)
-
-    t_max_input.value = str(t_max_g)
+        update_t_g(t_max=round(t_max_g + 1.0))
 t_max_plus_button.on_click(t_max_plus_buttonCB)
 
 # Button set range mvt
 set_range_mvt_button = Button(label="Set movement range", button_type="default", width_policy="min", align="center")
 def set_range_mvt_buttonCB():
-    global t_min_g
-    global t_min_input
-    global t_max_g
-    global t_max_input
-
     margin = 1.5
 
     # Get min t mvt
@@ -801,21 +798,14 @@ def set_range_mvt_buttonCB():
             break
     t_max_mvt = max(t_max_mvt_h, t_max_mvt_r)+margin
 
-    t_min_g = t_min_mvt
-    t_max_g = t_max_mvt
-
-    t_min_input.value = "{:.1f}".format(t_min_g)
-    t_max_input.value = "{:.1f}".format(t_max_g)
+    # Update t range
+    update_t_g(t_min_mvt, t_max_mvt)
 set_range_mvt_button.on_click(set_range_mvt_buttonCB)
 
 # Button Reset Plots
 reset_button = Button(label="Reset plots", button_type="primary", width_policy="min", align="center")
 def reset_buttonCB(event):
-    global t_min_input
-    global t_max_input
-  
-    t_min_input.value="{:.1f}".format(min_x_default)
-    t_max_input.value="{:.1f}".format(max_x_default)
+    updateInputValue(min_x_default, max_x_default)
 reset_button.on_click(reset_buttonCB)
 reset_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4), 
     code="""
@@ -828,9 +818,6 @@ reset_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
 # Button Reset Plots Range
 reset_range_button = Button(label="Reset plots with range", button_type="primary", width_policy="min", align="center")
 def reset_range_buttonCB(event):
-    global t_min_input
-    global t_max_input
-  
     t_min=None
     t_max=None
     try:
@@ -852,6 +839,7 @@ reset_range_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4),
     p4.reset.emit()
     """))
 
+# Button play
 play_button = Button(label="Play", button_type="success", width_policy="min", align="center")
 periodic_cb = None
 playing = False
@@ -911,6 +899,7 @@ def play_buttonCB(event):
     # real time : 1000ms <=> 120 index
 play_button.on_click(play_buttonCB)
 
+# Button pause
 pause_button = Button(label="Pause", button_type="primary", width_policy="min", align="center")
 def pause_buttonCB(event):
     global periodic_cb
@@ -921,9 +910,9 @@ def pause_buttonCB(event):
         playing_div.text=init_playing_div_text + "paused"
         periodic_cb = None
         time_path_pretext.text=init_text_time_path_pretext + "{:.1f}".format(path_H_source.data['stamp'][i_play]) + "s"
-
 pause_button.on_click(pause_buttonCB)
 
+# Button resume
 resume_button = Button(label="Resume", button_type="primary", width_policy="min", align="center")
 def resume_buttonCB(event):
     global periodic_cb
@@ -933,6 +922,7 @@ def resume_buttonCB(event):
         periodic_cb = curdoc().add_periodic_callback(play_buttonCBp, 100)
 resume_button.on_click(resume_buttonCB)
 
+# Button stop
 stop_play_button = Button(label="Stop", button_type="danger", width_policy="min", align="center")
 def stop_play_buttonCB(event):
     global periodic_cb
@@ -952,9 +942,11 @@ def stop_play_buttonCB(event):
         playing_div.text=init_playing_div_text + "stopped"
 stop_play_button.on_click(stop_play_buttonCB)
 
+# Pretext time paused
 init_text_time_path_pretext = "time paused:"
 time_path_pretext = PreText(text=init_text_time_path_pretext)
 
+# Div playing
 init_playing_div_text = "<b>Animation : </b>"
 playing_div = Div(text=init_playing_div_text + "stopped")
 
