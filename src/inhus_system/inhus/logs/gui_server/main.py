@@ -192,6 +192,11 @@ def updateFilters():
 ######################################################################################################
 ######################################################################################################
 
+def readGraphData():
+    readDataFromFile("inhus_logs/log.txt")
+    treatData()
+    updateColumnDataSource()
+
 def readDataFromFile(filename):
     f = open(filename, "r")
 
@@ -290,6 +295,8 @@ def treatData():
     global max_vel
     global max_rel_vel
     global max_tcc
+    global t_min_g
+    global t_max_g
 
     # Treat data
     def computeYMax(list):
@@ -311,6 +318,8 @@ def treatData():
         surprise_data[i] = seen_ratio_data[j_min]
     min_x_default = min(dist_time[0], vel_h_time[0], vel_r_time[0], rel_spd_time[0], seen_ratio_time[0])
     max_x_default = max(dist_time[-1], vel_h_time[-1], vel_r_time[-1], rel_spd_time[-1], seen_ratio_time[-1])
+    t_min_g = min_x_default
+    t_max_g = max_x_default
     max_vel = max(computeYMax(vel_h_data), computeYMax(vel_r_data))
     max_rel_vel = computeYMax(rel_spd_data)
     max_tcc = computeYMax(ttc_data)
@@ -332,16 +341,12 @@ def updateColumnDataSource():
 ######################################################################################################
 ######################################################################################################
 
-readDataFromFile("inhus_logs/log.txt")
-treatData()
-updateColumnDataSource()
+readGraphData()
 
 height = 170
 width = 800
 muted_alpha=0.2
 margin=-100
-t_min_g = min_x_default
-t_max_g = max_x_default
 default_click_policy = "mute"
 common_tools = "pan,wheel_zoom,save,crosshair"
 TOOLTIPS = [("(x,y)", "($x, $y)")]
@@ -437,6 +442,11 @@ path_R_y = []
 path_R_theta = []
 path_R_source = ColumnDataSource()
 
+def readPathData():
+    getMapInfo("passage_hri")
+    readPoseData()
+    updatePoseSource()
+
 def getMapInfo(map_name):
     global x_range
     global y_range
@@ -483,7 +493,7 @@ def readPoseData():
     path_R_y.clear()
     path_R_theta.clear()
 
-    # start log line
+    #  remove first line
     string = f.readline()
 
     for line in f:
@@ -492,7 +502,6 @@ def readPoseData():
         if line != "\n":
             line = line.replace("\n","")
             mylist = line.split(" ")
-            # print(mylist)
 
             if mylist[2] == 'H':
                 path_H_stamp.append(float(mylist[0]))
@@ -513,9 +522,7 @@ def updatePoseSource():
 
 #########################
 
-getMapInfo("passage_hri")
-readPoseData()
-updatePoseSource()
+readPathData()
 
 resol = 1
 resol_filter_h = IndexFilter(np.arange(0, len(path_H_source.data["x"]), resol))
@@ -571,7 +578,7 @@ hover_pathCB = CustomJS(args=dict(hover_h_source=hover_h_source, hover_r_source=
     previous_len.data['x'][0] = indices.length
     previous_len.change.emit()
     """)
-hover_path_tool = HoverTool(tooltips=None, names=["path_h", "path_r"], callback = hover_pathCB)
+hover_path_tool = HoverTool(tooltips=TOOLTIPS_BIS, names=["path_h", "path_r"], callback = hover_pathCB)
 
 radius_agents = 0.1
 p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,save,reset", active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
@@ -590,11 +597,8 @@ p_path.add_layout(color_bar, 'right')
 
 
 ######################################################################################################
+########################################## WIDGETS ###################################################
 ######################################################################################################
-######################################################################################################
-#############
-## WIDGETS ##
-#############
 
 # Div General tetxts
 inhus_div = Div(width_policy="auto",
@@ -707,18 +711,27 @@ hide_mute_button.js_on_click(CustomJS(args=dict(l1=p1.legend[0], l2=p2.legend[0]
     """))
 
 # Button Update Data 
-update_data_button = Button(label="Update data", button_type="success", width_policy="min", align="center")
-def updateDataCB(event=None):
-    readDataFromFile("inhus_logs/log.txt")
-    treatData()
-    updateColumnDataSource()
-    updateFigureRange()
+# update_data_button = Button(label="Update data", button_type="success", width_policy="min", align="center")
+# def updateDataCB(event=None):
+#     readGraphData()
 
-    readPoseData()
-    updatePoseSource()
-    updateFilters()
-    updateMapper()
-update_data_button.on_click(updateDataCB)
+#     readPathData()
+
+#     # updateFigureRange()
+#     updateInputValue(t_min_g, t_max_g)
+#     # updateFilters()
+#     # updateMapper()
+# update_data_button.on_click(updateDataCB)
+# update_data_button.js_on_click(CustomJS(args=dict(p1=p1, p2=p2, p3=p3, p4=p4, p_path=p_path, h_source=path_H_source, r_source=path_R_source), 
+#     code="""
+#     p1.reset.emit()
+#     p2.reset.emit()
+#     p3.reset.emit()
+#     p4.reset.emit()
+#     p_path.reset.emit()
+#     h_source.change.emit()
+#     r_source.change.emit()
+#     """))
 
 # TextInput t_min
 t_min_input = TextInput(value="{:.1f}".format(min_x_default), title="Time min:", width=70)
@@ -958,7 +971,7 @@ playing_div = Div(text=init_playing_div_text + "stopped")
 
 plot_size_column = column(plot_size_div, height_slider, width_slider, reset_plot_size_button)
 legend_column = column(legend_div, show_legend_button, hide_mute_button_div, hide_mute_button)
-other_column = column(other_div, reset_button, update_data_button, set_range_mvt_button)
+other_column = column(other_div, reset_button, set_range_mvt_button)
 t_range = row(column(t_min_input, row(t_min_minus_button, t_min_plus_button, align='center')), column(t_max_input, row(t_max_minus_button, t_max_plus_button, align='center')))
 range_column = column(range_div, t_range, reset_range_button)
 first_row_graph = row(plot_size_column, legend_column, range_column, other_column)
