@@ -17,6 +17,8 @@ absolute_path = ""
 if len(sys.argv) >= 2:
     absolute_path = sys.argv[1] + "/"
 
+map_name = "passage_hri"
+
 ######################################################################################################
 ######################################################################################################
 
@@ -443,7 +445,7 @@ path_R_theta = []
 path_R_source = ColumnDataSource()
 
 def readPathData():
-    getMapInfo("passage_hri")
+    getMapInfo(map_name)
     readPoseData()
     updatePoseSource()
 
