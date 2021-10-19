@@ -13,6 +13,9 @@ import sys
 import numpy as np
 import math
 
+absolute_path = ""
+if len(sys.argv) >= 2:
+    absolute_path = sys.argv[1] + "/"
 
 ######################################################################################################
 ######################################################################################################
@@ -188,7 +191,6 @@ def updateFilters():
     view_h.filters = [resol_filter_h, date_filter_h]
     view_r.filters = [resol_filter_r, date_filter_r]
 
-
 ######################################################################################################
 ######################################################################################################
 
@@ -198,6 +200,7 @@ def readGraphData():
     updateColumnDataSource()
 
 def readDataFromFile(filename):
+    filename = absolute_path + filename
     f = open(filename, "r")
 
     value_state = -1
@@ -455,7 +458,7 @@ def getMapInfo(map_name):
     global img_resolution
     global img_offset
 
-    filename = "gui_server/static/" + map_name + "_data.txt"
+    filename = absolute_path + "gui_server/static/" + map_name + "_data.txt"
     f = open(filename, "r")
     for line in f:
         if 'str' in line:
@@ -480,7 +483,7 @@ def getMapInfo(map_name):
     y_range = (y_range[0]+img_offset[1], y_range[1]+img_offset[1])
 
 def readPoseData():
-    filename = "inhus_logs/poseLog.txt"
+    filename = absolute_path + "inhus_logs/poseLog.txt"
     f = open(filename, "r")
 
     path_H_stamp.clear()
@@ -578,7 +581,7 @@ hover_pathCB = CustomJS(args=dict(hover_h_source=hover_h_source, hover_r_source=
     previous_len.data['x'][0] = indices.length
     previous_len.change.emit()
     """)
-hover_path_tool = HoverTool(tooltips=TOOLTIPS_BIS, names=["path_h", "path_r"], callback = hover_pathCB)
+hover_path_tool = HoverTool(tooltips=None, names=["path_h", "path_r"], callback = hover_pathCB)
 
 radius_agents = 0.1
 p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,save,reset", active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
