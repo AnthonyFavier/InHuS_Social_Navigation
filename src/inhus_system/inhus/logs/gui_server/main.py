@@ -72,7 +72,6 @@ min_x_default = 0
 max_x_default = 0
 max_vel = 0
 max_rel_vel = 0
-max_tcc = 0
 
 ######################################################################################################
 ######################################################################################################
@@ -82,7 +81,7 @@ max_tcc = 0
 ############
 
 def findIndexWithVal(list, val, f_i):
-    margin = 0.05
+    margin = 0.1
     if len(list)==0:
         return None
     else:
@@ -297,7 +296,6 @@ def treatData():
     global max_x_default
     global max_vel
     global max_rel_vel
-    global max_tcc
     global t_min_g
     global t_max_g
 
@@ -325,7 +323,6 @@ def treatData():
     t_max_g = max_x_default
     max_vel = max(computeYMax(vel_h_data), computeYMax(vel_r_data))
     max_rel_vel = computeYMax(rel_spd_data)
-    max_tcc = computeYMax(ttc_data)
 
 def updateColumnDataSource():
     path_source.data = dict(x=path_time, y=path_data)
@@ -391,7 +388,7 @@ p2.legend.visible=False
 p2.legend.margin = margin
 p2.legend.click_policy=default_click_policy
 
-p3 = figure(x_range=(min_x_default, max_x_default), y_range=(0, max_tcc), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
+p3 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
 p3.toolbar.logo = None
 p3.toolbar.autohide = False
 p3.toolbar_location = 'left'
