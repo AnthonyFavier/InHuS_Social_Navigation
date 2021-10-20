@@ -41,7 +41,6 @@ Supervisor::Supervisor()
 	pub_goal_done_ = 	nh_.advertise<inhus::Goal>("goal_done", 100);
 	pub_log_ =			nh_.advertise<std_msgs::String>("log", 100);
 	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
-	pub_stop_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("stop_cmd", 100);
 
 	// Init
 	marker_rviz_.header.frame_id = 		"map";
@@ -87,8 +86,6 @@ void Supervisor::FSM()
 				goal_received_ = false;
 				global_state_ = ASK_PLAN;
 			}
-			// else
-			// 	pub_stop_cmd_.publish(geometry_msgs::Twist());
 			break;
 
 		case ASK_PLAN:
@@ -239,6 +236,8 @@ void Supervisor::FSM()
 			{
 				goal_received_ = false;
 				global_state_ = ASK_PLAN;
+				std_srvs::Empty srv_init_conflict;
+				client_init_check_conflict_.call(srv_init_conflict);
 			}
 			break;
 	}

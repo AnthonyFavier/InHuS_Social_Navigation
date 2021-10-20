@@ -37,6 +37,8 @@ public:
 			geometry_msgs::Pose2D r_pose, geometry_msgs::Twist r_vel);
 	bool checkConflict();
 	void loop();
+	bool inConflict(){return state_global_!=IDLE;};
+	bool inApproach(){return state_global_==APPROACH;};
 
 private:
 	ros::NodeHandle nh_;
@@ -71,7 +73,7 @@ private:
 	ros::Publisher pub_log_; std_msgs::String msg_;
 	ros::Publisher pub_cancel_goal_;
 	ros::Publisher pub_goal_move_base_;
-	ros::Publisher pub_stop_cmd_;
+	ros::Publisher pub_vel_cmd_;
 
 	// Subscribers
 	ros::Subscriber sub_path_;
@@ -86,6 +88,10 @@ private:
 	StateApproach state_approach_;
 	enum StateBlocked{NO_PATH, LONGER};
 	StateBlocked state_blocked_;
+
+	static const int nb_last_vels_ = 4;
+	geometry_msgs::Twist last_vels_[nb_last_vels_];
+	geometry_msgs::Twist mean_vel_;
 
 	actionlib_msgs::GoalStatus goal_status_;
 	ros::Time last_replan_;

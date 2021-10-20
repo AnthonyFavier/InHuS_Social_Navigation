@@ -1,6 +1,5 @@
 #include "humanBehaviorModel.h"
 
-
 //////////////////// CONFLICT MANAGER /////////////////////
 
 ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
@@ -38,11 +37,14 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	srv_get_plan_.request.goal.header.frame_id = 	"map";
 	srv_get_plan_.request.tolerance = 		0.1;
 
+	for(int i=0; i<nb_last_vels_; i++)
+		last_vels_[i] = geometry_msgs::Twist();
+
 	// Publishers
 	pub_log_ = nh_.advertise<std_msgs::String>("log", 100);
 	pub_cancel_goal_ =	nh.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 	pub_goal_move_base_ = nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
-	pub_stop_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("stop_cmd", 100);
+	pub_vel_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("stop_cmd", 100);
 
 	// Subscribers
 	sub_path_ =	nh_.subscribe("move_base/GlobalPlanner/plan", 100, &ConflictManager::pathCB, this);
@@ -124,6 +126,7 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 		}
 	}
 
+	// CONFLICT DETECTED
 	if(res.conflict)
 	{
 		// remove robot
@@ -135,9 +138,18 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 		actionlib_msgs::GoalID goal_id;
 		pub_cancel_goal_.publish(goal_id);
 
-		// stop human
-		pub_stop_cmd_.publish(geometry_msgs::Twist());
-
+		// continue H mv
+		mean_vel_.linear.x = 0;
+		for(int i=0; i<nb_last_vels_; i++)
+		{
+			mean_vel_.linear.x += sqrt(pow(last_vels_[i].linear.x, 2) + pow(last_vels_[i].linear.y, 2));
+			// ROS_INFO("linear.x=%f linear.y=%f mean=%f", last_vels_[i].linear.x, last_vels_[i].linear.y, sqrt(pow(last_vels_[i].linear.x, 2) + pow(last_vels_[i].linear.y, 2)));
+		}
+		mean_vel_.linear.x /= nb_last_vels_;
+		// ROS_INFO("mean after = %f", mean_vel_.linear.x);
+		pub_vel_cmd_.publish(mean_vel_);
+		// ROS_INFO("######=> CONFLICT : publish cmd = %f", mean_vel_.linear.x);
+		
 		current_action_ = req.action;
 		current_path_.poses.clear();
 		state_global_ = APPROACH;
@@ -164,6 +176,14 @@ void ConflictManager::updateData(geometry_msgs::Pose2D h_pose, geometry_msgs::Tw
 	h_vel_  = 	h_vel;
 	r_pose_ = 	r_pose;
 	r_vel_  = 	r_vel;
+
+	if(h_vel.linear.x!=0 || h_vel.linear.y!=0)
+	{
+		for(int i=nb_last_vels_-1; i>0; i--)
+			last_vels_[i] = last_vels_[i-1];
+		last_vels_[0] = h_vel_;
+		// ROS_INFO("last_vels = 1]%f 1]%f 1]%f 1]%f", last_vels_[0].linear.x, last_vels_[1].linear.x, last_vels_[2].linear.x, last_vels_[3].linear.x);
+	}
 }
 
 void ConflictManager::loop()
@@ -202,6 +222,9 @@ void ConflictManager::loop()
 				switch(state_approach_)
 				{
 					case FIRST:
+						pub_vel_cmd_.publish(mean_vel_);
+						// ROS_INFO("######=> CONFLICT FIRST : publish cmd = %f", mean_vel_.linear.x);
+
 						delay_place_robot_.sleep();
 						state_approach_ = REPLANNING;
 						break;
@@ -1285,16 +1308,20 @@ void HumanBehaviorModel::robotVelCallback(const geometry_msgs::Twist::ConstPtr& 
 
 void HumanBehaviorModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-	geometry_msgs::Twist perturbed_cmd;
+	if(msg->linear.x!=0 || msg->linear.y!=0)
+	// if(!(conflict_manager_->inApproach() && msg->linear.x==0 && msg->linear.y==0))
+	{
+		geometry_msgs::Twist perturbed_cmd;
 
-	perturbed_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
-	perturbed_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
-	perturbed_cmd.linear.z = 0;
-	perturbed_cmd.angular.x = 0;
-	perturbed_cmd.angular.y = 0;
-	perturbed_cmd.angular.z = msg->angular.z; // no angular perturbation
+		perturbed_cmd.linear.x = msg->linear.x * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
+		perturbed_cmd.linear.y = msg->linear.y * (1 + ratio_perturbation_cmd_*((float)(rand()%300-100)/100.0));
+		perturbed_cmd.linear.z = 0;
+		perturbed_cmd.angular.x = 0;
+		perturbed_cmd.angular.y = 0;
+		perturbed_cmd.angular.z = msg->angular.z; // no angular perturbation
 
-	pub_perturbed_cmd_.publish(perturbed_cmd);
+		pub_perturbed_cmd_.publish(perturbed_cmd);
+	}
 }
 
 void HumanBehaviorModel::stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd)
