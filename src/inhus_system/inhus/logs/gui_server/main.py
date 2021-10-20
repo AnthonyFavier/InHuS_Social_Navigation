@@ -790,28 +790,46 @@ def set_range_mvt_buttonCB():
     margin = 1.5
 
     # Get min t mvt
+    t_min_mvt_h = None
     for i, vel in enumerate(vel_h_source.data["y"]):
         if vel != 0.0:
             t_min_mvt_h = vel_h_source.data["x"][i]
             break
+    t_min_mvt_r=None
     for i, vel in enumerate(vel_r_source.data["y"]):
         if vel != 0.0:
             t_min_mvt_r = vel_r_source.data["x"][i]
             break
-    t_min_mvt = min(t_min_mvt_h, t_min_mvt_r)-margin
+    if t_min_mvt_h != None and t_min_mvt_r != None:
+        t_min_mvt = min(t_min_mvt_h, t_min_mvt_r)-margin
+    elif t_min_mvt_h != None and t_min_mvt_r == None:
+        t_min_mvt = t_min_mvt_h-margin
+    elif t_min_mvt_h == None and t_min_mvt_r != None:
+        t_min_mvt = t_min_mvt_r-margin
+    else:
+        return
 
     # Get max t mvt
+    t_max_mvt_h = None
     for i in range(len(vel_h_source.data["y"])-1, -1, -1):
         vel = vel_h_source.data["y"][i]
         if vel != 0.0:
             t_max_mvt_h = vel_h_source.data["x"][i]
             break
+    t_max_mvt_r = None
     for i in range(len(vel_r_source.data["y"])-1, -1, -1):
         vel = vel_r_source.data["y"][i]
         if vel != 0.0:
             t_max_mvt_r = vel_r_source.data["x"][i]
             break
-    t_max_mvt = max(t_max_mvt_h, t_max_mvt_r)+margin
+    if t_max_mvt_h != None and t_max_mvt_r != None:
+        t_max_mvt = max(t_max_mvt_h, t_max_mvt_r)+margin
+    elif t_max_mvt_h != None and t_max_mvt_r == None:
+        t_max_mvt = t_max_mvt_h+margin
+    elif t_max_mvt_h == None and t_max_mvt_r != None:
+        t_max_mvt = t_max_mvt_r+margin
+    else:
+        return
 
     # Update t range
     update_t_g(t_min_mvt, t_max_mvt)
