@@ -22,7 +22,7 @@ pip install bokeh
 
 Once all the dependencies are installed, clone the workspace repository wherever you want. Then init the submodules and compile everything using catkin_make :
 ```
-git clone https://github.com/AnthonyFavier/InHuS_Social_Navigation
+git clone https://github.com/AnthonyFavier/InHuS_Social_Navigation -b v1
 cd InHuS_Social_Navigation/
 git submodule update --init --recursive
 catkin_make
