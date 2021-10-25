@@ -119,10 +119,11 @@ bool PlaceRobotMap::initDone()
 
 void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_pose)
 {
-	robot_pose_.x = 	r_pose->x+2;
-	robot_pose_.y = 	r_pose->y+8;
+	robot_pose_.x = 	r_pose->x;
+	robot_pose_.y = 	r_pose->y;
 	robot_pose_.theta = 	r_pose->theta;
 	rcb_ = true;
+
 
 	if(active_)
 		this->placeRobot();
@@ -130,8 +131,8 @@ void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_p
 
 void PlaceRobotMap::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_pose)
 {
-	human_pose_.x = 	h_pose->x+2;
-	human_pose_.y = 	h_pose->y+8;
+	human_pose_.x = 	h_pose->x;
+	human_pose_.y = 	h_pose->y;
 	human_pose_.theta = 	h_pose->theta;
 	hcb_ =	true;
 }
