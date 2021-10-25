@@ -11,10 +11,11 @@ Here is a list of all the dependencies to get with `sudo apt install [package]` 
 sudo apt install xterm libsdl-image1.2-dev libsuitesparse-dev ros-melodic-move-base-msgs ros-melodic-pr2-msgs ros-melodic-tf2-sensor-msgs ros-melodic-mbf-msgs ros-melodic-mbf-costmap-core ros-melodic-joint-trajectory-action ros-melodic-costmap-converter ros-melodic-libg2o ros-melodic-pointcloud-to-laserscan ros-melodic-teb-local-planner
 ```
 
-Scipy also has to be installed but with pip :
+With pip you will need Scipy and Bokeh :
 ```
 sudo apt install python-pip
 pip install scipy
+pip install bokeh
 ```
 
 ### InHuS clone, init submodules and compile
@@ -126,7 +127,7 @@ After, in the Boss interface you can input the following to init a conflict scen
 
 Then, once both agents are in place, choose :
 
-> "2-Scenario (2) => 2-narrow_passage (2) => 2-Start (2) => -2 seconds (-2)"
+> "2-Scenario (2) => 2-narrow_passage (2) => 2-Start (2) => -1 seconds (-1)"
 
 ### Enhanced navigation example
 
