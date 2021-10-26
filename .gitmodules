@@ -3,7 +3,7 @@
 	url = https://github.com/sphanit/cohan_planner_multi
 [submodule "src/navigation"]
 	path = src/navigation
-	url = https://github.com/AnthonyFavier/navigation
+	url = https://github.com/ros-planning/navigation
 [submodule "src/smb"]
 	path = src/smb
 	url = https://github.com/AnthonyFavier/smb
