@@ -11,11 +11,11 @@ plugins:
   - {name: human_layer_static, type: "cohan_layers::StaticAgentLayer"}
   - {name: human_layer_visible, type: "cohan_layers::AgentVisibilityLayer"}
 
-obstacles:
-  observation_sources: base_scan_filtered
-  base_scan_filtered: {data_type: LaserScan, topic: base_scan_filtered, expected_update_rate: 0.3, marking: true, clearing: true}
-  footprint_clearing_enabled: true
-  track_unknown_space: true
+# obstacles:
+#   observation_sources: base_scan_filtered
+#   base_scan_filtered: {data_type: LaserScan, topic: base_scan_filtered, expected_update_rate: 0.3, marking: true, clearing: true}
+#   footprint_clearing_enabled: true
+#   track_unknown_space: true
 inflater:
   inflation_radius:     0.2
   cost_scaling_factor:  9.0

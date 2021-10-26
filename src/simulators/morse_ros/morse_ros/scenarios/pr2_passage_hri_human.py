@@ -43,16 +43,16 @@ def add_human(h_id):
                              child_frame_id = name+"/base_footprint")
     human.append(human_odom)
 
-    if h_id==1:
-        scan = Hokuyo()
-        scan.translate(x=0.275, z=0.05)
-        scan.add_interface("ros",topic="/"+name+"/scan",frame_id = name+"/base_laser_link")
-        human.append(scan)
-        scan.properties(Visible_arc = False)
-        scan.properties(laser_range = 30.0)
-        scan.properties(resolution = 1)
-        scan.properties(scan_window = 180.0)
-        scan.create_laser_arc()
+    # if h_id==1:
+    #     scan = Hokuyo()
+    #     scan.translate(x=0.275, z=0.05)
+    #     scan.add_interface("ros",topic="/"+name+"/scan",frame_id = name+"/base_laser_link")
+    #     human.append(scan)
+    #     scan.properties(Visible_arc = False)
+    #     scan.properties(laser_range = 30.0)
+    #     scan.properties(resolution = 1)
+    #     scan.properties(scan_window = 180.0)
+    #     scan.create_laser_arc()
 
 
     human.append(human_motion)

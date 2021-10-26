@@ -6,21 +6,6 @@
   <!-- *         Two different settings to avoid '/' in tf2 frames                  * -->
   <!-- ****************************************************************************** -->
 
-  <group if="$(eval ''==arg('ns'))">
-    <!-- move_base node with hateb -->
-    <node pkg="move_base" type="move_base" name="move_base" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
-      <param name="base_global_planner" value="global_planner/GlobalPlanner" />
-      <param name="base_local_planner" value="hateb_local_planner/HATebLocalPlannerROS" />
-      <!-- <param name="GlobalPlanner/allow_unknown" value="false" /> -->
-
-
-      <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/move_base_params.yaml" command="load" />
-      <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/global_costmap_params.yaml" command="load" ns="global_costmap"/>
-      <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/local_costmap_params.yaml" command="load" ns="local_costmap"/>
-      <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/hateb_local_planner_params.yaml" command="load" ns="HATebLocalPlannerROS" />
-    </node>
-  </group>
-
   <group unless="$(eval ''==arg('ns'))">
     <!-- move_base node with hateb with namespace-->
     <node pkg="move_base" type="move_base" name="move_base" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">

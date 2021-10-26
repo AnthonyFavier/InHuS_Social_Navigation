@@ -39,8 +39,8 @@ class MorseAgents(object):
         for agent_id in range(1,self.num_hum+1):
             name = 'human'+str(agent_id)
             if self.ns is not name:
-                agent_sub.append(message_filters.Subscriber("/" + name, AgentMarkerStamped))
-                # agent_sub.append(message_filters.Subscriber("/pr2_pose_vel", AgentMarkerStamped))
+                # agent_sub.append(message_filters.Subscriber("/" + name, AgentMarkerStamped))
+                agent_sub.append(message_filters.Subscriber("/pr2_pose_vel", AgentMarkerStamped))
 
         # Subscribe to the robot
         if False:
