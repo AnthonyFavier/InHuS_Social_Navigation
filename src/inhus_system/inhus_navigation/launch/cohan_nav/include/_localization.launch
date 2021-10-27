@@ -7,6 +7,7 @@
   </node> -->
 
   <node pkg="tf" type="static_transform_publisher" name="human1_odom_tf" args="0 0 0 0 0 0 /map /human1/odom 20"/>
+  <node pkg="tf" type="static_transform_publisher" name="human1_base_link_tf" args="0 0 0 0 0 0 /human1/base_footprint /human1/base_link 20"/>
 
   <!-- handle when to consider the robot or not, specifically for cohan -->
   <node name="placeRobot_client_node" type="placeRobot_client_node" pkg="inhus_navigation" output="screen"/>

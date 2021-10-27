@@ -19,6 +19,7 @@
   <!-- FAKE LOCALIZATION -->
     <!-- fake localization : Human1, Human2 -->
     <node pkg="tf" type="static_transform_publisher" name="human1_odom_tf" args="0 0 0 0 0 0 /map /human1/odom 20"/>
+    <node pkg="tf" type="static_transform_publisher" name="human1_base_link_tf" args="0 0 0 0 0 0 /human1/base_footprint /human1/base_link 20"/>
     <!-- <node pkg="tf" type="static_transform_publisher" name="human2_odom_tf" args="0 0 0 0 0 0 /map /human2/odom 20"/> -->
     <!-- <node pkg="tf" type="static_transform_publisher" name="human3_odom_tf" args="0 0 0 0 0 0 /map /human3/odom 20"/> -->
 
