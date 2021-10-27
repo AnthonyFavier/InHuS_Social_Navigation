@@ -19,8 +19,8 @@
   <!-- FAKE LOCALIZATION -->
     <!-- fake localization : Human1, Human2 -->
     <node pkg="tf" type="static_transform_publisher" name="human1_odom_tf" args="0 0 0 0 0 0 /map /human1/odom 20"/>
-    <node pkg="tf" type="static_transform_publisher" name="human2_odom_tf" args="0 0 0 0 0 0 /map /human2/odom 20"/>
-    <node pkg="tf" type="static_transform_publisher" name="human3_odom_tf" args="0 0 0 0 0 0 /map /human3/odom 20"/>
+    <!-- <node pkg="tf" type="static_transform_publisher" name="human2_odom_tf" args="0 0 0 0 0 0 /map /human2/odom 20"/> -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="human3_odom_tf" args="0 0 0 0 0 0 /map /human3/odom 20"/> -->
 
 
   <!-- PLACE ROBOT -->
@@ -40,7 +40,7 @@
       <param name="range_max" value="100.0"/>
 
       <!-- Frame of your depth sensor = Robot -->
-      <param name="target_frame" value="base_footprint"/>
+      <param name="target_frame" value="robot_inhus"/>
 
       <!-- Topic from which to read PointCloud2 -->
       <remap from="cloud_in" to="robot_pose_PointCloud2"/>

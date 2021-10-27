@@ -369,7 +369,7 @@ interval_sim 20  # simulation timestep in milliseconds
 window
 (
   size [ 900.000 600.000 ]
-  rotate [ 0.000 90.000 ]
+  rotate [ 0.000 0.000 ]
   scale 28.806
 )
 
@@ -386,5 +386,5 @@ floorplan
 # throw in a robot (always the robot first)
 pr2( pose [ 6.4 6.4 0 -90.0 ] name "pr2" color "gray")
 human( pose [ 1.3 3.0 0 90.0 ] name "human1" color "blue")
-human( pose [ 4.0 -2.0 0 45.0 ] name "human2" color "green")
-human( pose [ 4.4 11.6 0 90.0 ] name "human3" color "red")
+# human( pose [ 4.0 -2.0 0 45.0 ] name "human2" color "green")
+# human( pose [ 4.4 11.6 0 90.0 ] name "human3" color "red")

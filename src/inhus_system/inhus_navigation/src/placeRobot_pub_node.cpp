@@ -31,7 +31,7 @@ PlaceRobotMap::PlaceRobotMap()
 
 	// Build empty_PointCloud2
 	sensor_msgs::PointCloud cloud;
-	cloud.header.frame_id = "base_footprint";
+	cloud.header.frame_id = "robot_inhus";
 	cloud.header.stamp = ros::Time::now();
 	sensor_msgs::convertPointCloudToPointCloud2(cloud, empty_PointCloud2_);
 
@@ -150,14 +150,14 @@ int main(int argc, char** argv)
 
 	PlaceRobotMap place_robot_map;
 
-	ros::Rate loop(60);
+	ros::Rate rate(60);
 
 	// wait init
 	ROS_INFO("PlaceRobot: Waiting for init ...");
 	while(ros::ok() && !place_robot_map.initDone())
 	{
 		ros::spinOnce();
-		loop.sleep();
+		rate.sleep();
 	}
 	ROS_INFO("PlaceRobot: INIT done");
 

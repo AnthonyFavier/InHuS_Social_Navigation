@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 
 	////////////////////////////
 	////  Input Subscribers //// Part to modify for another simulator
-  ////////////////////////////
+  	////////////////////////////
 	ros::Subscriber sub_human_odom = nh.subscribe("/human1/odom", 10, humanOdomCallback);
 	ros::Subscriber sub_robot_odom = nh.subscribe("/odom", 10, robotOdomCallback);
 	////////////////////////////
@@ -85,7 +85,23 @@ int main(int argc, char** argv)
 	pub_sim_robot_vel = nh.advertise<geometry_msgs::Twist>("in/robot_vel", 100);
 	////////////////////////////
 
-	ros::spin();
+	tf::TransformBroadcaster br;
+	tf::Quaternion q;
+	tf::Transform tf_map_robot;
+
+	ros::Rate rate(30);
+
+	while(ros::ok())
+	{
+		tf_map_robot.setOrigin(tf::Vector3(r_pose.x, r_pose.y, 0));
+		q.setRPY(0, 0, r_pose.theta);
+		tf_map_robot.setRotation(q);
+
+		br.sendTransform(tf::StampedTransform(tf_map_robot, ros::Time::now(), "map", "robot_inhus"));
+
+		ros::spinOnce();
+		rate.sleep();
+	}
 
 	return 0;
 }
