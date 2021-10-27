@@ -548,6 +548,8 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	pub_perturbed_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("perturbed_cmd", 100);
 	pub_goal_move_base_ =	nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
 	pub_log_ = 		nh_.advertise<std_msgs::String>("log", 100);
+	pub_pose_marker_human_ = nh_.advertise<visualization_msgs::MarkerArray>("marker_human_pose", 100);
+	pub_pose_marker_robot_ = nh_.advertise<visualization_msgs::MarkerArray>("marker_robot_pose", 100);
 
 	// Service clients
 	ros::service::waitForService("set_wait_goal");
@@ -607,6 +609,55 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	pmcb_ = false;
 	know_robot_pose_ = false;
 	want_robot_placed_ = true;
+
+	visualization_msgs::Marker marker;
+	marker.header.frame_id = "map";
+	tf2::Quaternion q;
+	q.setRPY(0,0,0);
+	marker.pose.orientation.w = q.w();
+	marker.pose.orientation.x = q.x();
+	marker.pose.orientation.y = q.y();
+	marker.pose.orientation.z = q.z();
+
+	// ARROW
+	// human
+	marker.type = 0;
+	marker.id = 0;
+	marker.pose.position.z = 0.1;
+	marker.scale.x = 1;
+	marker.scale.y = 0.1;
+	marker.scale.z = 0.1;
+	marker.color.r = 1;
+	marker.color.g = 1;
+	marker.color.b = 0;
+	marker.color.a = 1;
+	human_pose_marker_.markers.push_back(marker);
+	// robot
+	marker.color.r = 1;
+	marker.color.g = 0;
+	marker.color.b = 0;
+	robot_pose_marker_.markers.push_back(marker);
+
+	// CYLINDER
+	// human
+	marker.type = 3;
+	marker.id = 1;
+	marker.pose.position.z = 0.9;
+	marker.scale.x = 0.6;
+	marker.scale.y = 0.6;
+	marker.scale.z = 1.8;
+	marker.color.r = 1;
+	marker.color.g = 1;
+	marker.color.b = 0;
+	marker.color.a = 1;
+	human_pose_marker_.markers.push_back(marker);
+	// robot
+	marker.scale.x = 0.8;
+	marker.scale.y = 0.8;
+	marker.color.r = 1;
+	marker.color.g = 0;
+	marker.color.b = 0;
+	robot_pose_marker_.markers.push_back(marker);
 
 	// ATTITUDES //
 	attitude_ = NONE;
@@ -743,6 +794,35 @@ bool HumanBehaviorModel::initDone()
 {
 	return hcb_ && rcb_ && pmcb_;
 }
+
+void HumanBehaviorModel::updatePoseMarkers()
+{
+	tf2::Quaternion q;
+	
+	human_pose_marker_.markers[0].pose.position.x = model_pose_.x;
+	human_pose_marker_.markers[0].pose.position.y = model_pose_.y;
+	human_pose_marker_.markers[1].pose.position.x = model_pose_.x;
+	human_pose_marker_.markers[1].pose.position.y = model_pose_.y;
+	q.setRPY(0,0,model_pose_.theta);
+	human_pose_marker_.markers[0].pose.orientation.w = q.w();
+	human_pose_marker_.markers[0].pose.orientation.x = q.x();
+	human_pose_marker_.markers[0].pose.orientation.y = q.y();
+	human_pose_marker_.markers[0].pose.orientation.z = q.z();
+
+	robot_pose_marker_.markers[0].pose.position.x = model_robot_pose_.x;
+	robot_pose_marker_.markers[0].pose.position.y = model_robot_pose_.y;
+	robot_pose_marker_.markers[1].pose.position.x = model_robot_pose_.x;
+	robot_pose_marker_.markers[1].pose.position.y = model_robot_pose_.y;
+	q.setRPY(0,0,model_robot_pose_.theta);
+	robot_pose_marker_.markers[0].pose.orientation.w = q.w();
+	robot_pose_marker_.markers[0].pose.orientation.x = q.x();
+	robot_pose_marker_.markers[0].pose.orientation.y = q.y();
+	robot_pose_marker_.markers[0].pose.orientation.z = q.z();
+
+	pub_pose_marker_human_.publish(human_pose_marker_);
+	pub_pose_marker_robot_.publish(robot_pose_marker_);
+}
+
 
 ///////////////////// Visibility //////////////////////////
 
@@ -1487,6 +1567,9 @@ int main(int argc, char** argv)
 
 		// Publish data as perceived by the human model
 		human_model.publishModelData();
+
+		// Update visualization markers of human and robot
+		human_model.updatePoseMarkers();
 
 		// Update robot pose knowledge
 		human_model.testSeeRobot();

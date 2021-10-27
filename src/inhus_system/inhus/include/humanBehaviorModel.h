@@ -26,6 +26,7 @@
 #include "move_base_msgs/MoveBaseActionGoal.h"
 #include <actionlib_msgs/GoalStatusArray.h>
 #include <actionlib/client/simple_action_client.h>
+#include "visualization_msgs/MarkerArray.h"
 #include "types.h"
 #include "manipulate_path.hpp"
 
@@ -127,6 +128,7 @@ public:
 	void updateConflictManager();
 	void initConflictManager(ConflictManager* conflict_manager);
 	void conflictManagerLoop();
+	void updatePoseMarkers();
 
 	bool initDone();
 
@@ -192,6 +194,8 @@ private:
 	ros::Publisher pub_cancel_goal_;
 	ros::Publisher pub_goal_move_base_;
 	ros::Publisher pub_log_;
+	ros::Publisher pub_pose_marker_human_;
+	ros::Publisher pub_pose_marker_robot_;
 
 	// Service Clients //
 	ros::ServiceClient client_set_wait_goal_;
@@ -230,6 +234,9 @@ private:
 	float dist_radius_inflation_;
 	float radius_sum_sq_;
 	float dist_;
+
+	visualization_msgs::MarkerArray human_pose_marker_;
+	visualization_msgs::MarkerArray robot_pose_marker_;
 
 	inhus::Goal current_goal_;
 	inhus::Goal previous_goal_;

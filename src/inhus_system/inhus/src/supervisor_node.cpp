@@ -54,10 +54,6 @@ Supervisor::Supervisor()
 	marker_rviz_.pose.position.x = 		0;
 	marker_rviz_.pose.position.y = 		0;
 	marker_rviz_.pose.position.z = 		0.25;
-	marker_rviz_.pose.orientation.x = 	0;
-	marker_rviz_.pose.orientation.y = 	0;
-	marker_rviz_.pose.orientation.z = 	0;
-	marker_rviz_.pose.orientation.w = 	0;
 	marker_rviz_.scale.x = 			0.3;
 	marker_rviz_.scale.y = 			0.3;
 	marker_rviz_.scale.z = 			0.5;
