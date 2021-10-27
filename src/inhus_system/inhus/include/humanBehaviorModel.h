@@ -13,6 +13,7 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Path.h"
 #include "nav_msgs/GetPlan.h"
+#include "navfn/MakeNavPlan.h"
 #include "inhus/Goal.h"
 #include "std_srvs/Empty.h"
 #include "inhus/ActionBool.h"
@@ -57,6 +58,9 @@ private:
 	bool srvCheckConflict(inhus::ActionBool::Request &req, inhus::ActionBool::Response &res);
 	ros::ServiceServer server_init_conflict_;
 	bool srvInitCheckConflict(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+	ros::ServiceServer server_init_first_path_;
+	bool srvInitFirstPath(inhus::ActionBool::Request &req, inhus::ActionBool::Response &res);
+
 
 	// Service clients
 	ros::ServiceClient client_cancel_goal_and_stop_;
@@ -66,7 +70,7 @@ private:
 
 	// srv
 	inhus_navigation::PlaceRobot srv_place_robot_hm_;
-	nav_msgs::GetPlan srv_get_plan_;
+    navfn::MakeNavPlan srv_make_plan_;
 	std_srvs::Empty srv_signal_;
 
 	// Publishers
@@ -74,12 +78,6 @@ private:
 	ros::Publisher pub_cancel_goal_;
 	ros::Publisher pub_goal_move_base_;
 	ros::Publisher pub_vel_cmd_;
-
-	// Subscribers
-	ros::Subscriber sub_path_;
-	void pathCB(const nav_msgs::Path::ConstPtr& path);
-	ros::Subscriber sub_status_move_base_;
-	void stateMoveBaseCB(const actionlib_msgs::GoalStatusArray::ConstPtr& status);
 
 	// Other
 	enum StateGlobal{IDLE, APPROACH, BLOCKED};

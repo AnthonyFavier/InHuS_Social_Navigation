@@ -5,6 +5,7 @@
 Supervisor::Supervisor()
 : plan_()
 , replan_freq_(1) // init Rates and durations
+, check_freq_(1)
 , place_robot_delay_(1)
 {
 	// Ros Params
@@ -12,17 +13,20 @@ Supervisor::Supervisor()
 	nh_.param(std::string("replan_active"), replan_active_, true);
 	nh_.param(std::string("replan_freq"), f_nb, float(2.0)); replan_freq_ = ros::Rate(f_nb);
 	nh_.param(std::string("replan_dist_stop"), replan_dist_stop_, float(0.5));
+	nh_.param(std::string("check_freq"), f_nb, float(10)); check_freq_ = ros::Rate(f_nb);
 	nh_.param(std::string("place_robot_delay"), f_nb, float(0.3)); place_robot_delay_ = ros::Duration(f_nb);
-	ROS_INFO("=> Params Supervisor :");
-	ROS_INFO("replan_freq=%f", 1/replan_freq_.expectedCycleTime().toSec());
-	ROS_INFO("replan_dist_stop=%f", replan_dist_stop_);
-	ROS_INFO("place_robot_delay=%f", place_robot_delay_.toSec());
+	ROS_INFO("SUP: => Params Supervisor :");
+	ROS_INFO("SUP: replan_freq=%f", 1/replan_freq_.expectedCycleTime().toSec());
+	ROS_INFO("SUP: replan_dist_stop=%f", replan_dist_stop_);
+	ROS_INFO("SUP: check_freq=%f", 1/check_freq_.expectedCycleTime().toSec());
+	ROS_INFO("SUP: place_robot_delay=%f", place_robot_delay_.toSec());
 
 	// Service clients
-	client_plan_ = 					nh_.serviceClient<inhus::ComputePlan>("compute_plan");
-	client_place_robot_hm_ =		nh_.serviceClient<inhus_navigation::PlaceRobot>("place_robot_hm");
-	client_check_conflict_ =		nh_.serviceClient<inhus::ActionBool>("check_conflict");
-	client_init_check_conflict_ = 	nh_.serviceClient<std_srvs::Empty>("init_check_conflict");
+	client_plan_ = 						nh_.serviceClient<inhus::ComputePlan>("compute_plan");
+	client_place_robot_hm_ =			nh_.serviceClient<inhus_navigation::PlaceRobot>("place_robot_hm");
+	client_check_conflict_ =			nh_.serviceClient<inhus::ActionBool>("check_conflict");
+	client_init_check_conflict_ = 		nh_.serviceClient<std_srvs::Empty>("init_check_conflict");
+	client_init_first_path_conflict_ = 	nh_.serviceClient<inhus::ActionBool>("init_first_path_conflict");
 
 	// Service servers
 	server_set_wait_goal_ =		nh_.advertiseService("set_wait_goal", &Supervisor::srvSetWaitGoal, this);
@@ -91,10 +95,19 @@ void Supervisor::FSM()
 			break;
 
 		case ASK_PLAN:
+		{
+			std_srvs::Empty srv_init_conflict;
+			client_init_check_conflict_.call(srv_init_conflict);
+			// remove robot
+			srv_place_robot_hm_.request.data = false;
+			client_place_robot_hm_.call(srv_place_robot_hm_);
+			place_robot_delay_.sleep();
+			place_robot_delay_.sleep();
 			this->askPlan();
 			plan_.show();
 			global_state_ = EXEC_PLAN;
 			break;
+		}
 
 		case EXEC_PLAN:
 			if(goal_received_)
@@ -107,10 +120,15 @@ void Supervisor::FSM()
 				//plan_.show();
 				if(plan_.isDone())
 				{
-					ROS_INFO("Plan is DONE !");
+					ROS_INFO("SUP: Plan is DONE !");
 					pub_goal_done_.publish(current_goal_);
 					plan_.clear();
 					current_path_.poses.clear();
+
+					// remove robot
+					srv_place_robot_hm_.request.data = false;
+					client_place_robot_hm_.call(srv_place_robot_hm_);
+
 					global_state_ = WAIT_GOAL;
 				}
 				else
@@ -124,7 +142,7 @@ void Supervisor::FSM()
 						{
 							case STATE_PLANNED:
 							case STATE_NEEDED:
-								//ROS_INFO("PLANNED");
+								//ROS_INFO("SUP: PLANNED");
 
 								// check preconditions
 								// => for now no checking
@@ -136,24 +154,20 @@ void Supervisor::FSM()
 
 							case STATE_READY:
 							{
-								//ROS_INFO("READY");
+								//ROS_INFO("SUP: READY");
 								std_srvs::Empty srv_init_conflict;
+								inhus::ActionBool srv_init_first_path_conflict;
+								srv_init_first_path_conflict.request.action = (*curr_action).nav_goal;
 								client_init_check_conflict_.call(srv_init_conflict);
+								client_init_first_path_conflict_.call(srv_init_first_path_conflict);
 
 								// plan without robot first //
-
-								// remove robot
-								srv_place_robot_hm_.request.data = false;
-								client_place_robot_hm_.call(srv_place_robot_hm_);
-								place_robot_delay_.sleep(); // wait delay
-
 								// send to geometric planner
 								move_base_msgs::MoveBaseActionGoal nav_goal;
 								nav_goal.goal.target_pose.header.frame_id = "map";
 								nav_goal.goal.target_pose.header.stamp = ros::Time::now();
 								nav_goal.goal = (*curr_action).nav_goal;
 								pub_goal_move_base_.publish(nav_goal);
-								place_robot_delay_.sleep();
 
 								this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
 										(*curr_action).nav_goal.target_pose.pose.position.y, 1);
@@ -169,7 +183,7 @@ void Supervisor::FSM()
 							}
 
 							case STATE_PROGRESS:
-								//ROS_INFO("PROGRESS");
+								//ROS_INFO("SUP: PROGRESS");
 								msg_.data = "SUPERVISOR STATE PROGRESS " + std::to_string(ros::Time::now().toSec());
 								pub_log_.publish(msg_);
 
@@ -177,51 +191,52 @@ void Supervisor::FSM()
 								// for now : if geometric planner tells action is done
 								if(goal_status_.status == 3) // SUCCEEDED
 								{
-									ROS_INFO("Client succeeded");
+									ROS_INFO("SUP: Client succeeded");
 									pub_vel_cmd_.publish(geometry_msgs::Twist());
 									this->updateMarkerPose(0, 0, 0);
 									(*curr_action).state = STATE_DONE;
 								}
-								/*else if(goal_status_.status == 2) // PREEMPTED
+								else
 								{
-									ROS_INFO("PREEMPTED");
-									this->updateMarkerPose(0, 0, 0);
-									global_state_ = WAIT_GOAL;
-								}*/
-								// If replaning is active check if we can replan
-								else if(replan_active_)
-								{
-									// If not too close, try to replan
-									if((int)current_path_.poses.size()==0 || computePathLength(&current_path_) > replan_dist_stop_)
+									// If replaning is active check if we can replan
+									if(replan_active_)
 									{
-										//ROS_INFO("Test for resend");
-										if(goal_status_.status == actionlib::SimpleClientGoalState::LOST
-										|| (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
+										// If not too close, try to replan
+										if((int)current_path_.poses.size()==0 || computePathLength(&current_path_) > replan_dist_stop_)
 										{
-											// ROS_INFO("=> Resend !");
+											//ROS_INFO("SUP: Test for resend");
+											if(goal_status_.status == actionlib::SimpleClientGoalState::LOST
+											|| (ros::Time::now() - last_replan_ > replan_freq_.expectedCycleTime()))
+											{
+												// ROS_INFO("SUP: => Resend !");
 
-											move_base_msgs::MoveBaseActionGoal nav_goal;
-											nav_goal.goal.target_pose.header.frame_id = "map";
-											nav_goal.goal.target_pose.header.stamp = ros::Time::now();
-											nav_goal.goal = (*curr_action).nav_goal;
-											pub_goal_move_base_.publish(nav_goal);
+												move_base_msgs::MoveBaseActionGoal nav_goal;
+												nav_goal.goal.target_pose.header.frame_id = "map";
+												nav_goal.goal.target_pose.header.stamp = ros::Time::now();
+												nav_goal.goal = (*curr_action).nav_goal;
+												pub_goal_move_base_.publish(nav_goal);
 
-											this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
-												(*curr_action).nav_goal.target_pose.pose.position.y, 1);
-											last_replan_ = ros::Time::now();
+												this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
+													(*curr_action).nav_goal.target_pose.pose.position.y, 1);
+												last_replan_ = ros::Time::now();
+											}
 										}
 									}
-								}
 
-								// Check if blocked
-								ros::spinOnce();
-								inhus::ActionBool srv;
-								srv.request.action = (*curr_action).nav_goal;
-								client_check_conflict_.call(srv);
-								if(srv.response.conflict)
-								{
-									ROS_INFO("CONFLICT !");
-									global_state_ = SUSPENDED;
+									// Check if blocked
+									if(ros::Time::now() - last_check_ > check_freq_.expectedCycleTime())
+									{
+										ros::spinOnce();
+										inhus::ActionBool srv;
+										srv.request.action = (*curr_action).nav_goal;
+										client_check_conflict_.call(srv);
+										if(srv.response.conflict)
+										{
+											ROS_INFO("SUP: CONFLICT !");
+											global_state_ = SUSPENDED;
+										}
+										last_check_ = ros::Time::now();
+									}
 								}
 								break;
 						}
@@ -239,8 +254,6 @@ void Supervisor::FSM()
 			{
 				goal_received_ = false;
 				global_state_ = ASK_PLAN;
-				std_srvs::Empty srv_init_conflict;
-				client_init_check_conflict_.call(srv_init_conflict);
 			}
 			break;
 	}
@@ -253,20 +266,20 @@ void Supervisor::statePrint()
 		switch(global_state_)
 		{
 			case WAIT_GOAL:
-				ROS_INFO("\t => WAIT_GOAL <=");
+				ROS_INFO("SUP: \t => WAIT_GOAL <=");
 				break;
 
 			case ASK_PLAN:
-				ROS_INFO("\t => ASK_PLAN <=");
+				ROS_INFO("SUP: \t => ASK_PLAN <=");
 				break;
 
 			case EXEC_PLAN:
-				ROS_INFO("\t => EXEC_PLAN <=");
-				//ROS_INFO("current_goal : %s (%f, %f, %f)", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
+				ROS_INFO("SUP: \t => EXEC_PLAN <=");
+				//ROS_INFO("SUP: current_goal : %s (%f, %f, %f)", current_goal_.type.c_str(), current_goal_.x, current_goal_.y, current_goal_.theta);
 				break;
 
 			case SUSPENDED:
-				ROS_INFO("\t => SUSPENDED <=");
+				ROS_INFO("SUP: \t => SUSPENDED <=");
 				break;
 		}
 	}
@@ -307,7 +320,7 @@ void Supervisor::newGoalCallback(const inhus::GoalConstPtr& msg)
 
 bool Supervisor::srvSetWaitGoal(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 {
-	ROS_INFO("WAIT_GOAL SET !!!");
+	ROS_INFO("SUP: WAIT_GOAL SET !!!");
 	global_state_ = WAIT_GOAL;
 	goal_received_ = false;
 

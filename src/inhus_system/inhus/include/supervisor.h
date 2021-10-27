@@ -66,6 +66,7 @@ private:
 	ros::ServiceClient client_place_robot_hm_;
 	ros::ServiceClient client_check_conflict_;
 	ros::ServiceClient client_init_check_conflict_;
+	ros::ServiceClient client_init_first_path_conflict_;
 
 	// Services
 	inhus_navigation::PlaceRobot srv_place_robot_hm_;
@@ -89,6 +90,7 @@ private:
 	// Params
 	bool replan_active_;
 	ros::Rate replan_freq_;
+	ros::Rate check_freq_;
 	float replan_dist_stop_;
 	ros::Duration place_robot_delay_;
 
@@ -99,6 +101,7 @@ private:
 
 	visualization_msgs::Marker marker_rviz_;
 	ros::Time last_replan_;
+	ros::Time last_check_;
 };
 
 #endif

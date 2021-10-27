@@ -12,6 +12,10 @@ replan_freq: 2.0
 replan_dist_stop: 0.5
   #=> if distance to goal is less than this then stop replan
 
+### CheckConflict
+check_freq: 10.0
+  #=> frequency to check if a conflict occured
+
 ### PlaceRobot
 place_robot_delay: 0.2
   #=> duration waited after calling place_robot service to "be sure" it's effective

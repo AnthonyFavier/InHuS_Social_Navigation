@@ -1,0 +1,35 @@
+publish_frequency: 20.0
+update_frequency: 20.0
+global_frame: map
+robot_base_frame: human1/base_footprint
+rolling_window: false
+robot_radius: 0.3
+plugins:
+- {name: static_layer, type: "costmap_2d::StaticLayer"}
+- {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
+- {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+
+static_layer:
+  enabled:              true
+  map_topic: map_static
+  subscribe_to_updates: false
+  static_map: true
+
+inflater_layer:
+  enabled:              true
+  inflation_radius:     0.6  # 1.75 # max. distance from an obstacle at which costs are incurred for planning
+  cost_scaling_factor:  9.0  # 2.58 # exponential rate at which the obstacle cost drops off (default: 10)
+  inflate_unkown: true
+
+obstacle_layer:
+  enabled:              true
+  combination_method: 1
+  observation_sources: scan
+  scan:
+    data_type: LaserScan
+    topic: robot_pose_LaserScan
+    marking: true
+    clearing: true
+    inf_is_valid: true
+    min_obstacle_height: 0.0
+    max_obstacle_height: 1.0

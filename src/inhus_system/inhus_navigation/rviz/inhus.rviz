@@ -1,0 +1,641 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 78
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /TF1/Frames1
+      Splitter Ratio: 0.6063157916069031
+    Tree Height: 475
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+      - /2D Nav Goal1
+      - /Publish Point1
+    Name: Tool Properties
+    Splitter Ratio: 0.5886790156364441
+  - Class: rviz/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz/Time
+    Experimental: false
+    Name: Time
+    SyncMode: 0
+    SyncSource: ""
+Preferences:
+  PromptSaveOnExit: true
+Toolbars:
+  toolButtonStyle: 2
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /human1/map_static
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: costmap
+      Draw Behind: false
+      Enabled: false
+      Name: GlobalCostmap
+      Topic: /human1/move_base/global_costmap/costmap
+      Unreliable: false
+      Use Timestamp: false
+      Value: false
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: false
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+      Name: RobotModel
+      Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: false
+      Visual Enabled: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 204; 0; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: HumanGlobalPath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /human1/move_base/GlobalPlanner/plan
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: HumanLocalPath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /human1/move_base/HATebLocalPlannerROS/local_plan
+      Unreliable: false
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /move_base/HATebLocalPlannerROS/agent_marker
+      Name: HumanMarker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /move_base/HATebLocalPlannerROS/agent_arrow
+      Name: HumanDirection
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /human1/move_base/HATebLocalPlannerROS/mode_text
+      Name: ModeText
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /move_base/HATebLocalPlannerROS/local_plan_fp_poses
+      Name: RobotTimeVelocityMarkers
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: false
+      Marker Topic: /move_base/HATebLocalPlannerROS/agents_local_plans_fp_poses
+      Name: RobotPredictionMarkers
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
+    - Alpha: 1
+      Class: rviz/Polygon
+      Color: 32; 74; 135
+      Enabled: false
+      Name: Footprint
+      Topic: /human1/move_base/local_costmap/footprint
+      Unreliable: false
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 0.05000000074505806
+        Min Value: 0.05000000074505806
+        Value: true
+      Axis: Z
+      Channel Name: x
+      Class: rviz/LaserScan
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: LaserScan
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.05000000074505806
+      Style: Flat Squares
+      Topic: /human1/base_scan_filtered
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /human1/visualization_marker
+      Name: InHuS goal
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: false
+      Marker Topic: /human1/move_base/HATebLocalPlannerROS/agents_local_plans_fp_poses
+      Name: InhusPredictionMarkers
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /human1/move_base/HATebLocalPlannerROS/local_plan_fp_poses
+      Name: InhusPathMarkers
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic: /social_cost_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /TDP/move_base_node/TBPlanner/path
+      Unreliable: false
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        base_bellow_link:
+          Value: false
+        base_footprint:
+          Value: false
+        base_laser_link:
+          Value: false
+        base_link:
+          Value: false
+        bl_caster_l_wheel_link:
+          Value: false
+        bl_caster_r_wheel_link:
+          Value: false
+        bl_caster_rotation_link:
+          Value: false
+        br_caster_l_wheel_link:
+          Value: false
+        br_caster_r_wheel_link:
+          Value: false
+        br_caster_rotation_link:
+          Value: false
+        double_stereo_link:
+          Value: false
+        fl_caster_l_wheel_link:
+          Value: false
+        fl_caster_r_wheel_link:
+          Value: false
+        fl_caster_rotation_link:
+          Value: false
+        fr_caster_l_wheel_link:
+          Value: false
+        fr_caster_r_wheel_link:
+          Value: false
+        fr_caster_rotation_link:
+          Value: false
+        head_mount_kinect_ir_link:
+          Value: false
+        head_mount_kinect_ir_optical_frame:
+          Value: false
+        head_mount_kinect_rgb_link:
+          Value: false
+        head_mount_kinect_rgb_optical_frame:
+          Value: false
+        head_mount_link:
+          Value: false
+        head_mount_prosilica_link:
+          Value: false
+        head_mount_prosilica_optical_frame:
+          Value: false
+        head_pan_link:
+          Value: false
+        head_plate_frame:
+          Value: false
+        head_tilt_link:
+          Value: false
+        high_def_frame:
+          Value: false
+        high_def_optical_frame:
+          Value: false
+        human1/base_footprint:
+          Value: true
+        human1/base_laser_link:
+          Value: false
+        human1/base_link:
+          Value: false
+        human1/odom:
+          Value: false
+        imu_link:
+          Value: false
+        l_elbow_flex_link:
+          Value: false
+        l_forearm_cam_frame:
+          Value: false
+        l_forearm_cam_optical_frame:
+          Value: false
+        l_forearm_link:
+          Value: false
+        l_forearm_roll_link:
+          Value: false
+        l_gripper_l_finger_link:
+          Value: false
+        l_gripper_l_finger_tip_frame:
+          Value: false
+        l_gripper_l_finger_tip_link:
+          Value: false
+        l_gripper_led_frame:
+          Value: false
+        l_gripper_motor_accelerometer_link:
+          Value: false
+        l_gripper_motor_screw_link:
+          Value: false
+        l_gripper_motor_slider_link:
+          Value: false
+        l_gripper_palm_link:
+          Value: false
+        l_gripper_r_finger_link:
+          Value: false
+        l_gripper_r_finger_tip_link:
+          Value: false
+        l_gripper_tool_frame:
+          Value: false
+        l_shoulder_lift_link:
+          Value: false
+        l_shoulder_pan_link:
+          Value: false
+        l_torso_lift_side_plate_link:
+          Value: false
+        l_upper_arm_link:
+          Value: false
+        l_upper_arm_roll_link:
+          Value: false
+        l_wrist_flex_link:
+          Value: false
+        l_wrist_roll_link:
+          Value: false
+        laser_tilt_link:
+          Value: false
+        laser_tilt_mount_link:
+          Value: false
+        map:
+          Value: false
+        narrow_stereo_l_stereo_camera_frame:
+          Value: false
+        narrow_stereo_l_stereo_camera_optical_frame:
+          Value: false
+        narrow_stereo_link:
+          Value: false
+        narrow_stereo_optical_frame:
+          Value: false
+        narrow_stereo_r_stereo_camera_frame:
+          Value: false
+        narrow_stereo_r_stereo_camera_optical_frame:
+          Value: false
+        odom:
+          Value: false
+        projector_wg6802418_child_frame:
+          Value: false
+        projector_wg6802418_frame:
+          Value: false
+        r_elbow_flex_link:
+          Value: false
+        r_forearm_cam_frame:
+          Value: false
+        r_forearm_cam_optical_frame:
+          Value: false
+        r_forearm_link:
+          Value: false
+        r_forearm_roll_link:
+          Value: false
+        r_gripper_l_finger_link:
+          Value: false
+        r_gripper_l_finger_tip_frame:
+          Value: false
+        r_gripper_l_finger_tip_link:
+          Value: false
+        r_gripper_led_frame:
+          Value: false
+        r_gripper_motor_accelerometer_link:
+          Value: false
+        r_gripper_motor_screw_link:
+          Value: false
+        r_gripper_motor_slider_link:
+          Value: false
+        r_gripper_palm_link:
+          Value: false
+        r_gripper_r_finger_link:
+          Value: false
+        r_gripper_r_finger_tip_link:
+          Value: false
+        r_gripper_tool_frame:
+          Value: false
+        r_shoulder_lift_link:
+          Value: false
+        r_shoulder_pan_link:
+          Value: false
+        r_torso_lift_side_plate_link:
+          Value: false
+        r_upper_arm_link:
+          Value: false
+        r_upper_arm_roll_link:
+          Value: false
+        r_wrist_flex_link:
+          Value: false
+        r_wrist_roll_link:
+          Value: false
+        robot_inhus:
+          Value: true
+        sensor_mount_link:
+          Value: false
+        torso_lift_link:
+          Value: false
+        torso_lift_motor_screw_link:
+          Value: false
+        wide_stereo_l_stereo_camera_frame:
+          Value: false
+        wide_stereo_l_stereo_camera_optical_frame:
+          Value: false
+        wide_stereo_link:
+          Value: false
+        wide_stereo_optical_frame:
+          Value: false
+        wide_stereo_r_stereo_camera_frame:
+          Value: false
+        wide_stereo_r_stereo_camera_optical_frame:
+          Value: false
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: false
+      Show Axes: true
+      Show Names: true
+      Tree:
+        map:
+          human1/odom:
+            human1/base_footprint:
+              human1/base_link:
+                human1/base_laser_link:
+                  {}
+          robot_inhus:
+            {}
+      Update Interval: 0
+      Value: true
+    - Alpha: 1
+      Class: rviz/Polygon
+      Color: 25; 255; 0
+      Enabled: true
+      Name: Polygon
+      Topic: /human1/move_base/global_costmap/footprint
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /smb/move_base/GlobalPlanner/plan
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 117; 80; 123
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /smb/move_base/TebLocalPlannerROS/local_plan
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: PathBlockage
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /human1/global_planner_path_blockage/planner/plan
+      Unreliable: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: costmap
+      Draw Behind: false
+      Enabled: true
+      Name: GlobalCostmapConflict
+      Topic: /human1/global_planner_path_blockage/costmap/costmap
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Default Light: true
+    Fixed Frame: map
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/SetInitialPose
+      Theta std deviation: 0.2617993950843811
+      Topic: /initialpose
+      X std deviation: 0.5
+      Y std deviation: 0.5
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
+    - Class: rviz/PublishPoint
+      Single click: true
+      Topic: /clicked_point
+  Value: true
+  Views:
+    Current:
+      Angle: 0.004999999888241291
+      Class: rviz/TopDownOrtho
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.009999999776482582
+      Scale: 56.70730209350586
+      Target Frame: <Fixed Frame>
+      Value: TopDownOrtho (rviz)
+      X: 4.864846706390381
+      Y: 4.851124286651611
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: true
+  Height: 1031
+  Hide Left Dock: true
+  Hide Right Dock: true
+  QMainWindow State: 000000ff00000000fd0000000400000000000001dd000003b1fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000003b00000264000000c700fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000002a5000001470000005c00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c000002610000000100000111000003a3fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000003a3000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000077d0000003efc0100000002fb0000000800540069006d006500000000000000077d0000042700fffffffb0000000800540069006d0065010000000000000450000000000000000000000780000003b100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Time:
+    collapsed: false
+  Tool Properties:
+    collapsed: true
+  Views:
+    collapsed: true
+  Width: 1920
+  X: 1920
+  Y: 25
