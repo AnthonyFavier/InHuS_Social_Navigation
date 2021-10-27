@@ -102,7 +102,6 @@ bool ConflictManager::srvInitFirstPath(inhus::ActionBool::Request &req, inhus::A
 	return true;
 }
 
-
 bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::ActionBool::Response &res)
 {
 	res.conflict = 	false;
@@ -247,7 +246,9 @@ void ConflictManager::loop()
 				// stop human
 				client_cancel_goal_and_stop_.call(srv_signal_);
 
-				last_replan_ = ros::Time::now() - blocked_ask_path_freq_.expectedCycleTime();
+				// last_replan_ = ros::Time::now() - blocked_ask_path_freq_.expectedCycleTime();
+				last_replan_ = ros::Time::now() + delay_place_robot_;
+				delay_place_robot_.sleep();
 				delay_place_robot_.sleep();
 			}
 			else

@@ -124,11 +124,6 @@ void Supervisor::FSM()
 					pub_goal_done_.publish(current_goal_);
 					plan_.clear();
 					current_path_.poses.clear();
-
-					// remove robot
-					srv_place_robot_hm_.request.data = false;
-					client_place_robot_hm_.call(srv_place_robot_hm_);
-
 					global_state_ = WAIT_GOAL;
 				}
 				else
