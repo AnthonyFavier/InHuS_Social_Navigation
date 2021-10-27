@@ -3,6 +3,7 @@
   <arg name="map_name" default="laas_adream"/>
   <arg name="gui" default="true"/>
   <arg name="fast_mode" default="false"/>
+  <arg name="num_agents" default="1"/>
 
   <!-- Stage simulator and robot robot description -->
   <include file="$(find stage_ros)/launch/stage_pr2.launch">
@@ -14,6 +15,7 @@
   <!-- Interface with the simulator -->
   <include file="$(find inhus_navigation)/launch/simulator_launch/include/_stage_interface.launch">
     <arg name="ns" value="$(arg ns)"/>
+    <arg name="num_agents" value="$(arg num_agents)"/>
   </include>
 
 </launch>

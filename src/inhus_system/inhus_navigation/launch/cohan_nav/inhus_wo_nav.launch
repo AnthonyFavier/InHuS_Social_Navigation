@@ -2,8 +2,11 @@
   <arg name="ns" default="human1"/>
   <arg name="node_start_delay" default="4.0"/>
 
-  <!-- handle when to consider the robot or not -->
-  <node name="placeRobot_client_node" type="placeRobot_client_node" pkg="inhus_navigation" output="screen" ns="$(arg ns)"/>
+  <!-- Global Planner for the path blockage -->
+  <node pkg="global_planner" type="planner" ns="$(arg ns)" name="global_planner_path_blockage">
+    <remap from="/map" to="map_static"/>
+		<rosparam file="$(find inhus_navigation)/config/move_base_config/path_blockage_global_planner.yaml" command="load" ns="costmap"/>
+  </node>
 
   <!-- human controller and boss -->
   <include file="$(find inhus)/launch/all.launch">

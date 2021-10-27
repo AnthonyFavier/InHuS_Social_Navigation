@@ -1,14 +1,36 @@
 <launch>
 
-  <arg name="ns" default=""/>
+  <arg name="ns" default="human1"/>
 
-  <group unless="$(eval ''==arg('ns'))">
+  <!-- <node pkg="morse_ros" type="publish_human_tf.py" name="human_tf" output="screen">
+    <param name="ns" value="$(arg ns)"/>
+  </node> -->
 
-    <node pkg="morse_ros" type="publish_human_tf.py" name="human_tf" output="screen">
-      <param name="ns" value="$(arg ns)"/>
-    </node>
+  <node pkg="tf" type="static_transform_publisher" name="human1_odom_tf" args="0 0 0 0 0 0 /map /human1/odom 20"/>
 
-    <node pkg="tf" type="static_transform_publisher" name="human1_odom_tf" args="0 0 0 0 0 0 /map /human1/odom 20"/>
-  </group>
+  <!-- handle when to consider the robot or not, specifically for cohan -->
+  <node name="placeRobot_client_node" type="placeRobot_client_node" pkg="inhus_navigation" output="screen"/>
+
+  <!-- convert pointcloud to laserscan to add more easily the robot on the costmap -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+    <!-- See all params at http://wiki.ros.org/pointcloud_to_laserscan -->
+
+    <!-- Min and max height to sample from depth data - these values worked for my drone -->
+    <param name="min_height" value="-0.1"/>
+    <param name="max_height" value="0.1"/>
+
+    <!-- Min and max range range of generated laser scan - set this to match your depth sensor -->
+    <param name="range_min" value="0.0"/>
+    <param name="range_max" value="100.0"/>
+
+    <!-- Frame of your depth sensor = Robot -->
+    <param name="target_frame" value="robot_inhus"/>
+
+    <!-- Topic from which to read PointCloud2 -->
+    <remap from="cloud_in" to="robot_pose_PointCloud2"/>
+
+    <!-- Topic to which LaserScan will be published -->
+    <remap from="scan" to="robot_pose_LaserScan"/>
+  </node>
 
 </launch>

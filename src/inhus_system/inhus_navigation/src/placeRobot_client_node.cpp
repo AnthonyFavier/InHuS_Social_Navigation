@@ -31,7 +31,7 @@ PlaceRobotMap::PlaceRobotMap()
 
 	// Build empty_PointCloud2
 	sensor_msgs::PointCloud cloud;
-	cloud.header.frame_id = "base_footprint";
+	cloud.header.frame_id = "robot_inhus";
 	cloud.header.stamp = ros::Time::now();
 	sensor_msgs::convertPointCloudToPointCloud2(cloud, empty_PointCloud2_);
 
@@ -69,18 +69,17 @@ PlaceRobotMap::PlaceRobotMap()
 	robot_pose_sub_ = 	nh_.subscribe("known/robot_pose", 100, &PlaceRobotMap::robotPoseCallback, this);
 	human_pose_sub_ = 	nh_.subscribe("known/human_pose", 100, &PlaceRobotMap::humanPoseCallback, this);
 
+	// Publisher
+	robot_pose_pub_ =	nh_.advertise<sensor_msgs::PointCloud2>("robot_pose_PointCloud2", 10);
+
 	// Server
 	place_robot_server_ = nh_.advertiseService("place_robot", &PlaceRobotMap::placeRobotSrv, this);
-
+	
 	// Client
 	ros::service::waitForService("move_base/global_costmap/human_layer_static/shutdown_layer");
 	client_shutdown_layer_static_human_ = nh_.serviceClient<std_srvs::SetBool>("move_base/global_costmap/human_layer_static/shutdown_layer");
 	ros::service::waitForService("move_base/global_costmap/human_layer_visible/shutdown_layer");
 	client_shutdown_layer_visible_human_ = nh_.serviceClient<std_srvs::SetBool>("move_base/global_costmap/human_layer_visible/shutdown_layer");
-
-	// Publisher
-	//robot_pose_pub_ =	nh_.advertise<sensor_msgs::PointCloud2>("robot_pose_PointCloud2", 10);
-
 }
 
 bool PlaceRobotMap::placeRobotSrv(inhus_navigation::PlaceRobot::Request& req, inhus_navigation::PlaceRobot::Response& res)
@@ -101,8 +100,9 @@ void PlaceRobotMap::placeRobot()
 		if(sqrt(pow(human_pose_.x-robot_pose_.x,2) + pow(human_pose_.y-robot_pose_.y,2)) <= dist_threshold_)
 		{
 			// publish with obst
-			// robot_pose_PointCloud2_.header.stamp = ros::Time::now();
-			// robot_pose_pub_.publish(robot_pose_PointCloud2_);
+			robot_pose_PointCloud2_.header.stamp = ros::Time::now();
+			robot_pose_pub_.publish(robot_pose_PointCloud2_);
+
 			std_srvs::SetBool srv;
 			srv.request.data = false;
 			client_shutdown_layer_static_human_.call(srv);
@@ -111,8 +111,9 @@ void PlaceRobotMap::placeRobot()
 		else
 		{
 			// publish empty
-			// empty_PointCloud2_.header.stamp = ros::Time::now();
-			// robot_pose_pub_.publish(empty_PointCloud2_);
+			empty_PointCloud2_.header.stamp = ros::Time::now();
+			robot_pose_pub_.publish(empty_PointCloud2_);
+
 			std_srvs::SetBool srv;
 			srv.request.data = true;
 			client_shutdown_layer_static_human_.call(srv);
@@ -122,8 +123,9 @@ void PlaceRobotMap::placeRobot()
 	else
 	{
 		// publish empty
-		// empty_PointCloud2_.header.stamp = ros::Time::now();
-		// robot_pose_pub_.publish(empty_PointCloud2_);
+		empty_PointCloud2_.header.stamp = ros::Time::now();
+		robot_pose_pub_.publish(empty_PointCloud2_);
+
 		std_srvs::SetBool srv;
 		srv.request.data = true;
 		client_shutdown_layer_static_human_.call(srv);
@@ -138,8 +140,8 @@ bool PlaceRobotMap::initDone()
 
 void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_pose)
 {
-	robot_pose_.x = 	r_pose->x+2;
-	robot_pose_.y = 	r_pose->y+8;
+	robot_pose_.x = 	r_pose->x;
+	robot_pose_.y = 	r_pose->y;
 	robot_pose_.theta = 	r_pose->theta;
 	rcb_ = true;
 
@@ -149,8 +151,8 @@ void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_p
 
 void PlaceRobotMap::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_pose)
 {
-	human_pose_.x = 	h_pose->x+2;
-	human_pose_.y = 	h_pose->y+8;
+	human_pose_.x = 	h_pose->x;
+	human_pose_.y = 	h_pose->y;
 	human_pose_.theta = 	h_pose->theta;
 	hcb_ =	true;
 }
@@ -168,14 +170,14 @@ int main(int argc, char** argv)
 
 	PlaceRobotMap place_robot_map;
 
-	ros::Rate loop(60);
+	ros::Rate rate(60);
 
 	// wait init
 	ROS_INFO("PlaceRobot: Waiting for init ...");
 	while(ros::ok() && !place_robot_map.initDone())
 	{
 		ros::spinOnce();
-		loop.sleep();
+		rate.sleep();
 	}
 	ROS_INFO("PlaceRobot: INIT done");
 

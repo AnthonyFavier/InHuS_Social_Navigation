@@ -1,8 +1,6 @@
 <launch>
   <arg name="ns" default="human1"/>
   <arg name="map_name" default="laas_adream"/>
-  <arg name="localize" default="fake"/>
-  <arg name="num_agents" default="1"/>
   <arg name="node_start_delay" default="2.0"/>
 
   <!-- MAP SERVERS -->
@@ -20,8 +18,6 @@
   <include file="$(find inhus_navigation)/launch/cohan_nav/include/_agent_with_ns.launch">
     <arg name="ns" value="$(arg ns)"/>
     <arg name="node_start_delay" value="$(arg node_start_delay)" />
-    <arg name="localize" value="$(arg localize)"/>
-    <arg name="num_agents" value="$(arg num_agents)"/>
   </include>
 
 </launch>

@@ -66,8 +66,8 @@ class MorseAgents(object):
             agent_segment.twist.twist = msg[agent_id-1].agent.velocity
             tracked_agent = TrackedAgent()
             tracked_agent.type = AgentType.HUMAN
-            tracked_agent.name = "human"+str(agent_id)
-            # tracked_agent.name = "robot"
+            # tracked_agent.name = "human"+str(agent_id)
+            tracked_agent.name = "robot"
             tracked_agent.segments.append(agent_segment)
             tracked_agents.agents.append(tracked_agent)
         if(tracked_agents.agents):

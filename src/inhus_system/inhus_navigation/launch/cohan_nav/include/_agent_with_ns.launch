@@ -2,13 +2,10 @@
   <!-- Node start delay to avoid crashing of navigation node -->
   <arg name="ns" default="human1"/>
   <arg name="node_start_delay" default="1.0" />
-  <arg name="localize" default="fake"/>
-  <arg name="num_agents" default="2"/>
 
   <group ns="$(arg ns)">
     <include file="$(find inhus_navigation)/launch/cohan_nav/include/_agent_tracking.launch">
       <arg name="ns" value="$(arg ns)"/>
-      <arg name="num_agents" value="$(arg num_agents)"/>
     </include>
 
     <include file="$(find inhus_navigation)/launch/cohan_nav/include/_move_base_nav.launch">
@@ -18,7 +15,6 @@
 
     <include file="$(find inhus_navigation)/launch/cohan_nav/include/_localization.launch">
       <arg name="ns" value="$(arg ns)"/>
-      <arg name="localize" value="$(arg localize)"/>
     </include>
   </group>
 
