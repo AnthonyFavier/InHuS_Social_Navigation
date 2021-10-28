@@ -16,6 +16,7 @@ Supervisor::Supervisor()
 	nh_.param(std::string("check_freq"), f_nb, float(10)); check_freq_ = ros::Rate(f_nb);
 	nh_.param(std::string("place_robot_delay"), f_nb, float(0.3)); place_robot_delay_ = ros::Duration(f_nb);
 	ROS_INFO("SUP: => Params Supervisor :");
+	ROS_INFO("SUP: replan_active=%d", replan_active_);
 	ROS_INFO("SUP: replan_freq=%f", 1/replan_freq_.expectedCycleTime().toSec());
 	ROS_INFO("SUP: replan_dist_stop=%f", replan_dist_stop_);
 	ROS_INFO("SUP: check_freq=%f", 1/check_freq_.expectedCycleTime().toSec());

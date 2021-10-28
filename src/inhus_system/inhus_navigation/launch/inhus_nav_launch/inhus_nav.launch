@@ -18,8 +18,11 @@
    <!-- Global Planner for the path blockage -->
   <node pkg="global_planner" type="planner" ns="$(arg ns)" name="global_planner_path_blockage">
     <remap from="/map" to="map_static"/>
-		<rosparam file="$(find inhus_navigation)/config/move_base_config/path_blockage_global_planner.yaml" command="load" ns="costmap"/>
+		<rosparam file="$(find inhus_navigation)/config/path_blockage_global_planner.yaml" command="load" ns="costmap"/>
   </node>
+
+  <!-- Load InHuS parameters -->
+	<rosparam command="load" file="$(find inhus)/config/params.yaml" ns="$(arg ns)"/>
 
   <!-- human controller and boss -->
   <include file="$(find inhus)/launch/all.launch">

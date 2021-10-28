@@ -59,7 +59,7 @@ add_dependencies(logManagerCohan_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(logManagerCohan_node ${catkin_LIBRARIES})
 
 # install
-foreach(dir maps launch/stage_launch config/stage_pr2_move_base_config)
+foreach(dir maps launch/stage_launch)
    install(DIRECTORY ${dir}/
       DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
 endforeach(dir)

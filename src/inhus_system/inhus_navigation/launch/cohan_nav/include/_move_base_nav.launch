@@ -10,10 +10,10 @@
     <remap from="/move_base/GlobalPlanner/make_plan" to="/$(arg ns)/move_base/GlobalPlanner/make_plan"/>
     <remap from="/tracked_agents" to="/$(arg ns)/tracked_agents"/>
 
-    <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/move_base_params_human.yaml" command="load" />
-    <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/global_costmap_params_human.yaml" command="load" ns="global_costmap" />
-    <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/local_costmap_params_human.yaml" command="load" ns="local_costmap" />
-    <rosparam file="$(find inhus_navigation)/config/morse_pr2_move_base_config/hateb_local_planner_params_human.yaml" command="load" ns="HATebLocalPlannerROS" />
+    <rosparam file="$(find inhus_navigation)/config/cohan_nav_config/move_base_params_human.yaml" command="load" />
+    <rosparam file="$(find inhus_navigation)/config/cohan_nav_config/global_costmap_params_human.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find inhus_navigation)/config/cohan_nav_config/local_costmap_params_human.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find inhus_navigation)/config/cohan_nav_config/hateb_local_planner_params_human.yaml" command="load" ns="HATebLocalPlannerROS" />
 
     <param name="ns" value="$(arg ns)"/>
     <param name="base_global_planner" value="global_planner/GlobalPlanner" />

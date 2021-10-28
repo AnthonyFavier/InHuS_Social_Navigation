@@ -17,11 +17,11 @@
 		<param name="base_global_planner" value="$(arg global_planner)"/>
 		<param name="base_local_planner" value="$(arg local_planner)"/>
 
-		<rosparam file="$(find inhus_navigation)/config/move_base_config/planner.yaml" command="load"/>
-		<rosparam file="$(find inhus_navigation)/config/move_base_config/costmap_common.yaml" command="load" ns="global_costmap" />
-		<rosparam file="$(find inhus_navigation)/config/move_base_config/costmap_common.yaml" command="load" ns="local_costmap" />
-		<rosparam file="$(find inhus_navigation)/config/move_base_config/costmap_global.yaml" command="load"/>
-		<rosparam file="$(find inhus_navigation)/config/move_base_config/costmap_local.yaml" command="load"/>
+		<rosparam file="$(find inhus_navigation)/config/inhus_nav_config/planner.yaml" command="load"/>
+		<rosparam file="$(find inhus_navigation)/config/inhus_nav_config/costmap_common.yaml" command="load" ns="global_costmap" />
+		<rosparam file="$(find inhus_navigation)/config/inhus_nav_config/costmap_common.yaml" command="load" ns="local_costmap" />
+		<rosparam file="$(find inhus_navigation)/config/inhus_nav_config/costmap_global.yaml" command="load"/>
+		<rosparam file="$(find inhus_navigation)/config/inhus_nav_config/costmap_local.yaml" command="load"/>
 
 	</node>
 
