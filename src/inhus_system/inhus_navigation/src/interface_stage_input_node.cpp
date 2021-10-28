@@ -48,7 +48,7 @@ void robotOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 	r_pose_vel.pose.y=msg->pose.pose.position.y;
 	r_pose_vel.vel = msg->twist.twist;
 
-	pub_sim_human_pose_vel.publish(r_pose_vel);
+	pub_sim_robot_pose_vel.publish(r_pose_vel);
 }
 /////////////////////////
 /////////////////////////

@@ -58,6 +58,10 @@ add_executable(logManagerCohan_node src/logManagerCohan_node.cpp)
 add_dependencies(logManagerCohan_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(logManagerCohan_node ${catkin_LIBRARIES})
 
+add_executable(agentsBridge_node src/agents_bridge.cpp)
+add_dependencies(agentsBridge_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(agentsBridge_node ${catkin_LIBRARIES})
+
 # install
 foreach(dir maps launch/stage_launch)
    install(DIRECTORY ${dir}/

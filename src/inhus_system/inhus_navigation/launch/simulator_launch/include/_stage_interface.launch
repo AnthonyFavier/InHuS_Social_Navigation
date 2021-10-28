@@ -2,10 +2,9 @@
 	<arg name="ns" default="human1"/>
   	<arg name="num_agents" default="1"/>
 
-	<node name="input_node" type="input_stage_node" pkg="inhus_navigation" ns="$(arg ns)/interface"/>
-	<node name="output_node" type="output_stage_node" pkg="inhus_navigation" ns="$(arg ns)/interface"/>
+	<node name="input_node" type="input_stage_node" pkg="inhus_navigation" ns="$(arg ns)/interface" output="screen"/>
+	<node name="output_node" type="output_stage_node" pkg="inhus_navigation" ns="$(arg ns)/interface" output="screen"/>
 
-	<!-- STAGE agents to /tracked_agents -->
-  	<node name="agents" pkg="stage_ros" type="agents_bridge.py" args="$(arg num_agents) $(arg ns)" ns="$(arg ns)" output="screen"/>
+  	<node name="agentsBridge_node" pkg="inhus_navigation" type="agentsBridge_node" ns="$(arg ns)" output="screen"/>
 
 </launch>
