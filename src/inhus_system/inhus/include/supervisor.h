@@ -98,6 +98,7 @@ private:
 	inhus::Goal current_goal_;
 	Plan plan_;
 	bool goal_received_;
+	inhus::Action current_action_;
 
 	visualization_msgs::Marker marker_rviz_;
 	ros::Time last_replan_;

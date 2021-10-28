@@ -83,7 +83,7 @@ void Supervisor::FSM()
 	switch(global_state_)
 	{
 		case WAIT_GOAL:
-		// Wait for goal from HumanBehaviorModel
+			// Wait for goal from HumanBehaviorModel
 			if(goal_received_)
 			{
 				goal_received_ = false;
@@ -127,6 +127,7 @@ void Supervisor::FSM()
 				{
 					plan_.updateCurrentAction();
 					std::vector<inhus::Action>::iterator curr_action = plan_.getCurrentAction();
+					current_action_ = (*curr_action);
 
 					if((*curr_action).type == "navigation")
 					{
@@ -328,7 +329,12 @@ bool Supervisor::srvSuspend(std_srvs::Empty::Request &req, std_srvs::Empty::Resp
 bool Supervisor::srvResume(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
 	global_state_=EXEC_PLAN;
-	last_replan_ = ros::Time::now() - replan_freq_.expectedCycleTime();
+	move_base_msgs::MoveBaseActionGoal nav_goal;
+	nav_goal.goal.target_pose.header.frame_id = "map";
+	nav_goal.goal.target_pose.header.stamp = ros::Time::now();
+	nav_goal.goal = current_action_.nav_goal;
+	pub_goal_move_base_.publish(nav_goal);
+	last_replan_ = ros::Time::now();
 	return true;
 }
 
