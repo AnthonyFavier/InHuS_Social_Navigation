@@ -14,14 +14,6 @@ PlaceRobotMap::PlaceRobotMap()
 	ROS_INFO("dist_threshold=%f", dist_threshold_);
 
 	// Init
-	robot_pose_.x = 	0;
-	robot_pose_.y = 	0;
-	robot_pose_.theta = 	0;
-
-	human_pose_.x = 	0;
-	human_pose_.y = 	0;
-	human_pose_.theta = 	0;
-
 	place_robot_ = false;
 
 	hcb_ = 	false;
@@ -66,8 +58,8 @@ PlaceRobotMap::PlaceRobotMap()
 	sensor_msgs::convertPointCloudToPointCloud2(cloud, robot_pose_PointCloud2_);
 
 	// Subscriber
-	robot_pose_sub_ = 	nh_.subscribe("known/robot_pose", 100, &PlaceRobotMap::robotPoseCallback, this);
-	human_pose_sub_ = 	nh_.subscribe("known/human_pose", 100, &PlaceRobotMap::humanPoseCallback, this);
+	r_pose_vel_sub_ = 	nh_.subscribe("known/robot_pose_vel", 100, &PlaceRobotMap::rPoseVelCallback, this);
+	h_pose_vel_sub_ = 	nh_.subscribe("known/human_pose_vel", 100, &PlaceRobotMap::hPoseVelCallback, this);
 
 	// Publisher
 	robot_pose_pub_ =	nh_.advertise<sensor_msgs::PointCloud2>("robot_pose_PointCloud2", 10);
@@ -91,7 +83,7 @@ void PlaceRobotMap::placeRobot()
 	if(place_robot_)
 	{
 		// check if also not too far
-		if(sqrt(pow(human_pose_.x-robot_pose_.x,2) + pow(human_pose_.y-robot_pose_.y,2)) <= dist_threshold_)
+		if(sqrt(pow(h_pose_vel_.pose.x-r_pose_vel_.pose.x,2) + pow(h_pose_vel_.pose.y-r_pose_vel_.pose.y,2)) <= dist_threshold_)
 		{
 			// publish with obst
 			robot_pose_PointCloud2_.header.stamp = ros::Time::now();
@@ -117,24 +109,19 @@ bool PlaceRobotMap::initDone()
 	return rcb_ && hcb_;
 }
 
-void PlaceRobotMap::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_pose)
+void PlaceRobotMap::rPoseVelCallback(const inhus::PoseVel::ConstPtr& msg)
 {
-	robot_pose_.x = 	r_pose->x;
-	robot_pose_.y = 	r_pose->y;
-	robot_pose_.theta = 	r_pose->theta;
+	r_pose_vel_ = 	*msg;
 	rcb_ = true;
-
 
 	if(active_)
 		this->placeRobot();
 }
 
-void PlaceRobotMap::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_pose)
+void PlaceRobotMap::hPoseVelCallback(const inhus::PoseVel::ConstPtr& msg)
 {
-	human_pose_.x = 	h_pose->x;
-	human_pose_.y = 	h_pose->y;
-	human_pose_.theta = 	h_pose->theta;
-	hcb_ =	true;
+	h_pose_vel_ = 	*msg;
+	hcb_ = true;
 }
 
 void PlaceRobotMap::start()

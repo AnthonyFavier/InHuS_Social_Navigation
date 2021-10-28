@@ -8,6 +8,7 @@
 #include "geometry_msgs/Pose2D.h"
 #include <fstream>
 #include <math.h>
+#include "inhus/PoseVel.h"
 
 using namespace std;
 
@@ -18,11 +19,8 @@ public:
 	~LogManager();
 
 	void logCallback(const std_msgs::String::ConstPtr& msg);
-	void velHCallback(const geometry_msgs::Twist::ConstPtr& msg);
-	void velRCallback(const geometry_msgs::Twist::ConstPtr& msg);
-
-	void poseHCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
-	void poseRCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
+	void hPoseVelCallback(const inhus::PoseVel::ConstPtr& msg);
+	void rPoseVelCallback(const inhus::PoseVel::ConstPtr& msg);
 
 private:
 	ros::NodeHandle nh_;
@@ -30,12 +28,9 @@ private:
 
 	ofstream log_file_inhus_;
 	ros::Subscriber sub_log_;
-	ros::Subscriber sub_vel_H_;
-	ros::Subscriber sub_vel_R_;
-
+	ros::Subscriber sub_h_pose_vel_;
+	ros::Subscriber sub_r_pose_vel_;
 	ofstream log_file_inhus_poses_;
-	ros::Subscriber sub_pose_H_;
-	ros::Subscriber sub_pose_R_;
 };
 
 #endif

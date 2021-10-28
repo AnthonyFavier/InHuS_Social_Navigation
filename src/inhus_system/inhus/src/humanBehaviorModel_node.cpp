@@ -76,8 +76,8 @@ bool ConflictManager::srvInitCheckConflict(std_srvs::Empty::Request &req, std_sr
 
 bool ConflictManager::srvInitFirstPath(inhus::ActionBool::Request &req, inhus::ActionBool::Response &res)
 {
-	srv_make_plan_.request.start.pose.position.x = h_pose_.x;
-    srv_make_plan_.request.start.pose.position.y = h_pose_.y;
+	srv_make_plan_.request.start.pose.position.x = h_pose_vel_.pose.x;
+    srv_make_plan_.request.start.pose.position.y = h_pose_vel_.pose.y;
     srv_make_plan_.request.goal.pose.position.x = req.action.target_pose.pose.position.x;
     srv_make_plan_.request.goal.pose.position.y = req.action.target_pose.pose.position.y;
 	
@@ -107,8 +107,8 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 	res.conflict = 	false;
 	geometry_msgs::PoseStamped goal_pose = req.action.target_pose;
 
-	srv_make_plan_.request.start.pose.position.x = h_pose_.x;
-    srv_make_plan_.request.start.pose.position.y = h_pose_.y;
+	srv_make_plan_.request.start.pose.position.x = h_pose_vel_.pose.x;
+    srv_make_plan_.request.start.pose.position.y = h_pose_vel_.pose.y;
     srv_make_plan_.request.goal.pose.position.x = req.action.target_pose.pose.position.x;
     srv_make_plan_.request.goal.pose.position.y = req.action.target_pose.pose.position.y;
 	
@@ -141,7 +141,7 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 			{
 				// seek pose closest to current_pose from current_path
 				// only keep path from current_pose to the end store to previous
-				cutPath(current_path_, previous_path_, h_pose_);
+				cutPath(current_path_, previous_path_, h_pose_vel_.pose);
 			}
 		}
 		// update current_path
@@ -231,7 +231,7 @@ void ConflictManager::loop()
 			pub_log_.publish(msg_);
 
 			// if close enough => BLOCKED
-			float dist_to_robot = sqrt(pow(h_pose_.x - r_pose_.x,2) + pow(h_pose_.y - r_pose_.y,2));
+			float dist_to_robot = sqrt(pow(h_pose_vel_.pose.x - r_pose_vel_.pose.x,2) + pow(h_pose_vel_.pose.y - r_pose_vel_.pose.y,2));
 			if(dist_to_robot <= approach_dist_)
 			{
 				ROS_INFO("CM: close enough => switch to BLOCKED");
@@ -281,8 +281,8 @@ void ConflictManager::loop()
 								pub_goal_move_base_.publish(goal);
 							}
 
-							srv_make_plan_.request.start.pose.position.x = 	h_pose_.x;
-							srv_make_plan_.request.start.pose.position.y = 	h_pose_.y;
+							srv_make_plan_.request.start.pose.position.x = 	h_pose_vel_.pose.x;
+							srv_make_plan_.request.start.pose.position.y = 	h_pose_vel_.pose.y;
 							srv_make_plan_.request.goal.pose.position.x = 	current_action_.target_pose.pose.position.x;
 							srv_make_plan_.request.goal.pose.position.y = 	current_action_.target_pose.pose.position.y;
 							if(client_make_plan_.call(srv_make_plan_))
@@ -324,8 +324,8 @@ void ConflictManager::loop()
 
 							// check if still blocked
 							bool still_blocked = true;
-							srv_make_plan_.request.start.pose.position.x = 	h_pose_.x;
-							srv_make_plan_.request.start.pose.position.y = 	h_pose_.y;
+							srv_make_plan_.request.start.pose.position.x = 	h_pose_vel_.pose.x;
+							srv_make_plan_.request.start.pose.position.y = 	h_pose_vel_.pose.y;
 							srv_make_plan_.request.goal.pose.position.x = 	current_action_.target_pose.pose.position.x;
 							srv_make_plan_.request.goal.pose.position.y = 	current_action_.target_pose.pose.position.y;
 							if(client_make_plan_.call(srv_make_plan_))
@@ -394,7 +394,7 @@ void ConflictManager::loop()
 			pub_log_.publish(msg_);
 
 			// back to APPROACH if too far
-			float dist_to_robot = sqrt(pow(h_pose_.x - r_pose_.x,2) + pow(h_pose_.y - r_pose_.y,2));
+			float dist_to_robot = sqrt(pow(h_pose_vel_.pose.x - r_pose_vel_.pose.x,2) + pow(h_pose_vel_.pose.y - r_pose_vel_.pose.y,2));
 			//ROS_INFO("CM: dist=%f", dist_to_robot);
 			if(dist_to_robot > approach_dist_)
 			{
@@ -415,8 +415,8 @@ void ConflictManager::loop()
 				ROS_INFO("CM: \t => BLOCKED <=");
 				//ROS_INFO("CM: try to replan");
 
-				srv_make_plan_.request.start.pose.position.x = 	h_pose_.x;
-				srv_make_plan_.request.start.pose.position.y = 	h_pose_.y;
+				srv_make_plan_.request.start.pose.position.x = 	h_pose_vel_.pose.x;
+				srv_make_plan_.request.start.pose.position.y = 	h_pose_vel_.pose.y;
 				srv_make_plan_.request.goal.pose.position.x = 	current_action_.target_pose.pose.position.x;
 				srv_make_plan_.request.goal.pose.position.y = 	current_action_.target_pose.pose.position.y;
 
@@ -458,18 +458,16 @@ void ConflictManager::loop()
 	}
 }
 
-void ConflictManager::updateData(geometry_msgs::Pose2D h_pose, geometry_msgs::Twist h_vel, geometry_msgs::Pose2D r_pose, geometry_msgs::Twist r_vel)
+void ConflictManager::updateData(inhus::PoseVel h_pose_vel, inhus::PoseVel r_pose_vel)
 {
-	h_pose_ = 	h_pose;
-	h_vel_  = 	h_vel;
-	r_pose_ = 	r_pose;
-	r_vel_  = 	r_vel;
+	h_pose_vel_ = h_pose_vel;
+	r_pose_vel_ = r_pose_vel;
 
-	if(h_vel.linear.x!=0 || h_vel.linear.y!=0)
+	if(h_pose_vel_.vel.linear.x!=0 || h_pose_vel.vel.linear.y!=0)
 	{
 		for(int i=nb_last_vels_-1; i>0; i--)
 			last_vels_[i] = last_vels_[i-1];
-		last_vels_[0] = h_vel_;
+		last_vels_[0] = h_pose_vel_.vel;
 		// ROS_INFO("CM: last_vels = 1]%f 1]%f 1]%f 1]%f", last_vels_[0].linear.x, last_vels_[1].linear.x, last_vels_[2].linear.x, last_vels_[3].linear.x);
 	}
 }
@@ -528,10 +526,8 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	ROS_INFO("HBM: b_harass_replan_freq=%f", 1/b_harass_replan_freq_.expectedCycleTime().toSec());
 
 	// Subscribers
-	sub_pose_ = 	 	nh_.subscribe("interface/in/human_pose", 100, &HumanBehaviorModel::poseCallback, this);
-	sub_vel_ = 	 	nh_.subscribe("interface/in/human_vel", 100, &HumanBehaviorModel::velCallback, this);
-	sub_robot_pose_ =	nh_.subscribe("interface/in/robot_pose", 100, &HumanBehaviorModel::robotPoseCallback, this);
-	sub_robot_vel_ =	nh_.subscribe("interface/in/robot_vel", 100, &HumanBehaviorModel::robotVelCallback, this);
+	sub_h_pose_vel_ = nh_.subscribe("interface/in/human_pose_vel", 100, &HumanBehaviorModel::hPoseVelCallback, this);
+	sub_r_pose_vel_ = nh_.subscribe("interface/in/robot_pose_vel", 100, &HumanBehaviorModel::rPoseVelCallback, this);
 	sub_cmd_geo_ =		nh_.subscribe("cmd_geo", 100, &HumanBehaviorModel::cmdGeoCallback, this);
 	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanBehaviorModel::goalDoneCallback, this);
 	sub_set_attitude_ = 	nh_.subscribe("/boss/human/set_attitude", 100, &HumanBehaviorModel::setAttitudeCallback, this);
@@ -540,10 +536,8 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	sub_pov_map_ = 		nh_.subscribe("map_pov", 1, &HumanBehaviorModel::povMapCallback, this);
 
 	// Publishers
-	pub_human_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("known/human_pose", 100);
-	pub_human_vel_ = 	nh_.advertise<geometry_msgs::Twist>("known/human_vel", 100);
-	pub_robot_pose_ = 	nh_.advertise<geometry_msgs::Pose2D>("known/robot_pose", 100);
-	pub_robot_vel_ = 	nh_.advertise<geometry_msgs::Twist>("known/robot_vel", 100);
+	pub_h_pose_vel_ = 	nh_.advertise<inhus::PoseVel>("known/human_pose_vel", 100);
+	pub_r_pose_vel_ = 	nh_.advertise<inhus::PoseVel>("known/robot_pose_vel", 100);
 	pub_new_goal_ = 	nh_.advertise<inhus::Goal>("new_goal", 100);
 	pub_perturbed_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("perturbed_cmd", 100);
 	pub_goal_move_base_ =	nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
@@ -570,19 +564,8 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	//ROS_INFO("HBM: I am human");
 
 	// Init
-	geometry_msgs::Pose2D zero;
-	zero.x = 	0;
-	zero.y = 	0;
-	zero.theta = 	0;
-	sim_pose_ =		zero;
-	sim_robot_pose_=    	zero;
-	model_pose_ = 	   	zero;
-	model_robot_pose_ =	zero;
 
 	current_goal_.type = 	"navigation";
-	current_goal_.x  =	0;
-	current_goal_.y = 	0;
-	current_goal_.theta = 	0;
 
 	previous_goal_=current_goal_;
 
@@ -721,23 +704,19 @@ void HumanBehaviorModel::publishGoal(GoalArea goal)
 
 void HumanBehaviorModel::processSimData()
 {
-	model_pose_ = 		sim_pose_;
-	model_vel_ = 		sim_vel_;
-	model_robot_pose_ = 	sim_robot_pose_;
-	model_robot_vel_ = 	sim_robot_vel_;
+	model_h_pose_vel_ = sim_h_pose_vel_;
+	model_r_pose_vel_ = sim_r_pose_vel_;
 }
 
 void HumanBehaviorModel::publishModelData()
 {
-	pub_human_pose_.publish(model_pose_);
-	pub_human_vel_.publish(model_vel_);
-	pub_robot_pose_.publish(model_robot_pose_);
-	pub_robot_vel_.publish(model_robot_vel_);
+	pub_h_pose_vel_.publish(model_h_pose_vel_);
+	pub_r_pose_vel_.publish(model_r_pose_vel_);
 }
 
 void HumanBehaviorModel::pubDist()
 {
-	dist_ = sqrt(pow(model_robot_pose_.x-model_pose_.x,2) + pow(model_robot_pose_.y-model_pose_.y,2));
+	dist_ = sqrt(pow(model_r_pose_vel_.pose.x-model_h_pose_vel_.pose.x,2) + pow(model_r_pose_vel_.pose.y-model_h_pose_vel_.pose.y,2));
 	msg_log_.data = "HUMAN_MODEL DIST " + std::to_string(dist_) + " " + std::to_string(ros::Time::now().toSec());
 	pub_log_.publish(msg_log_);
 }
@@ -747,8 +726,8 @@ void HumanBehaviorModel::computeTTC()
 	ttc_ = -1.0; // ttc infinite
 
 	geometry_msgs::Pose2D C; // robot human relative position
-	C.x = model_pose_.x - model_robot_pose_.x;
-	C.y = model_pose_.y - model_robot_pose_.y;
+	C.x = model_h_pose_vel_.pose.x - model_r_pose_vel_.pose.x;
+	C.y = model_h_pose_vel_.pose.y - model_r_pose_vel_.pose.y;
 	double C_sq = C.x*C.x + C.y*C.y; // dot product C.C, distance robot human
 
 	double robot_inflated_radius = robot_radius_*C_sq/dist_radius_inflation_;
@@ -761,8 +740,8 @@ void HumanBehaviorModel::computeTTC()
 	else
 	{
 		geometry_msgs::Twist V; // relative velocity human to robot
-		V.linear.x = model_robot_vel_.linear.x - model_vel_.linear.x;
-		V.linear.y = model_robot_vel_.linear.y - model_vel_.linear.y;
+		V.linear.x = model_r_pose_vel_.vel.linear.x - model_h_pose_vel_.vel.linear.x;
+		V.linear.y = model_r_pose_vel_.vel.linear.y - model_h_pose_vel_.vel.linear.y;
 
 		double C_dot_V = C.x*V.linear.x + C.y*V.linear.y;
 
@@ -785,7 +764,7 @@ void HumanBehaviorModel::computeTTC()
 
 void HumanBehaviorModel::computeRelSpd()
 {
-	relative_speed_ = sqrt(pow(model_vel_.linear.x-model_robot_vel_.linear.x,2) + pow(model_vel_.linear.y-model_robot_vel_.linear.y,2));
+	relative_speed_ = sqrt(pow(model_h_pose_vel_.vel.linear.x-model_r_pose_vel_.vel.linear.x,2) + pow(model_h_pose_vel_.vel.linear.y-model_r_pose_vel_.vel.linear.y,2));
 	msg_log_.data = "HUMAN_MODEL REL_SPD " + std::to_string(relative_speed_) + " " + std::to_string(ros::Time::now().toSec());
 	pub_log_.publish(msg_log_);
 }
@@ -799,21 +778,21 @@ void HumanBehaviorModel::updatePoseMarkers()
 {
 	tf2::Quaternion q;
 	
-	human_pose_marker_.markers[0].pose.position.x = model_pose_.x;
-	human_pose_marker_.markers[0].pose.position.y = model_pose_.y;
-	human_pose_marker_.markers[1].pose.position.x = model_pose_.x;
-	human_pose_marker_.markers[1].pose.position.y = model_pose_.y;
-	q.setRPY(0,0,model_pose_.theta);
+	human_pose_marker_.markers[0].pose.position.x = model_h_pose_vel_.pose.x;
+	human_pose_marker_.markers[0].pose.position.y = model_h_pose_vel_.pose.y;
+	human_pose_marker_.markers[1].pose.position.x = model_h_pose_vel_.pose.x;
+	human_pose_marker_.markers[1].pose.position.y = model_h_pose_vel_.pose.y;
+	q.setRPY(0,0,model_h_pose_vel_.pose.theta);
 	human_pose_marker_.markers[0].pose.orientation.w = q.w();
 	human_pose_marker_.markers[0].pose.orientation.x = q.x();
 	human_pose_marker_.markers[0].pose.orientation.y = q.y();
 	human_pose_marker_.markers[0].pose.orientation.z = q.z();
 
-	robot_pose_marker_.markers[0].pose.position.x = model_robot_pose_.x;
-	robot_pose_marker_.markers[0].pose.position.y = model_robot_pose_.y;
-	robot_pose_marker_.markers[1].pose.position.x = model_robot_pose_.x;
-	robot_pose_marker_.markers[1].pose.position.y = model_robot_pose_.y;
-	q.setRPY(0,0,model_robot_pose_.theta);
+	robot_pose_marker_.markers[0].pose.position.x = model_r_pose_vel_.pose.x;
+	robot_pose_marker_.markers[0].pose.position.y = model_r_pose_vel_.pose.y;
+	robot_pose_marker_.markers[1].pose.position.x = model_r_pose_vel_.pose.x;
+	robot_pose_marker_.markers[1].pose.position.y = model_r_pose_vel_.pose.y;
+	q.setRPY(0,0,model_r_pose_vel_.pose.theta);
 	robot_pose_marker_.markers[0].pose.orientation.w = q.w();
 	robot_pose_marker_.markers[0].pose.orientation.x = q.x();
 	robot_pose_marker_.markers[0].pose.orientation.y = q.y();
@@ -1034,10 +1013,10 @@ void HumanBehaviorModel::testSeeRobot()
 {
 	if(ros::Time::now() - last_check_see_robot_ > check_see_robot_freq_.expectedCycleTime())
 	{
-		geometry_msgs::Pose2D human_pose_offset = model_pose_;
+		geometry_msgs::Pose2D human_pose_offset = model_h_pose_vel_.pose;
 		human_pose_offset.x -= offset_pov_map_x_;
 		human_pose_offset.y -= offset_pov_map_y_;
-		geometry_msgs::Pose2D robot_pose_offset = model_robot_pose_;
+		geometry_msgs::Pose2D robot_pose_offset = model_r_pose_vel_.pose;
 		robot_pose_offset.x -= offset_pov_map_x_;
 		robot_pose_offset.y -= offset_pov_map_y_;
 
@@ -1179,7 +1158,7 @@ void HumanBehaviorModel::attStopLook()
 	{
 		case WAIT_ROBOT:
 			{
-				float dist = sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2));
+				float dist = sqrt(pow(model_h_pose_vel_.pose.x-model_r_pose_vel_.pose.x,2) + pow(model_h_pose_vel_.pose.y-model_r_pose_vel_.pose.y,2));
 				//ROS_INFO("HBM: threshold=%f dist=%f", b_stop_look_dist_near_robot_, dist);
 				if(dist<b_stop_look_dist_near_robot_)
 					sub_stop_look_=STOP;
@@ -1206,8 +1185,8 @@ void HumanBehaviorModel::attStopLook()
 					sub_stop_look_=RESUME_GOAL;
 				else
 				{
-					float qy = model_robot_pose_.y - model_pose_.y;
-					float qx = model_robot_pose_.x - model_pose_.x;
+					float qy = model_r_pose_vel_.pose.y - model_h_pose_vel_.pose.y;
+					float qx = model_r_pose_vel_.pose.x - model_h_pose_vel_.pose.x;
 
 					float q;
 					float alpha;
@@ -1239,13 +1218,13 @@ void HumanBehaviorModel::attStopLook()
 					}
 
 					geometry_msgs::Twist cmd;
-					if(abs(alpha-model_pose_.theta)>0.1)
+					if(abs(alpha-model_h_pose_vel_.pose.theta)>0.1)
 					{
 						cmd.angular.z=2;
-						if(alpha-model_pose_.theta<0)
+						if(alpha-model_h_pose_vel_.pose.theta<0)
 							cmd.angular.z=-cmd.angular.z;
 
-						if(abs(alpha-model_pose_.theta)>PI)
+						if(abs(alpha-model_h_pose_vel_.pose.theta)>PI)
 							cmd.angular.z=-cmd.angular.z;
 					}
 					pub_perturbed_cmd_.publish(cmd);
@@ -1260,7 +1239,7 @@ void HumanBehaviorModel::attStopLook()
 		case OVER:
 			{
 				// Wait for robot to get far enough to reset
-				float dist = sqrt(pow(model_pose_.x-model_robot_pose_.x,2) + pow(model_pose_.y-model_robot_pose_.y,2));
+				float dist = sqrt(pow(model_h_pose_vel_.pose.x-model_r_pose_vel_.pose.x,2) + pow(model_h_pose_vel_.pose.y-model_r_pose_vel_.pose.y,2));
 				if(dist>b_stop_look_dist_near_robot_)
 				{
 					//ROS_INFO("HBM: Reset STOP_LOOK");
@@ -1291,9 +1270,9 @@ void HumanBehaviorModel::attHarass()
 			if(ros::Time::now() > last_harass_ + b_harass_replan_freq_.expectedCycleTime())
 			{
 				geometry_msgs::Pose2D in_front;
-				in_front.x = model_robot_pose_.x + cos(model_robot_pose_.theta)*b_harass_dist_in_front_;
-				in_front.y = model_robot_pose_.y + sin(model_robot_pose_.theta)*b_harass_dist_in_front_;
-				in_front.theta = model_robot_pose_.theta-3.14;
+				in_front.x = model_r_pose_vel_.pose.x + cos(model_r_pose_vel_.pose.theta)*b_harass_dist_in_front_;
+				in_front.y = model_r_pose_vel_.pose.y + sin(model_r_pose_vel_.pose.theta)*b_harass_dist_in_front_;
+				in_front.theta = model_r_pose_vel_.pose.theta-3.14;
 
 				move_base_msgs::MoveBaseActionGoal goal;
 				goal.goal.target_pose.header.frame_id = "map";
@@ -1356,7 +1335,7 @@ void HumanBehaviorModel::initConflictManager(ConflictManager* conflict_manager)
 
 void HumanBehaviorModel::updateConflictManager()
 {
-	conflict_manager_->updateData(sim_pose_, sim_vel_, sim_robot_pose_, sim_robot_vel_);
+	conflict_manager_->updateData(model_h_pose_vel_, model_r_pose_vel_);
 }
 
 void HumanBehaviorModel::conflictManagerLoop()
@@ -1381,11 +1360,12 @@ bool HumanBehaviorModel::srvPlaceRobotHM(inhus_navigation::PlaceRobot::Request& 
 
 ////////////////////// Callbacks //////////////////////////
 
-void HumanBehaviorModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+void HumanBehaviorModel::hPoseVelCallback(const inhus::PoseVel::ConstPtr& msg)
 {
-	sim_pose_.x=msg->x;
-	sim_pose_.y=msg->y;
-	sim_pose_.theta=msg->theta;
+	sim_h_pose_vel_.pose.x=msg->pose.x;
+	sim_h_pose_vel_.pose.y=msg->pose.y;
+	sim_h_pose_vel_.pose.theta=msg->pose.theta;
+	sim_h_pose_vel_.vel=msg->vel;
 
 	if(!hcb_)
 	{
@@ -1394,27 +1374,18 @@ void HumanBehaviorModel::poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg
 	}
 }
 
-void HumanBehaviorModel::velCallback(const geometry_msgs::Twist::ConstPtr& msg)
+void HumanBehaviorModel::rPoseVelCallback(const inhus::PoseVel::ConstPtr& msg)
 {
-	sim_vel_ = *msg;
-}
-
-void HumanBehaviorModel::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
-{
-	sim_robot_pose_.x=msg->x;
-	sim_robot_pose_.y=msg->y;
-	sim_robot_pose_.theta=msg->theta;
+	sim_r_pose_vel_.pose.x=msg->pose.x;
+	sim_r_pose_vel_.pose.y=msg->pose.y;
+	sim_r_pose_vel_.pose.theta=msg->pose.theta;
+	sim_r_pose_vel_.vel=msg->vel;
 
 	if(!rcb_)
 	{
 		//ROS_INFO("HBM: rcb");
 		rcb_=true;
 	}
-}
-
-void HumanBehaviorModel::robotVelCallback(const geometry_msgs::Twist::ConstPtr& msg)
-{
-	sim_robot_vel_ = *msg;
 }
 
 void HumanBehaviorModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg)

@@ -43,10 +43,6 @@ private:
 ////////// ATTRIBUTES //////////
 
 	// Subscribers //
-	ros::Subscriber sub_human_pose_; geometry_msgs::Pose2D human_pose_;
-	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
-	ros::Subscriber sub_robot_pose_; geometry_msgs::Pose2D robot_pose_;
-	void robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 	ros::Subscriber sub_new_goal_;
 	void newGoalCallback(const inhus::Goal::ConstPtr& msg);
 	ros::Subscriber sub_path_; nav_msgs::Path current_path_;

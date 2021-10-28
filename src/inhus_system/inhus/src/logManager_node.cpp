@@ -9,13 +9,11 @@ LogManager::LogManager()
 	log_file_inhus_.open(path_ + "/logs/inhus_logs/log.txt");
 	log_file_inhus_ << "LOG STARTS : " << ros::Time::now() << endl;
 	sub_log_ = nh_.subscribe("log", 100, &LogManager::logCallback, this);
-	sub_vel_H_ = nh_.subscribe("known/human_vel", 100, &LogManager::velHCallback, this);
-	sub_vel_R_ = nh_.subscribe("known/robot_vel", 100, &LogManager::velRCallback, this);
+	sub_h_pose_vel_ = nh_.subscribe("known/human_pose_vel", 100, &LogManager::hPoseVelCallback, this);
+	sub_r_pose_vel_ = nh_.subscribe("known/robot_pose_vel", 100, &LogManager::rPoseVelCallback, this);
 
 	log_file_inhus_poses_.open(path_ + "/logs/inhus_logs/poseLog.txt");
 	log_file_inhus_poses_ << "LOG STARTS : " << ros::Time::now() << endl;
-	sub_pose_H_ = nh_.subscribe("interface/in/human_pose", 100, &LogManager::poseHCallback, this);
-	sub_pose_R_ = nh_.subscribe("interface/in/robot_pose", 100, &LogManager::poseRCallback, this);
 }
 
 LogManager::~LogManager()
@@ -30,28 +28,18 @@ void LogManager::logCallback(const std_msgs::String::ConstPtr& msg)
 	log_file_inhus_ << ros::Time::now() << " : " <<  msg->data << endl;
 }
 
-void LogManager::velHCallback(const geometry_msgs::Twist::ConstPtr& msg)
-{
-
-	log_file_inhus_ << ros::Time::now() << " : LOG VEL_H " << std::to_string(sqrt(pow(msg->linear.x,2) + pow(msg->linear.y,2))) << endl;
-}
-
-void LogManager::velRCallback(const geometry_msgs::Twist::ConstPtr& msg)
-{
-	log_file_inhus_ << ros::Time::now() << " : LOG VEL_R " << std::to_string(sqrt(pow(msg->linear.x,2) + pow(msg->linear.y,2))) << endl;
-}
-
-///////////////// LOG_FILE_INHUS_POSES /////////////////////
-void LogManager::poseHCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+void LogManager::hPoseVelCallback(const inhus::PoseVel::ConstPtr& msg)
 {
 	if(ros::Time::now().toSec() != 0.0)
-		log_file_inhus_poses_ << ros::Time::now() << " : H " << msg->x << " " << msg->y  << " " << msg->theta << endl;
+		log_file_inhus_poses_ << ros::Time::now() << " : H " << msg->pose.x << " " << msg->pose.y  << " " << msg->pose.theta << endl;
+		log_file_inhus_ << ros::Time::now() << " : LOG VEL_H " << std::to_string(sqrt(pow(msg->vel.linear.x,2) + pow(msg->vel.linear.y,2))) << endl;
 }
 
-void LogManager::poseRCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+void LogManager::rPoseVelCallback(const inhus::PoseVel::ConstPtr& msg)
 {
 	if(ros::Time::now().toSec() != 0.0)
-		log_file_inhus_poses_ << ros::Time::now() << " : R " << msg->x << " " << msg->y << " " << msg->theta << endl;
+		log_file_inhus_poses_ << ros::Time::now() << " : R " << msg->pose.x << " " << msg->pose.y  << " " << msg->pose.theta << endl;
+		log_file_inhus_ << ros::Time::now() << " : LOG VEL_R " << std::to_string(sqrt(pow(msg->vel.linear.x,2) + pow(msg->vel.linear.y,2))) << endl;
 }
 
 //////////////////////// MAIN ///////////////////////////////

@@ -35,8 +35,6 @@ Supervisor::Supervisor()
 	server_resume_ =	nh_.advertiseService("resumeSupervisor", &Supervisor::srvResume, this);
 
 	// Subscribers
-	sub_human_pose_ = 		nh_.subscribe("known/human_pose", 100, &Supervisor::humanPoseCallback, this);
-	sub_robot_pose_ = 		nh_.subscribe("known/robot_pose", 100, &Supervisor::robotPoseCallback, this);
 	sub_new_goal_  = 		nh_.subscribe("new_goal", 100, &Supervisor::newGoalCallback, this);
 	sub_path_ =				nh_.subscribe("move_base/GlobalPlanner/plan", 100, &Supervisor::pathCallback, this);
 	sub_status_move_base_ = nh_.subscribe("move_base/status", 100, &Supervisor::stateMoveBaseCB, this);
@@ -67,14 +65,6 @@ Supervisor::Supervisor()
 	global_state_previous_ = SUSPENDED;
 	goal_received_ = false;
 	goal_status_.status = 0;
-
-	human_pose_.x = 	0;
-	human_pose_.y = 	0;
-	human_pose_.theta = 	0;
-
-	robot_pose_.x = 0;
-	robot_pose_.y = 0;
-	robot_pose_.theta = 0;
 }
 
 void Supervisor::FSM()
@@ -341,16 +331,6 @@ bool Supervisor::srvResume(std_srvs::Empty::Request& req, std_srvs::Empty::Respo
 void Supervisor::pathCallback(const nav_msgs::Path::ConstPtr& path)
 {
 	current_path_ = *path;
-}
-
-void Supervisor::humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
-{
-	human_pose_ = *msg;
-}
-
-void Supervisor::robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
-{
-	robot_pose_ = *msg;
 }
 
 void Supervisor::stateMoveBaseCB(const actionlib_msgs::GoalStatusArray::ConstPtr& status)

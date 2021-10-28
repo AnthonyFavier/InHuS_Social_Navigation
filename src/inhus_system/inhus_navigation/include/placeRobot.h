@@ -11,6 +11,7 @@
 
 #include "inhus_navigation/PlaceRobot.h"
 #include "std_srvs/SetBool.h"
+#include "inhus/PoseVel.h"
 
 class PlaceRobotMap
 {
@@ -27,14 +28,14 @@ public:
 private:
 	ros::NodeHandle nh_;
 
-	ros::Subscriber robot_pose_sub_;
-	void robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& r_pose);
-	geometry_msgs::Pose2D robot_pose_;
+	ros::Subscriber r_pose_vel_sub_;
+	void rPoseVelCallback(const inhus::PoseVel::ConstPtr& msg);
+	inhus::PoseVel r_pose_vel_;
 	bool rcb_;
 
-	ros::Subscriber human_pose_sub_;
-	void humanPoseCallback(const geometry_msgs::Pose2D::ConstPtr& h_pose);
-	geometry_msgs::Pose2D human_pose_;
+	ros::Subscriber h_pose_vel_sub_;
+	void hPoseVelCallback(const inhus::PoseVel::ConstPtr& msg);
+	inhus::PoseVel h_pose_vel_;
 	bool hcb_;
 
 	bool active_;

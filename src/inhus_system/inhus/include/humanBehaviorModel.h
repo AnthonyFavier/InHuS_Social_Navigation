@@ -29,14 +29,14 @@
 #include "visualization_msgs/MarkerArray.h"
 #include "types.h"
 #include "manipulate_path.hpp"
+#include "inhus/PoseVel.h"
 
 class ConflictManager
 {
 public:
 	ConflictManager(ros::NodeHandle nh, bool* want_robot_placed);
 
-	void updateData(geometry_msgs::Pose2D h_pose, geometry_msgs::Twist h_vel,
-			geometry_msgs::Pose2D r_pose, geometry_msgs::Twist r_vel);
+	void updateData(inhus::PoseVel h_pose_vel, inhus::PoseVel r_pose_vel);
 	bool checkConflict();
 	void loop();
 	bool inConflict(){return state_global_!=IDLE;};
@@ -97,10 +97,8 @@ private:
 
 	ros::Duration delay_place_robot_;
 
-	geometry_msgs::Pose2D h_pose_;
-	geometry_msgs::Twist h_vel_;
-	geometry_msgs::Pose2D r_pose_;
-	geometry_msgs::Twist r_vel_;
+	inhus::PoseVel h_pose_vel_;
+	inhus::PoseVel r_pose_vel_;
 
 	nav_msgs::Path current_path_;
 	nav_msgs::Path previous_path_;
@@ -163,14 +161,10 @@ private:
 	SubAttitudeHarass sub_harass_;
 
 	// Subscribers //
-	ros::Subscriber sub_pose_;
-	void poseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
-	ros::Subscriber sub_vel_;
-	void velCallback(const geometry_msgs::Twist::ConstPtr& msg);
-	ros::Subscriber sub_robot_pose_;
-	void robotPoseCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
-	ros::Subscriber sub_robot_vel_;
-	void robotVelCallback(const geometry_msgs::Twist::ConstPtr& msg);
+	ros::Subscriber sub_h_pose_vel_;
+	void hPoseVelCallback(const inhus::PoseVel::ConstPtr& msg);
+	ros::Subscriber sub_r_pose_vel_;
+	void rPoseVelCallback(const inhus::PoseVel::ConstPtr& msg);
 	ros::Subscriber sub_cmd_geo_;
 	void cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	ros::Subscriber sub_goal_done_;
@@ -186,10 +180,8 @@ private:
 
 	// Publishers //
 	ros::Publisher pub_new_goal_;
-	ros::Publisher pub_human_pose_;
-	ros::Publisher pub_human_vel_;
-	ros::Publisher pub_robot_pose_;
-	ros::Publisher pub_robot_vel_;
+	ros::Publisher pub_h_pose_vel_;
+	ros::Publisher pub_r_pose_vel_;
 	ros::Publisher pub_perturbed_cmd_;
 	ros::Publisher pub_cancel_goal_;
 	ros::Publisher pub_goal_move_base_;
@@ -217,15 +209,11 @@ private:
 	//// Variables ////
 	ros::NodeHandle nh_;
 
-	geometry_msgs::Pose2D sim_pose_;
-	geometry_msgs::Twist sim_vel_;
-	geometry_msgs::Pose2D sim_robot_pose_;
-	geometry_msgs::Twist sim_robot_vel_;
+	inhus::PoseVel sim_h_pose_vel_;
+	inhus::PoseVel sim_r_pose_vel_;
 
-	geometry_msgs::Pose2D model_pose_;
-	geometry_msgs::Twist model_vel_;
-	geometry_msgs::Pose2D model_robot_pose_;
-	geometry_msgs::Twist model_robot_vel_;
+	inhus::PoseVel model_h_pose_vel_;
+	inhus::PoseVel model_r_pose_vel_;
 
 	double ttc_;
 	double relative_speed_;
