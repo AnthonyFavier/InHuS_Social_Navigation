@@ -6,6 +6,8 @@ import rospy
 from morse.builder import *
 from morse.core.services import service
 
+namespace = "morse_agents/"
+
 num_humans = 1
 locations = [[1.3, 3.0, 0.0],[4.0, -2.0, 0.0],[4.4, 11.6, 0.0]]
 orientations = [1.57,0.7,1.57]
@@ -29,34 +31,22 @@ def add_human(h_id):
     ## human_marker sensor for the human
     human_marker = AgentMarker()
     human.append(human_marker)
-    human_marker.add_interface("ros", topic="/"+name)
+    human_marker.add_interface("ros", topic=namespace+name+"/marker")
 
     human_motion = MotionXYW()
     human_motion.properties(ControlType='Position')
 
     human_odom = Odometry()
-    human_odom.add_interface("ros",topic="/"+name+"/odom",
+    human_odom.add_interface("ros",topic=namespace+name+"/odom",
                              frame_id = name+"/odom",
                              child_frame_id = name+"/base_footprint")
-    human_odom.add_interface("ros",topic="/"+name+"/base_pose_ground_truth",
+    human_odom.add_interface("ros",topic= namespace+name+"/base_pose_ground_truth",
                              frame_id = name+"/odom",
                              child_frame_id = name+"/base_footprint")
     human.append(human_odom)
 
-    if h_id==1:
-        scan = Hokuyo()
-        scan.translate(x=0.275, z=0.05)
-        scan.add_interface("ros",topic="/"+name+"/scan",frame_id = name+"/base_laser_link")
-        human.append(scan)
-        scan.properties(Visible_arc = False)
-        scan.properties(laser_range = 30.0)
-        scan.properties(resolution = 1)
-        scan.properties(scan_window = 180.0)
-        scan.create_laser_arc()
-
-
     human.append(human_motion)
-    human_motion.add_interface("ros", topic="/" + name + "/cmd_vel")
+    human_motion.add_interface("ros", topic= namespace+name+"/cmd_vel")
     human.append(clock)
     return human
 
@@ -64,17 +54,18 @@ def add_human(h_id):
 # pr2 robot with laser (scan) and odometry (odom) sensors, and actuators
 # for armature (joint_trajectory_contorller) and wheels (cmd_vel) to the scene
 # pr2 = NavPR2(with_keyboard=True, show_laser=True, laser_z=0.05)
-pr2 = NavPR2(with_keyboard=True, show_laser=False, laser_z=0.05)
+robot_name = "pr2"
+pr2 = NavPR2(with_keyboard=True, show_laser=False, laser_z=0.05, namespace=namespace+robot_name+"/")
 pr2.add_interface("ros")
 
 # For fake localization
 ground_truth = Odometry()
 pr2.append(ground_truth)
-ground_truth.add_interface("ros", topic="base_pose_ground_truth")
+ground_truth.add_interface("ros", topic= namespace+robot_name+"/base_pose_ground_truth")
 
 # Agent Marker to get the absolute position and velocity
 robot_marker = AgentMarker()
-robot_marker.add_interface("ros", topic="pr2_pose_vel")
+robot_marker.add_interface("ros", topic= namespace+robot_name+"/marker")
 pr2.append(robot_marker)
 
 # put the robot and humans in some good places and add clock
@@ -100,13 +91,13 @@ for h_id in range(0,num_humans):
     humans[h_id].translate(locations[h_id][0],locations[h_id][1],locations[h_id][2])
     humans[h_id].rotate(z=orientations[h_id])
     humans[h_id].append(clock)
-    human_camera = VideoCamera("FPV")
-    human_camera.translate(0.10, 0, 1.63)
-    human_camera.rotate(0, -0.17, 0)
-    human_camera.properties(cam_width=1920, cam_height=1080)
-    cameras.append(human_camera)
-    humans[h_id].append(cameras[h_id])
+    # human_camera = VideoCamera("FPV")
+    # human_camera.translate(0.10, 0, 1.63)
+    # human_camera.rotate(0, -0.17, 0)
+    # human_camera.properties(cam_width=1920, cam_height=1080)
+    # cameras.append(human_camera)
+    # humans[h_id].append(cameras[h_id])
 
-env.select_display_camera(cameras[0])
+# env.select_display_camera(cameras[0])
 env.use_relative_time(True)
 env.create()

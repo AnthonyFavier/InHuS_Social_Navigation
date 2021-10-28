@@ -328,20 +328,20 @@ define human position
   gui_nose 1
   localization "gps"
   drive "omni"
-  laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
 
-    cap_b(pose [0.05 0.0 1.25 0 ] color "brown")
-    cap(pose [0.0 0.0 1.27 0 ] color "brown")
-    human_head(pose [0.0 0.0 1.1 0 ] color "khaki")
-    human_torso(pose [0.0  0.0 0.6 0 ] color "orange")
-    human_shoulder(pose [0.0  -0.25 0.95 0 ] color "orange")
-    human_shoulder(pose [0.0  0.25 0.95 0 ] color "orange")
-    human_hand(pose [0.0  0.25 0.7 0 ] color "khaki")
-    human_hand(pose [0.0 -0.25 0.7 0 ] color "khaki")
-    human_fist(pose [0.0 -0.25 0.6 0 ] color "khaki")
-    human_fist(pose [0.0 0.25 0.6 0 ] color "khaki")
-    human_leg(pose [0.0  0.1 0.0 0 ] color "gray")
-    human_leg(pose [0.0 -0.1 0.0 0 ] color "gray")
+  # laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
+  cap_b(pose [0.05 0.0 1.25 0 ] color "brown")
+  cap(pose [0.0 0.0 1.27 0 ] color "brown")
+  human_head(pose [0.0 0.0 1.1 0 ] color "khaki")
+  human_torso(pose [0.0  0.0 0.6 0 ] color "orange")
+  human_shoulder(pose [0.0  -0.25 0.95 0 ] color "orange")
+  human_shoulder(pose [0.0  0.25 0.95 0 ] color "orange")
+  human_hand(pose [0.0  0.25 0.7 0 ] color "khaki")
+  human_hand(pose [0.0 -0.25 0.7 0 ] color "khaki")
+  human_fist(pose [0.0 -0.25 0.6 0 ] color "khaki")
+  human_fist(pose [0.0 0.25 0.6 0 ] color "khaki")
+  human_leg(pose [0.0  0.1 0.0 0 ] color "gray")
+  human_leg(pose [0.0 -0.1 0.0 0 ] color "gray")
 )
 
 define floorplan model

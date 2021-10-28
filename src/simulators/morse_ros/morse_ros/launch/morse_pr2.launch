@@ -3,6 +3,7 @@
     <arg name="scenario_name" value="pr2_$(arg map_name)_human.py"/>
 
     <!-- Launch morse simualator in the scenario -->
+    <remap from="human1" to="plop"/>
     <node pkg="morse_ros" type="start_morse.sh" args="$(find morse_ros)/scenarios/$(arg scenario_name)" name="morse" output="screen" required="true"/>
 
   	<!-- use simulated clock -->

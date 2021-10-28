@@ -328,20 +328,20 @@ define human position
   gui_nose 1
   localization "gps"
   drive "omni"
-  laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
 
-    cap_b(pose [0.050 0.000 1.250 0.000 ] color "brown")
-    cap(pose [0.000 0.000 1.270 0.000 ] color "brown")
-    human_head(pose [0.000 0.000 1.100 0.000 ] color "khaki")
-    human_torso(pose [0.000  0.000 0.600 0.000 ] color "orange")
-    human_shoulder(pose [0.000  -0.250 0.950 0.000 ] color "orange")
-    human_shoulder(pose [0.000  0.250 0.950 0.000 ] color "orange")
-    human_hand(pose [0.000  0.250 0.700 0.000 ] color "khaki")
-    human_hand(pose [0.000 -0.250 0.700 0.000 ] color "khaki")
-    human_fist(pose [0.000 -0.250 0.600 0.000 ] color "khaki")
-    human_fist(pose [0.000 0.250 0.600 0.000 ] color "khaki")
-    human_leg(pose [0.000  0.100 0.000 0.000 ] color "gray")
-    human_leg(pose [0.000 -0.100 0.000 0.000 ] color "gray")
+  # laser_sensor(pose [ 0.275 0.000 -0.150 0.000 ])
+  cap_b(pose [0.050 0.000 1.250 0.000 ] color "brown")
+  cap(pose [0.000 0.000 1.270 0.000 ] color "brown")
+  human_head(pose [0.000 0.000 1.100 0.000 ] color "khaki")
+  human_torso(pose [0.000  0.000 0.600 0.000 ] color "orange")
+  human_shoulder(pose [0.000  -0.250 0.950 0.000 ] color "orange")
+  human_shoulder(pose [0.000  0.250 0.950 0.000 ] color "orange")
+  human_hand(pose [0.000  0.250 0.700 0.000 ] color "khaki")
+  human_hand(pose [0.000 -0.250 0.700 0.000 ] color "khaki")
+  human_fist(pose [0.000 -0.250 0.600 0.000 ] color "khaki")
+  human_fist(pose [0.000 0.250 0.600 0.000 ] color "khaki")
+  human_leg(pose [0.000  0.100 0.000 0.000 ] color "gray")
+  human_leg(pose [0.000 -0.100 0.000 0.000 ] color "gray")
 )
 
 define floorplan model

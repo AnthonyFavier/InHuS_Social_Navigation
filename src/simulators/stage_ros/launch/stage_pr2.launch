@@ -13,7 +13,6 @@
 
   <node pkg="stage_ros" type="stageros" name="stageros" args="$arg -u $(arg graphics) $(arg mode) $(arg world_file)" respawn="false">
     <param name="base_watchdog_timeout" value="0.2"/>
-    <remap from="base_scan" to="scan"/>
   </node>
 
   <!-- start pr2 robot description -->

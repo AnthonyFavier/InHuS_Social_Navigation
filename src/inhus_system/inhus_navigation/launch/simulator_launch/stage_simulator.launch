@@ -5,6 +5,17 @@
   <arg name="fast_mode" default="false"/>
   <arg name="num_agents" default="1"/>
 
+  <!-- Remap stage agents topics -->
+  <remap from="human1/base_pose_ground_truth" to="stage_agents/human1/base_pose_ground_truth"/>
+  <remap from="human1/odom" to="stage_agents/human1/odom"/>
+  <remap from="human1/base_scan" to="stage_agents/human1/base_scan"/>
+  <remap from="human1/cmd_vel" to="stage_agents/human1/cmd_vel"/>
+
+  <remap from="base_pose_ground_truth" to="stage_agents/pr2/base_pose_ground_truth"/>
+  <remap from="odom" to="stage_agents/pr2/odom"/>
+  <remap from="base_scan" to="stage_agents/pr2/base_scan"/>
+  <remap from="cmd_vel" to="stage_agents/pr2/cmd_vel"/>
+
   <!-- Stage simulator and robot robot description -->
   <include file="$(find stage_ros)/launch/stage_pr2.launch">
     <arg name="fast_mode" value="$(arg fast_mode)"/>

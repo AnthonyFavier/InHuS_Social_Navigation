@@ -5,6 +5,7 @@
 #include "nav_msgs/Odometry.h"
 #include <math.h>
 #include <tf/transform_broadcaster.h>
+#include "inhus/PoseVel.h"
 
 // Get inputs from the simulator
 // Only change "Input Calbacks" and "Input Subscribers"
@@ -13,19 +14,11 @@
 // Publish tf human and robot frame in map frame
 // according to the inputs from the simulator
 
-ros::Publisher pub_sim_human_pose;
-geometry_msgs::Pose2D h_pose;
-double h_roll, h_pitch, h_yaw;
+ros::Publisher pub_sim_human_pose_vel;
+inhus::PoseVel h_pose_vel;
 
-ros::Publisher pub_sim_human_vel;
-geometry_msgs::Twist h_vel;
-
-ros::Publisher pub_sim_robot_pose;
-geometry_msgs::Pose2D r_pose;
-double r_roll, r_pitch, r_yaw;
-
-ros::Publisher pub_sim_robot_vel;
-geometry_msgs::Twist r_vel;
+ros::Publisher pub_sim_robot_pose_vel;
+inhus::PoseVel r_pose_vel;
 
 /////////////////////////
 //// Input Callbacks //// Part to modify for another simulator
@@ -34,30 +27,28 @@ void humanOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
 	tf::Quaternion q(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
 	tf::Matrix3x3 m(q);
+	double h_roll, h_pitch, h_yaw;
 	m.getRPY(h_roll, h_pitch, h_yaw);
-	h_pose.theta=h_yaw;
-	h_pose.x=msg->pose.pose.position.x;
-	h_pose.y=msg->pose.pose.position.y;
+	h_pose_vel.pose.theta=h_yaw;
+	h_pose_vel.pose.x=msg->pose.pose.position.x;
+	h_pose_vel.pose.y=msg->pose.pose.position.y;
+	h_pose_vel.vel = msg->twist.twist;
 
-	h_vel = msg->twist.twist;
-
-	pub_sim_human_pose.publish(h_pose);
-	pub_sim_human_vel.publish(h_vel);
+	pub_sim_human_pose_vel.publish(h_pose_vel);
 }
 
 void robotOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
 	tf::Quaternion q(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
 	tf::Matrix3x3 m(q);
+	double r_roll, r_pitch, r_yaw;
 	m.getRPY(r_roll, r_pitch, r_yaw);
-	r_pose.theta=r_yaw;
-	r_pose.x=msg->pose.pose.position.x;
-	r_pose.y=msg->pose.pose.position.y;
+	r_pose_vel.pose.theta=r_yaw;
+	r_pose_vel.pose.x=msg->pose.pose.position.x;
+	r_pose_vel.pose.y=msg->pose.pose.position.y;
+	r_pose_vel.vel = msg->twist.twist;
 
-	r_vel = msg->twist.twist;
-
-	pub_sim_robot_pose.publish(r_pose);
-	pub_sim_robot_vel.publish(r_vel);
+	pub_sim_human_pose_vel.publish(r_pose_vel);
 }
 /////////////////////////
 /////////////////////////
@@ -72,17 +63,15 @@ int main(int argc, char** argv)
 	////////////////////////////
 	////  Input Subscribers //// Part to modify for another simulator
   	////////////////////////////
-	ros::Subscriber sub_human_odom = nh.subscribe("/human1/odom", 10, humanOdomCallback);
-	ros::Subscriber sub_robot_odom = nh.subscribe("/odom", 10, robotOdomCallback);
+	ros::Subscriber sub_human_odom = nh.subscribe("/stage_agents/human1/odom", 10, humanOdomCallback);
+	ros::Subscriber sub_robot_odom = nh.subscribe("/stage_agents/pr2/odom", 10, robotOdomCallback);
 	////////////////////////////
 	////////////////////////////
 	////////////////////////////
 
 	////  Ouput Publishers  ////
-	pub_sim_human_pose = nh.advertise<geometry_msgs::Pose2D>("in/human_pose", 100);
-	pub_sim_human_vel = nh.advertise<geometry_msgs::Twist>("in/human_vel", 100);
-	pub_sim_robot_pose = nh.advertise<geometry_msgs::Pose2D>("in/robot_pose", 100);
-	pub_sim_robot_vel = nh.advertise<geometry_msgs::Twist>("in/robot_vel", 100);
+	pub_sim_human_pose_vel = nh.advertise<inhus::PoseVel>("in/human_pose_vel", 100);
+	pub_sim_robot_pose_vel = nh.advertise<inhus::PoseVel>("in/robot_pose_vel", 100);
 	////////////////////////////
 
 	tf::TransformBroadcaster br;
@@ -93,8 +82,8 @@ int main(int argc, char** argv)
 
 	while(ros::ok())
 	{
-		tf_map_robot.setOrigin(tf::Vector3(r_pose.x, r_pose.y, 0));
-		q.setRPY(0, 0, r_pose.theta);
+		tf_map_robot.setOrigin(tf::Vector3(r_pose_vel.pose.x, r_pose_vel.pose.y, 0));
+		q.setRPY(0, 0, r_pose_vel.pose.theta);
 		tf_map_robot.setRotation(q);
 
 		br.sendTransform(tf::StampedTransform(tf_map_robot, ros::Time::now(), "map", "robot_inhus"));

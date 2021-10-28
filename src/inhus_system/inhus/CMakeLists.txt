@@ -25,6 +25,7 @@ add_message_files(
   FILES
   Goal.msg
   Action.msg
+  PoseVel.msg
 )
 
 add_service_files(
