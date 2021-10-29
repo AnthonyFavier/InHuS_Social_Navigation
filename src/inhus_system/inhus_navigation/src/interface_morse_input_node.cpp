@@ -15,6 +15,7 @@
 // Publish tf human and robot frame in map frame
 // according to the inputs from the simulator
 
+ros::Publisher pub_sim_human_odom;
 ros::Publisher pub_sim_human_pose_vel;
 inhus::PoseVel h_pose_vel;
 
@@ -36,6 +37,11 @@ void humanCallback(const cohan_msgs::AgentMarkerStamped::ConstPtr& msg)
 	h_pose_vel.vel = msg->agent.velocity;
 
 	pub_sim_human_pose_vel.publish(h_pose_vel);
+}
+
+void humanOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
+{
+	pub_sim_human_odom.publish(*msg);
 }
 
 void robotCallback(const cohan_msgs::AgentMarkerStamped::ConstPtr& msg)
@@ -64,8 +70,9 @@ int main(int argc, char** argv)
 	////////////////////////////
 	////  Input Subscribers //// Part to modify for another simulator
   	////////////////////////////
-	ros::Subscriber sub_human_odom = nh.subscribe("/morse_agents/human1/marker", 10, humanCallback);
-	ros::Subscriber sub_robot_odom = nh.subscribe("/morse_agents/pr2/marker", 10, robotCallback);
+	ros::Subscriber sub_human_marker = nh.subscribe("/morse_agents/human1/marker", 10, humanCallback);
+	ros::Subscriber sub_robot_marker = nh.subscribe("/morse_agents/pr2/marker", 10, robotCallback);
+	ros::Subscriber sub_human_odom = nh.subscribe("/morse_agents/human1/odom", 10, humanOdomCallback);
 	////////////////////////////
 	////////////////////////////
 	////////////////////////////
@@ -73,6 +80,7 @@ int main(int argc, char** argv)
 	////  Ouput Publishers  ////
 	pub_sim_human_pose_vel = nh.advertise<inhus::PoseVel>("in/human_pose_vel", 100);
 	pub_sim_robot_pose_vel = nh.advertise<inhus::PoseVel>("in/robot_pose_vel", 100);
+	pub_sim_human_odom = nh.advertise<nav_msgs::Odometry>("in/human_odom", 100);
 	////////////////////////////
 
 	tf::TransformBroadcaster br;
