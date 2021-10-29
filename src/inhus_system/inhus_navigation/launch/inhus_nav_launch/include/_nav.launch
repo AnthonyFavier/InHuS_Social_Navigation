@@ -13,6 +13,7 @@
 
 		<remap from="cmd_vel" to="cmd_geo"/>
 		<remap from="/map" to="map_static"/>
+    	<remap from="odom" to="interface/in/human_odom"/>
 
 		<param name="base_global_planner" value="$(arg global_planner)"/>
 		<param name="base_local_planner" value="$(arg local_planner)"/>
