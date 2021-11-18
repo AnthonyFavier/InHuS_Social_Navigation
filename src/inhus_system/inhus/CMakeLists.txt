@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   genmsg
   actionlib_msgs
+  tf2_geometry_msgs
   actionlib
   roslib
   move_base_msgs
@@ -45,7 +46,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES inhus
-  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs actionlib_msgs move_base_msgs message_runtime
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs actionlib_msgs move_base_msgs message_runtime tf2_geometry_msgs
 #  DEPENDS system_lib TinyXML
 )
 

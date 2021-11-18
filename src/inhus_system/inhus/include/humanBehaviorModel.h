@@ -22,6 +22,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Bool.h"
 #include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include "move_base_msgs/MoveBaseActionGoal.h"
 #include <actionlib_msgs/GoalStatusArray.h>
@@ -173,8 +174,6 @@ private:
 	void setAttitudeCallback(const std_msgs::Int32::ConstPtr& msg);
 	ros::Subscriber sub_new_goal_;
 	void newGoalCallback(const inhus::Goal::ConstPtr& goal);
-	ros::Subscriber sub_stop_cmd_;
-	void stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd);
 	ros::Subscriber sub_pov_map_;
 	void povMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& map);
 

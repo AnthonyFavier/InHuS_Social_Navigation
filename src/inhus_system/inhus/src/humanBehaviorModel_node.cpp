@@ -45,7 +45,7 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	pub_log_ = nh_.advertise<std_msgs::String>("log", 100);
 	pub_cancel_goal_ =	nh.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 	pub_goal_move_base_ = nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
-	pub_vel_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("stop_cmd", 100);
+	pub_vel_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("perturbed_cmd", 100);
 
 	// Service servers
 	server_check_conflict_ =	nh_.advertiseService("check_conflict", &ConflictManager::srvCheckConflict, this);
@@ -196,15 +196,37 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 				nb++;
 				mean_vel_.linear.x += last_vels_[i].linear.x;
 				mean_vel_.linear.y += last_vels_[i].linear.y;
-				// ROS_INFO("CM: linear.x=%f linear.y=%f mean=%f", last_vels_[i].linear.x, last_vels_[i].linear.y, sqrt(pow(last_vels_[i].linear.x, 2) + pow(last_vels_[i].linear.y, 2)));
+				// ROS_INFO("CM: linear.x=%f linear.y=%f", last_vels_[i].linear.x, last_vels_[i].linear.y);
 			}
 		}
-		// mean_vel_.linear.x += sqrt(pow(last_vels_[i].linear.x, 2) + pow(last_vels_[i].linear.y, 2));
 		mean_vel_.linear.x /= nb;
 		mean_vel_.linear.y /= nb;
+		geometry_msgs::Vector3 vel_global_frame, vel_local_frame;
+		vel_global_frame.x = mean_vel_.linear.x;
+		vel_global_frame.y = mean_vel_.linear.y;
+		vel_global_frame.z = 0;
+		tf2::Quaternion qq;
+		qq.setRPY(0,0,h_pose_vel_.pose.theta);
+		qq.normalize();
+		geometry_msgs::TransformStamped transform;
+		transform.header.frame_id = "map";
+		transform.header.stamp = ros::Time::now();
+		transform.child_frame_id = "map";
+		transform.transform.rotation.x = qq.x();
+		transform.transform.rotation.y = qq.y();
+		transform.transform.rotation.z = qq.z();
+		transform.transform.rotation.w = qq.w();
+		tf2::doTransform(vel_global_frame, vel_local_frame, transform);
+		geometry_msgs::Twist mean_local_vel;
+		mean_local_vel.linear.x = vel_local_frame.x;
+		mean_local_vel.linear.y = vel_local_frame.y;
+		mean_vel_ = mean_local_vel;
+		// ROS_INFO("mean_vel = (%f,%f)", mean_vel_.linear.x, mean_vel_.linear.y);
+		// ROS_INFO("mean_local_vel = (%f,%f)", mean_local_vel.linear.x, mean_local_vel.linear.y);
+
 		// ROS_INFO("CM: mean after = %f", mean_vel_.linear.x);
-		pub_vel_cmd_.publish(mean_vel_);
-		ROS_INFO("CM: ######=> CONFLICT : publish cmd = %f, %f", mean_vel_.linear.x, mean_vel_.linear.y);
+		pub_vel_cmd_.publish(mean_local_vel);
+		ROS_INFO("CM: ######=> CONFLICT : publish cmd = %f, %f", mean_local_vel.linear.x, mean_local_vel.linear.y);
 		
 		current_action_ = req.action;
 		current_path_.poses.clear();
@@ -256,9 +278,6 @@ void ConflictManager::loop()
 				switch(state_approach_)
 				{
 					case FIRST:
-						pub_vel_cmd_.publish(mean_vel_);
-						// ROS_INFO("CM: ######=> CONFLICT FIRST : publish cmd = %f", mean_vel_.linear.x);
-
 						delay_place_robot_.sleep();
 						state_approach_ = REPLANNING;
 						break;
@@ -396,7 +415,7 @@ void ConflictManager::loop()
 			// back to APPROACH if too far
 			float dist_to_robot = sqrt(pow(h_pose_vel_.pose.x - r_pose_vel_.pose.x,2) + pow(h_pose_vel_.pose.y - r_pose_vel_.pose.y,2));
 			//ROS_INFO("CM: dist=%f", dist_to_robot);
-			if(dist_to_robot > approach_dist_)
+			if(dist_to_robot > approach_dist_*1.2)
 			{
 				ROS_INFO("CM: Back to APPROACH");
 
@@ -532,7 +551,6 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	sub_goal_done_ =	nh_.subscribe("goal_done", 100, &HumanBehaviorModel::goalDoneCallback, this);
 	sub_set_attitude_ = 	nh_.subscribe("/boss/human/set_attitude", 100, &HumanBehaviorModel::setAttitudeCallback, this);
 	sub_new_goal_ =		nh_.subscribe("/boss/human/new_goal", 100, &HumanBehaviorModel::newGoalCallback, this);
-	sub_stop_cmd_ = 	nh_.subscribe("stop_cmd", 100, &HumanBehaviorModel::stopCmdCallback, this);
 	sub_pov_map_ = 		nh_.subscribe("map_pov", 1, &HumanBehaviorModel::povMapCallback, this);
 
 	// Publishers
@@ -1404,12 +1422,6 @@ void HumanBehaviorModel::cmdGeoCallback(const geometry_msgs::Twist::ConstPtr& ms
 
 		pub_perturbed_cmd_.publish(perturbed_cmd);
 	}
-}
-
-void HumanBehaviorModel::stopCmdCallback(const geometry_msgs::Twist::ConstPtr& cmd)
-{
-	if((attitude_ != HARASS) && (attitude_ != STOP_LOOK || sub_stop_look_ != LOOK_AT_ROBOT))
-		pub_perturbed_cmd_.publish(*cmd);
 }
 
 void HumanBehaviorModel::goalDoneCallback(const inhus::Goal::ConstPtr& msg)
