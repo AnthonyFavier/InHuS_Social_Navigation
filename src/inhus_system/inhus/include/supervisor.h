@@ -55,7 +55,6 @@ private:
 	ros::Publisher pub_goal_done_;
 	ros::Publisher pub_marker_rviz_;
 	ros::Publisher pub_log_; std_msgs::String msg_; // to publish easily on log
-	ros::Publisher pub_vel_cmd_;
 
 	// Service clients //
 	ros::ServiceClient client_plan_;

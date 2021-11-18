@@ -44,7 +44,6 @@ Supervisor::Supervisor()
 	pub_goal_done_ = 	nh_.advertise<inhus::Goal>("goal_done", 100);
 	pub_log_ =			nh_.advertise<std_msgs::String>("log", 100);
 	pub_marker_rviz_ =	nh_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
-	pub_vel_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("stop_cmd", 100);
 
 
 	// Init
@@ -175,7 +174,6 @@ void Supervisor::FSM()
 								if(goal_status_.status == 3) // SUCCEEDED
 								{
 									ROS_INFO("SUP: Client succeeded");
-									pub_vel_cmd_.publish(geometry_msgs::Twist());
 									this->updateMarkerPose(0, 0, 0);
 									(*curr_action).state = STATE_DONE;
 								}

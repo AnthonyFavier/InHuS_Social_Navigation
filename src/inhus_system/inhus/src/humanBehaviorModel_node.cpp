@@ -1415,6 +1415,7 @@ void HumanBehaviorModel::stopCmdCallback(const geometry_msgs::Twist::ConstPtr& c
 void HumanBehaviorModel::goalDoneCallback(const inhus::Goal::ConstPtr& msg)
 {
 	//ROS_INFO("HBM: goal done !!!!!!!");
+	pub_perturbed_cmd_.publish(geometry_msgs::Twist());
 	previous_goal_ = current_goal_;
 	executing_plan_ = false;
 }
