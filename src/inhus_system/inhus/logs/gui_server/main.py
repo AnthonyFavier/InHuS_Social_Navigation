@@ -17,6 +17,7 @@ absolute_path = ""
 if len(sys.argv) >= 2:
     absolute_path = sys.argv[1] + "/"
 
+# map_name = "laas_adream"
 map_name = "passage_hri"
 
 ######################################################################################################
@@ -83,13 +84,12 @@ max_rel_vel = 0
 ############
 
 def findIndexWithVal(list, val, f_i):
-    margin = 0.1
+    margin = 0.05
     if len(list)==0:
         return None
     else:
         m = math.floor(len(list)/2)
-        # print("val={} len={} m={} list[m]={} f_i={}".format(val, len(list), m, list[m], f_i))
-        if list[m] > val-margin and list[m] < val+margin:
+        if list[m] >= val-margin and list[m] <= val+margin:
             return f_i+m
         elif val < list[m]-margin:
             return findIndexWithVal(list[:m-1], val, f_i)
@@ -396,6 +396,7 @@ p3.toolbar.autohide = False
 p3.toolbar_location = 'left'
 p3.add_tools(HoverTool(tooltips=TOOLTIPS))
 p3.yaxis.axis_label = "TTC (s)"
+p3.y_range = Range1d(0,10);
 p3.extra_y_ranges = {"foo2" : Range1d(start=0, end=max_rel_vel)}
 p3.add_layout(LinearAxis(y_range_name="foo2", axis_label="Relative speed (m/s)"), 'right')
 ttc = p3.cross('x', 'y', source=ttc_source, size=8, color='black', muted_alpha=muted_alpha, legend_label="TTC")
