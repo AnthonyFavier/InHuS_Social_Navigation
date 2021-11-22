@@ -6,3 +6,4 @@ The data file is composed of 4 fields and parsed with spaces :
 - "size:" : size in pixel of the image file
 - "resolution:" : scaling of the image meter per pixel 
 - "offset:" : offset of the origin of the map in meter
+- "angle" : angle to rotate the map in 'rad'

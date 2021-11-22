@@ -14,11 +14,10 @@ import numpy as np
 import math
 
 absolute_path = ""
-if len(sys.argv) >= 2:
-    absolute_path = sys.argv[1] + "/"
-
-# map_name = "laas_adream"
 map_name = "passage_hri"
+if len(sys.argv) >= 3:
+    absolute_path = sys.argv[1] + "/"
+    map_name = sys.argv[2]
 
 ######################################################################################################
 ######################################################################################################
@@ -360,7 +359,7 @@ TOOLTIPS = [("(x,y)", "($x, $y)")]
 ## FIGURES ##
 #############
 
-p1 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
+p1 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height, output_backend="webgl")
 p1.toolbar.logo = None
 p1.toolbar.autohide = False
 p1.toolbar_location = 'left'
@@ -375,7 +374,7 @@ p1.legend.visible=False
 p1.legend.margin = margin
 p1.legend.click_policy=default_click_policy
 
-p2 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
+p2 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height, output_backend="webgl")
 p2.toolbar.logo = None
 p2.toolbar.autohide = False
 p2.toolbar_location = 'left'
@@ -390,7 +389,7 @@ p2.legend.visible=False
 p2.legend.margin = margin
 p2.legend.click_policy=default_click_policy
 
-p3 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
+p3 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height, output_backend="webgl")
 p3.toolbar.logo = None
 p3.toolbar.autohide = False
 p3.toolbar_location = 'left'
@@ -405,7 +404,7 @@ p3.legend.visible=False
 p3.legend.margin = margin
 p3.legend.click_policy=default_click_policy
 
-p4 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height)
+p4 = figure(x_range=(min_x_default, max_x_default), tools=common_tools, active_scroll="wheel_zoom", frame_width=width, height=height, output_backend="webgl")
 p4.toolbar.logo = None
 p4.toolbar.autohide = False
 p4.toolbar_location = 'left'
@@ -430,8 +429,7 @@ img_file = None
 img_size = None
 img_resolution = None
 img_offset = None
-x_range = None
-y_range = None
+img_angle = None
 
 path_H_stamp = []
 path_H_x = []
@@ -451,14 +449,13 @@ def readPathData():
     updatePoseSource()
 
 def getMapInfo(map_name):
-    global x_range
-    global y_range
     global img_file
     global img_size
     global img_resolution
     global img_offset
+    global img_angle
 
-    filename = absolute_path + "gui_server/static/" + map_name + "_data.txt"
+    filename = absolute_path + "gui_server/static/" + map_name + ".txt"
     f = open(filename, "r")
     for line in f:
         if 'str' in line:
@@ -470,17 +467,47 @@ def getMapInfo(map_name):
             if mylist[0] == 'image:':
                 img_file = mylist[1]
             elif mylist[0] == 'size:':
-                img_size = (int(mylist[1]), int(mylist[2]))
+                img_size = [int(mylist[1]), int(mylist[2])]
             elif mylist[0] == 'resolution:':
                 img_resolution = float(mylist[1])
             elif mylist[0] == 'offset:':
-                img_offset = (float(mylist[1]), float(mylist[2]))
+                img_offset = [float(mylist[1]), float(mylist[2])]
+            elif mylist[0] == 'angle:':
+                img_angle = float(mylist[1])
     f.close()
 
-    x_range = (0,img_size[0]*img_resolution)
-    y_range = (0,img_size[1]*img_resolution)
-    x_range = (x_range[0]+img_offset[0], x_range[1]+img_offset[0])
-    y_range = (y_range[0]+img_offset[1], y_range[1]+img_offset[1])
+    # Scale image
+    last_img_size = img_size
+    last_img_resolution = img_resolution
+    if img_size[0] > max_img_x and img_size[1] > max_img_y :
+        if img_size[0]>img_size[1]:
+            r = img_size[0]/max_img_x
+            last_img_resolution *= r
+            last_img_size[1] = int(last_img_size[1]/r)
+            last_img_size[0] = int(max_img_x)
+        else:
+            r = img_size[1]/max_img_y
+            last_img_resolution *= r
+            last_img_size[0] = int(last_img_size[0]/r)
+            last_img_size[1] = int(max_img_y)
+    elif img_size[1] > max_img_y:
+        r = img_size[1]/max_img_y
+        last_img_resolution *= r
+        last_img_size[0] = int(last_img_size[0]/r)
+        last_img_size[1] = int(max_img_y)
+    elif img_size[0] > max_img_x:
+        r = img_size[0]/max_img_x
+        last_img_resolution *= r
+        last_img_size[1] = int(last_img_size[1]/r)
+        last_img_size[0] = int(max_img_x)
+    img_resolution = last_img_resolution
+    img_size = last_img_size
+
+    # angle
+    # x = cos(a)x' - sin(a)y'
+    # y = sin(a)x' + cos(a)y'
+    tmp = [last_img_size[0]*img_resolution/2 + img_offset[0], last_img_size[1]*img_resolution/2 + img_offset[1]]
+    img_offset = [math.cos(img_angle)*tmp[0] - math.sin(img_angle)*tmp[1], math.sin(img_angle)*tmp[0] + math.cos(img_angle)*tmp[1]]
 
 def readPoseData():
     filename = absolute_path + "inhus_logs/poseLog.txt"
@@ -506,17 +533,22 @@ def readPoseData():
             line = line.replace("\n","")
             mylist = line.split(" ")
 
+            # x = cos(a)x' - sin(a)y'
+            # y = sin(a)x' + cos(a)y'
+
+            px=float(mylist[3])
+            py=float(mylist[4])
             if mylist[2] == 'H':
                 path_H_stamp.append(float(mylist[0]))
-                path_H_x.append(float(mylist[3]))
-                path_H_y.append(float(mylist[4]))
-                path_H_theta.append(float(mylist[5]))
+                path_H_x.append(math.cos(img_angle)*px - math.sin(img_angle)*py)
+                path_H_y.append(math.sin(img_angle)*px + math.cos(img_angle)*py)
+                path_H_theta.append(float(mylist[5])+img_angle)
 
             elif mylist[2] == 'R':
                 path_R_stamp.append(float(mylist[0]))
-                path_R_x.append(float(mylist[3]))
-                path_R_y.append(float(mylist[4]))
-                path_R_theta.append(float(mylist[5]))
+                path_R_x.append(math.cos(img_angle)*px - math.sin(img_angle)*py)
+                path_R_y.append(math.sin(img_angle)*px + math.cos(img_angle)*py)
+                path_R_theta.append(float(mylist[5])+img_angle)
     f.close()
 
 def updatePoseSource():
@@ -524,6 +556,9 @@ def updatePoseSource():
     path_R_source.data = dict(x=path_R_x, y=path_R_y, theta=path_R_theta, stamp=path_R_stamp)
 
 #########################
+
+max_img_x=840
+max_img_y=690
 
 readPathData()
 
@@ -584,11 +619,11 @@ hover_pathCB = CustomJS(args=dict(hover_h_source=hover_h_source, hover_r_source=
 hover_path_tool = HoverTool(tooltips=None, names=["path_h", "path_r"], callback = hover_pathCB)
 
 radius_agents = 0.1
-p_path = figure(x_range=x_range, y_range=y_range, tools="pan,wheel_zoom,save,reset", active_scroll="wheel_zoom", frame_width=img_size[0], height=img_size[1])
+p_path = figure(tools="pan,wheel_zoom,save,reset", active_scroll="wheel_zoom", match_aspect=True, frame_width=max_img_x, frame_height=max_img_y-60, output_backend="webgl")
 p_path.toolbar.logo = None
 p_path.toolbar_location = 'below'
 p_path.add_tools(hover_path_tool)
-map_img = p_path.image_url(url=['gui_server/static/' + img_file], x=x_range[0],y=y_range[1], w=x_range[1]-x_range[0],h=y_range[1]-y_range[0])
+map_img = p_path.image_url(url=['gui_server/static/' + img_file], anchor='center', angle=img_angle, x=img_offset[0], y=img_offset[1], w=img_size[0]*img_resolution, h=img_size[1]*img_resolution)
 path_H = p_path.circle('x', 'y', source=path_H_source, name="path_h", color=colors, radius=radius_agents, muted_alpha=muted_alpha, legend_label="path H", view=view_h)
 path_R = p_path.circle('x', 'y', source=path_R_source, name="path_r", color=colors, radius=radius_agents, muted_alpha=muted_alpha, legend_label="path R", view=view_r)
 highlight_h = p_path.triangle('x', 'y', source=hover_h_source, color=colors, angle="theta", angle_units='rad', size=30, line_color="black", line_width=3)

@@ -1,5 +1,6 @@
 <launch>
 
-	<node name="gui" pkg="inhus" type="start_gui.sh" output="screen" args="$(find inhus)/logs"/>
+	<arg name="map_name" default="laas_adream"/>
+	<node name="gui" pkg="inhus" type="start_gui.sh" output="screen" args="$(find inhus)/logs $(arg map_name)"/>
 
 </launch>

@@ -1,4 +1,0 @@
-image: laas_adream.png
-size: 768 1600
-resolution: 0.025
-offset: -5.0 -10.0
