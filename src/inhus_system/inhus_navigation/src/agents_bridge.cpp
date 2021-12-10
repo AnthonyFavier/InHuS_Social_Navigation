@@ -27,6 +27,7 @@ void agentCB(const inhus::PoseVel::ConstPtr& msg)
     tracked_agent.type = cohan_msgs::AgentType::HUMAN;
     tracked_agent.name = "robot";
     tracked_agent.segments.push_back(agent_segment);
+    tracked_agent.track_id = 1;
 
     cohan_msgs::TrackedAgents tracked_agents;
     tracked_agents.agents.push_back(tracked_agent);
