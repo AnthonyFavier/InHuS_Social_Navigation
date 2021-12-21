@@ -5,14 +5,23 @@
 <goals>
 
   <pose_goals>
-    <pose_goal type="pose_goal" x="1.0"  y="0.9"   theta="-1.57" radius="0.0"/>
+    <pose_goal type="pose_goal" x="4.0" y="7.0" theta="-3.14" radius="0.0"/>
+    <pose_goal type="pose_goal" x="8.5" y="12.5" theta="0.0" radius="0.0"/>
+    <pose_goal type="pose_goal" x="1.5" y="12.5" theta="1.57" radius="0.0"/>
+    <pose_goal type="pose_goal" x="1.5" y="1.5" theta="-1.57" radius="0.0"/>
+    <pose_goal type="pose_goal" x="8.5" y="1.5" theta="0.0" radius="0.0"/>
+    <pose_goal type="pose_goal" x="16.0" y="7.0" theta="0.0" radius="0.0"/>
+    <pose_goal type="pose_goal" x="18.5" y="12.5" theta="1.57" radius="0.0"/>
+    <pose_goal type="pose_goal" x="11.5" y="12.5" theta="0.0" radius="0.0"/>
+    <pose_goal type="pose_goal" x="11.5" y="1.5" theta="0.0" radius="0.0"/>
+    <pose_goal type="pose_goal" x="18.5" y="1.5" theta="-1.57" radius="0.0"/>
   </pose_goals>
 
   <named_goals>
     <named_goal3 type="named_goal">
-      <nav_action type="nav_action" x="1.0" y="2.0" theta="0.0" radius="0.0"/>
+      <pose_goal type="pose_goal" x="4.0" y="7.0" theta="-3.14" radius="0.0"/>
       <wait_action type="wait_action" duration="2.0"/>
-      <nav_action type="nav_action" x="3.0" y="2.0" theta="0.0" radius="0.0"/>
+      <pose_goal type="pose_goal" x="16.0" y="7.0" theta="0.0" radius="0.0"/>
     </named_goal3>
   </named_goals>
   
@@ -23,20 +32,6 @@
       <init_r type="pose_goal" x="6.0" y="7.0" theta="0.0" radius="0.0"/>
       <goal_r type="pose_goal" x="18.5" y="7.0" theta="0.0" radius="0.0"/>
     </passage_hri>
-
-    <corridor_hri>
-      <init_h type="pose_goal" x="16.0" y="1.5" theta="-3.14" radius="0.0"/>
-      <goal_h type="pose_goal" x="2.0" y="1.5" theta="-3.14" radius="0.0"/>
-      <init_r type="pose_goal" x="4.0" y="1.5" theta="0.0" radius="0.0"/>
-      <goal_r type="pose_goal" x="18.0" y="1.5" theta="0.0" radius="0.0"/>
-    </corridor_hri>
-
-    <narr_corridor_hri>
-      <init_h type="pose_goal" x="16.0" y="0.9" theta="-3.14" radius="0.0"/>
-      <goal_h type="pose_goal" x="9.0" y="0.9" theta="-3.14" radius="0.0"/>
-      <init_r type="pose_goal" x="4.0" y="0.9" theta="0.0" radius="0.0"/>
-      <goal_r type="pose_goal" x="18.0" y="0.9" theta="0.0" radius="0.0"/>
-    </narr_corridor_hri>
   </scenarios>
 
   <endless>
