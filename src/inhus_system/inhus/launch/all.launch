@@ -1,14 +1,17 @@
 <launch>
 	<arg name="ns" default="human1"/>
+	<arg name="map_name" default="laas_adream"/>
 
 	<!-- Human controller -->
 	<include file="$(find inhus)/launch/human_controller.launch">
 		<arg name="ns" value="$(arg ns)"/>
+		<arg name="map_name" value="$(arg map_name)"/>
 	</include>
 
 	<!-- Boss -->
 	<include file="$(find inhus)/launch/boss.launch">
 		<arg name="ns_human" value="$(arg ns)"/>
+		<arg name="map_name" value="$(arg map_name)"/>
 	</include>
 
 </launch>

@@ -1,10 +1,21 @@
 <launch>
 	<arg name="ns" default="human1"/>
+	<arg name="map_name" default="laas_adream"/>
 
-	<node name="humanBehaviorModel_node" type="humanBehaviorModel_node" pkg="inhus" ns="$(arg ns)" output="screen"/> <!-- launch-prefix="xterm -geometry '80x25+1470+0' -e"/-->
-	<node name="taskPlanner_node" type="taskPlanner_node" pkg="inhus" ns="$(arg ns)"/>
-	<node name="supervisor_node" type="supervisor_node" pkg="inhus" ns="$(arg ns)" output="screen"/> <!--launch-prefix="xterm -geometry '156x25+0+0' -e"/-->
-	<node name="logManager_node" type="logManager_node" pkg="inhus" ns="$(arg ns)"/>
-	<node name="lowLevelController_node" type="lowLevelController_node" pkg="inhus" ns="$(arg ns)"/>
+	<node name="humanBehaviorModel_node" type="humanBehaviorModel_node" pkg="inhus" ns="$(arg ns)" output="screen"> 
+		<param name="map_name" value="$(arg map_name)"/>
+	</node>
+	<node name="taskPlanner_node" type="taskPlanner_node" pkg="inhus" ns="$(arg ns)" output="screen">
+		<param name="map_name" value="$(arg map_name)"/>
+	</node>
+	<node name="supervisor_node" type="supervisor_node" pkg="inhus" ns="$(arg ns)" output="screen"> 
+		<param name="map_name" value="$(arg map_name)"/>
+	</node>
+	<node name="logManager_node" type="logManager_node" pkg="inhus" ns="$(arg ns)">
+		<param name="map_name" value="$(arg map_name)"/>
+	</node>
+	<node name="lowLevelController_node" type="lowLevelController_node" pkg="inhus" ns="$(arg ns)">
+		<param name="map_name" value="$(arg map_name)"/>
+	</node>
 
 </launch>

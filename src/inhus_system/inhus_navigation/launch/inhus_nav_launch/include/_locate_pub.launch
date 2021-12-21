@@ -4,13 +4,13 @@
 
   <!-- MAP SERVERS -->
     <!-- static map server -->
-    <include file="$(find inhus_navigation)/launch/inhus_nav_launch/include/_map_static.launch">
+    <include file="$(find inhus_navigation)/launch/other_launch/_map_static.launch">
       <arg name="ns" value="$(arg ns)"/>
       <arg name="map_name" value="$(arg map_name)"/>
     </include>
 
     <!-- pov map server -->
-    <include file="$(find inhus_navigation)/launch/inhus_nav_launch/include/_map_pov.launch">
+    <include file="$(find inhus_navigation)/launch/other_launch/_map_pov.launch">
       <arg name="ns" value="$(arg ns)"/>
       <arg name="map_name" value="$(arg map_name)"/>
     </include>

@@ -4,6 +4,10 @@
 
 TaskPlanner::TaskPlanner()
 {
+	ros::NodeHandle private_nh("~");
+	private_nh.param(std::string("map_name"), map_name_, std::string("laas_adream"));
+	ROS_INFO("TP DEBUG: map_name=%s", map_name_.c_str());
+
 	pub_log_ =	nh_.advertise<std_msgs::String>("log", 100);
 
 	service_ = nh_.advertiseService("compute_plan", &TaskPlanner::computePlan, this);

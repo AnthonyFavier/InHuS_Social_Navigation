@@ -1,0 +1,18 @@
+<launch>
+	<arg name="ns" default="human1"/>
+	<arg name="map_name" default="laas_adream"/>
+
+	<node name="map_server_pov" pkg="map_server" type="map_server" ns="$(arg ns)" args="$(find inhus_navigation)/maps/corridor_hri/corridor_hri_pov.yaml" if="$(eval 'corridor_hri'==arg('map_name'))">
+		<remap from="map" to="map_pov"/>
+	</node>
+	<node name="map_server_pov" pkg="map_server" type="map_server" ns="$(arg ns)" args="$(find inhus_navigation)/maps/narr_corridor_hri/narr_corridor_hri_pov.yaml" if="$(eval 'narr_corridor_hri'==arg('map_name'))">
+		<remap from="map" to="map_pov"/>
+	</node>
+	<node name="map_server_pov" pkg="map_server" type="map_server" ns="$(arg ns)" args="$(find inhus_navigation)/maps/passage_hri/passage_hri_pov.yaml" if="$(eval 'passage_hri'==arg('map_name'))">
+		<remap from="map" to="map_pov"/>
+	</node>
+	<node name="map_server_pov" pkg="map_server" type="map_server" ns="$(arg ns)" args="$(find inhus_navigation)/maps/laas_adream/laas_adream_pov.yaml" if="$(eval 'laas_adream'==arg('map_name'))">
+		<remap from="map" to="map_pov"/>
+	</node>
+
+</launch>

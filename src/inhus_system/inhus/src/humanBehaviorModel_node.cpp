@@ -525,6 +525,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	private_nh.param(std::string("b_stop_look_stop_dur"), f_nb, float(2.0)); b_stop_look_stop_dur_ = ros::Duration(f_nb);
 	private_nh.param(std::string("b_harass_dist_in_front"), b_harass_dist_in_front_, float(2.0));
 	private_nh.param(std::string("b_harass_replan_freq"), f_nb, float(2.0)); b_harass_replan_freq_ = ros::Rate(f_nb);
+	private_nh.param(std::string("map_name"), map_name_, std::string("laas_adream"));
 	ROS_INFO("HBM: => Params HBM:");
 	ROS_INFO("HBM: ratio_perturbation_cmd=%f", ratio_perturbation_cmd_);
 	ROS_INFO("HBM: fov_int=%d fov=%f", fov_int, fov_);
@@ -543,6 +544,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 	ROS_INFO("HBM: b_stop_look_stop_dur=%f", b_stop_look_stop_dur_.toSec());
 	ROS_INFO("HBM: b_harass_dist_in_front=%f", b_harass_dist_in_front_);
 	ROS_INFO("HBM: b_harass_replan_freq=%f", 1/b_harass_replan_freq_.expectedCycleTime().toSec());
+	ROS_INFO("HBM: map_name=%s", map_name_.c_str());
 
 	// Subscribers
 	sub_h_pose_vel_ = nh_.subscribe("interface/in/human_pose_vel", 100, &HumanBehaviorModel::hPoseVelCallback, this);
@@ -1145,18 +1147,28 @@ void HumanBehaviorModel::computeSurprise()
 
 ////////////////////// Attitudes //////////////////////////
 
-GoalArea HumanBehaviorModel::chooseGoal(bool random)
+inhus::Goal HumanBehaviorModel::chooseGoal(bool random)
 {
-	GoalArea goal;
+	inhus::Goal goal;
 	static int index_list=-1;
 	int i=0;
 
 	if(random)
 	{
-		do
+		if(previous_goal_.type == "pose_goal")
 		{
-			i=rand()%known_goals_.size();
-		}while(known_goals_[i].goal.x==previous_goal_.x && known_goals_[i].goal.y==previous_goal_.y);
+			do
+			{
+				i=rand()%known_goals_.size();
+			}while(known_goals_[i].pose_goal.pose.x==previous_goal_.pose_goal.pose.x && known_goals_[i].pose_goal.pose.y==previous_goal_.pose_goal.pose.y);
+		}
+		else if(previous_goal_.type == "named_goal")
+		{
+			do
+			{
+				i=rand()%known_goals_.size();
+			}while(known_goals_[i].named_goal.name == previous_goal_.named_goal.name);
+		}
 	}
 	// follow list of known goals
 	else
@@ -1165,10 +1177,7 @@ GoalArea HumanBehaviorModel::chooseGoal(bool random)
 		i = index_list;
 	}
 
-	// if it's an area, pick a goal in it
-	goal = computeGoalWithRadius(known_goals_[i]);
-
-	current_goal_=goal.goal;
+	current_goal_=goal;
 
 	return goal;
 }
@@ -1177,7 +1186,7 @@ void HumanBehaviorModel::attNonStop()
 {
 	if(!executing_plan_)
 	{
-		GoalArea goal = chooseGoal(true);
+		inhus::Goal goal = chooseGoal(true);
 
 		this->publishGoal(goal);
 	}
@@ -1192,10 +1201,8 @@ void HumanBehaviorModel::attRandom()
 		if(nb < b_random_chance_choose_)
 		{
 			//ROS_INFO("HBM: DECIDE NEW GOAL ! ");
-			inhus::Goal previous_goal = current_goal_;
-			GoalArea new_goal = this->chooseGoal(true);
-			if(new_goal.goal.x != previous_goal.x || new_goal.goal.y != previous_goal.y)
-				this->publishGoal(new_goal);
+			inhus::Goal new_goal = this->chooseGoal(true);
+			this->publishGoal(new_goal);
 		}
 		last_time_=ros::Time::now();
 	}
@@ -1459,7 +1466,6 @@ void HumanBehaviorModel::goalDoneCallback(const inhus::Goal::ConstPtr& msg)
 {
 	//ROS_INFO("HBM: goal done !!!!!!!");
 	pub_perturbed_cmd_.publish(geometry_msgs::Twist());
-	previous_goal_ = current_goal_;
 	executing_plan_ = false;
 }
 

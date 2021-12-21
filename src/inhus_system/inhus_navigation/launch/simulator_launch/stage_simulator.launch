@@ -5,6 +5,8 @@
   <arg name="fast_mode" default="false"/>
   <arg name="num_agents" default="1"/>
 
+  <param name="map_name" value="$(arg map_name)"/>
+
   <!-- Remap stage agents topics -->
   <remap from="human1/base_pose_ground_truth" to="stage_agents/human1/base_pose_ground_truth"/>
   <remap from="human1/odom" to="stage_agents/human1/odom"/>
