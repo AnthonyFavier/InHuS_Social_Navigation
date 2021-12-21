@@ -24,6 +24,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include "visualization_msgs/Marker.h"
 #include "manipulate_path.hpp"
+#include "types.h"
 
 class Supervisor
 {
@@ -39,6 +40,8 @@ private:
 	void askPlan();
 	void updateMarkerPose(float x, float y, float alpha);
 	void statePrint();
+	move_base_msgs::MoveBaseGoal getMoveBaseGoal(geometry_msgs::Pose2D pose);
+
 
 ////////// ATTRIBUTES //////////
 
@@ -94,6 +97,9 @@ private:
 	Plan plan_;
 	bool goal_received_;
 	inhus::Action current_action_;
+
+	ros::Time start_time_wait_action_;
+	ros::Duration dur_wait_action_;
 
 	visualization_msgs::Marker marker_rviz_;
 	ros::Time last_replan_;

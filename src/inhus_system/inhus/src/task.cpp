@@ -18,7 +18,10 @@ void Plan::show()
 	ROS_INFO("Plan: size=%d", (int)action_series_.size());
 	for(int i=0; i<action_series_.size(); i++)
 	{
-		ROS_INFO("\t- Action %d: type=%s, pose=(%.2f, %.2f) state=%d", i, action_series_[i].type.c_str() , action_series_[i].nav_goal.target_pose.pose.position.x, action_series_[i].nav_goal.target_pose.pose.position.y, action_series_[i].state);
+		if(action_series_[i].type == "nav_action")
+			ROS_INFO("\t- Action %d: type=%s, pose=(%.2f, %.2f, %.2f) radius=%.2f state=%d", i, action_series_[i].type.c_str() , action_series_[i].nav_action.pose.x, action_series_[i].nav_action.pose.y, action_series_[i].nav_action.pose.theta, action_series_[i].nav_action.radius, action_series_[i].state);
+		if(action_series_[i].type == "wait_action")
+			ROS_INFO("\t- Action %d: type=%s, duration=%.2f state=%d", i, action_series_[i].type.c_str(), action_series_[i].wait_action.duration, action_series_[i].state);
 	}
 }
 

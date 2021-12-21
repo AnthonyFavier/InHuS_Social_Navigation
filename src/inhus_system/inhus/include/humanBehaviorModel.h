@@ -8,16 +8,14 @@
 #include <boost/thread/thread.hpp>
 #include <time.h>
 #include <math.h>
+#include "visualization_msgs/MarkerArray.h"
+#include "std_srvs/Empty.h"
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Twist.h"
+#include "navfn/MakeNavPlan.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Path.h"
 #include "nav_msgs/GetPlan.h"
-#include "navfn/MakeNavPlan.h"
-#include "inhus/Goal.h"
-#include "std_srvs/Empty.h"
-#include "inhus/ActionBool.h"
-#include "inhus_navigation/PlaceRobot.h"
 #include "std_msgs/Int32.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Bool.h"
@@ -27,10 +25,12 @@
 #include "move_base_msgs/MoveBaseActionGoal.h"
 #include <actionlib_msgs/GoalStatusArray.h>
 #include <actionlib/client/simple_action_client.h>
-#include "visualization_msgs/MarkerArray.h"
 #include "types.h"
 #include "manipulate_path.hpp"
 #include "inhus/PoseVel.h"
+#include "inhus/Goal.h"
+#include "inhus/ActionBool.h"
+#include "inhus_navigation/PlaceRobot.h"
 
 class ConflictManager
 {
@@ -137,14 +137,14 @@ private:
 
 ////////// METHODS //////////
 
-	GoalArea chooseGoal(bool random);
+	inhus::Goal chooseGoal(bool random);
 	void showGoals();
 	void readGoalsFromXML();
 	void attNonStop();
 	void attRandom();
 	void attStopLook();
 	void attHarass();
-	void publishGoal(GoalArea goal);
+	void publishGoal(inhus::Goal goal);
 	bool testObstacleView(geometry_msgs::Pose2D A_real, geometry_msgs::Pose2D B_real);
 	bool testFOV(geometry_msgs::Pose2D A, geometry_msgs::Pose2D B, float fov);
 	void updateRobotOnMap();
@@ -228,9 +228,10 @@ private:
 	inhus::Goal current_goal_;
 	inhus::Goal previous_goal_;
 
+	std::string map_name_;
 	std::string goal_file_name_;
 	TiXmlDocument* doc_;
-	std::vector<GoalArea> known_goals_;
+	std::vector<inhus::Goal> known_goals_;
 
 	bool executing_plan_;
 

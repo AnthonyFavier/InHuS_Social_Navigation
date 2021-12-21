@@ -1,4 +1,7 @@
 string type
-float32 x
-float32 y
-float32 theta
+
+# type="pose_goal"
+inhus/PoseGoal pose_goal
+
+# type="named_goal"
+inhus/NamedGoal named_goal

@@ -66,6 +66,22 @@ Supervisor::Supervisor()
 	goal_status_.status = 0;
 }
 
+move_base_msgs::MoveBaseGoal Supervisor::getMoveBaseGoal(geometry_msgs::Pose2D pose)
+{
+	move_base_msgs::MoveBaseGoal move_base_goal;
+	move_base_goal.target_pose.header.frame_id = "map";
+	move_base_goal.target_pose.header.stamp = ros::Time::now();
+	move_base_goal.target_pose.pose.position.x = pose.x;
+	move_base_goal.target_pose.pose.position.y = pose.y;
+	tf2::Quaternion q;
+	q.setRPY(0,0,pose.theta);
+	move_base_goal.target_pose.pose.orientation.x =	q.x();
+	move_base_goal.target_pose.pose.orientation.y =	q.y();
+	move_base_goal.target_pose.pose.orientation.z =	q.z();
+	move_base_goal.target_pose.pose.orientation.w =	q.w();
+	return move_base_goal;
+}
+
 void Supervisor::FSM()
 {
 	this->statePrint();
@@ -118,7 +134,7 @@ void Supervisor::FSM()
 					std::vector<inhus::Action>::iterator curr_action = plan_.getCurrentAction();
 					current_action_ = (*curr_action);
 
-					if((*curr_action).type == "navigation")
+					if((*curr_action).type == "nav_action")
 					{
 						switch((*curr_action).state)
 						{
@@ -138,9 +154,13 @@ void Supervisor::FSM()
 							{
 								//ROS_INFO("SUP: READY");
 								std_srvs::Empty srv_init_conflict;
-								inhus::ActionBool srv_init_first_path_conflict;
-								srv_init_first_path_conflict.request.action = (*curr_action).nav_goal;
 								client_init_check_conflict_.call(srv_init_conflict);
+
+								(*curr_action) = computeActionWithRadius((*curr_action));
+								
+								inhus::ActionBool srv_init_first_path_conflict;
+								move_base_msgs::MoveBaseGoal move_base_goal = getMoveBaseGoal((*curr_action).nav_action.pose);
+								srv_init_first_path_conflict.request.action = move_base_goal;
 								client_init_first_path_conflict_.call(srv_init_first_path_conflict);
 
 								// plan without robot first //
@@ -148,11 +168,10 @@ void Supervisor::FSM()
 								move_base_msgs::MoveBaseActionGoal nav_goal;
 								nav_goal.goal.target_pose.header.frame_id = "map";
 								nav_goal.goal.target_pose.header.stamp = ros::Time::now();
-								nav_goal.goal = (*curr_action).nav_goal;
+								nav_goal.goal = move_base_goal;
 								pub_goal_move_base_.publish(nav_goal);
 
-								this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
-										(*curr_action).nav_goal.target_pose.pose.position.y, 1);
+								this->updateMarkerPose((*curr_action).nav_action.pose.x, (*curr_action).nav_action.pose.y, 1);
 								last_replan_ = ros::Time::now();
 
 								// place robot back
@@ -194,11 +213,10 @@ void Supervisor::FSM()
 												move_base_msgs::MoveBaseActionGoal nav_goal;
 												nav_goal.goal.target_pose.header.frame_id = "map";
 												nav_goal.goal.target_pose.header.stamp = ros::Time::now();
-												nav_goal.goal = (*curr_action).nav_goal;
+												nav_goal.goal = getMoveBaseGoal((*curr_action).nav_action.pose);
 												pub_goal_move_base_.publish(nav_goal);
 
-												this->updateMarkerPose((*curr_action).nav_goal.target_pose.pose.position.x,
-													(*curr_action).nav_goal.target_pose.pose.position.y, 1);
+												this->updateMarkerPose((*curr_action).nav_action.pose.x, (*curr_action).nav_action.pose.y, 1);
 												last_replan_ = ros::Time::now();
 											}
 										}
@@ -209,7 +227,7 @@ void Supervisor::FSM()
 									{
 										ros::spinOnce();
 										inhus::ActionBool srv;
-										srv.request.action = (*curr_action).nav_goal;
+										srv.request.action = getMoveBaseGoal((*curr_action).nav_action.pose);
 										client_check_conflict_.call(srv);
 										if(srv.response.conflict)
 										{
@@ -222,8 +240,30 @@ void Supervisor::FSM()
 								break;
 						}
 					}
+					else if((*curr_action).type == "wait_action")
+					{
+						switch((*curr_action).state)
+						{
+							case STATE_PLANNED:
+							case STATE_NEEDED:
+							case STATE_READY:
+								ROS_INFO("SUP: Start waiting action %f", (*curr_action).wait_action.duration);
+								start_time_wait_action_ = ros::Time::now();
+								dur_wait_action_ = ros::Duration((*curr_action).wait_action.duration);
+								(*curr_action).state = STATE_PROGRESS;
+								break;
+
+							case STATE_PROGRESS:
+								if(ros::Time::now() - start_time_wait_action_ > dur_wait_action_)
+								{
+									ROS_INFO("SUP: Waiting done");
+									(*curr_action).state = STATE_DONE;
+								}
+								break;
+						}
+					}
 					else
-					{}
+						ROS_ERROR("Unkown action type");
 
 					plan_.updateState();
 				}
@@ -295,7 +335,9 @@ void Supervisor::askPlan()
 
 void Supervisor::newGoalCallback(const inhus::GoalConstPtr& msg)
 {
-	goal_received_ = 	true;
+	ROS_INFO("New goal received !");
+	ROS_INFO("Goal:%s", msg->type.c_str());
+	goal_received_ = true;
 	current_goal_ = *msg;
 }
 
@@ -317,11 +359,13 @@ bool Supervisor::srvSuspend(std_srvs::Empty::Request &req, std_srvs::Empty::Resp
 bool Supervisor::srvResume(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
 	global_state_=EXEC_PLAN;
+
 	move_base_msgs::MoveBaseActionGoal nav_goal;
 	nav_goal.goal.target_pose.header.frame_id = "map";
 	nav_goal.goal.target_pose.header.stamp = ros::Time::now();
-	nav_goal.goal = current_action_.nav_goal;
+	nav_goal.goal = getMoveBaseGoal(current_action_.nav_action.pose);
 	pub_goal_move_base_.publish(nav_goal);
+
 	last_replan_ = ros::Time::now();
 	return true;
 }

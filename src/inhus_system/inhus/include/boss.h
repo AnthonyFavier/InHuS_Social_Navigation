@@ -23,7 +23,10 @@ enum Type{HUMAN, ROBOT};
 struct Scenario
 {
 	string name;
-	vector<GoalArea> goals;
+	inhus::Goal init_h;
+	inhus::Goal init_r;
+	inhus::Goal goal_h;
+	inhus::Goal goal_r;
 };
 
 //////////////////////////////////////////////////
@@ -33,7 +36,7 @@ class AgentManager
 {
 public:
 	AgentManager(string name);
-	virtual void publishGoal(GoalArea goal) = 0;
+	virtual void publishGoal(inhus::Goal goal) = 0;
 	virtual void showState() = 0;
 	string getName();
 	Type getType();
@@ -51,7 +54,7 @@ class HumanManager : public AgentManager
 {
 public:
 	HumanManager(string name);
-	void publishGoal(GoalArea goal);
+	void publishGoal(inhus::Goal goal);
 	void publishManualCmd(geometry_msgs::Twist cmd);
 	void showState();
 
@@ -73,7 +76,7 @@ class RobotManager : public AgentManager
 {
 public:
 	RobotManager(string name);
-	void publishGoal(GoalArea goal);
+	void publishGoal(inhus::Goal goal);
 	void showState();
 
 	geometry_msgs::PoseStamped getPose(inhus::Goal goal);
@@ -117,6 +120,7 @@ private:
 	void askSetAttitude();
 
 	bool showAskScenarios();
+	bool showAskNamedGoal();
 	void readGoalsFromXML();
 
 	ros::NodeHandle nh_;
@@ -131,12 +135,15 @@ private:
 	int endless_agent2_i_;
 	ros::Duration endless_delay_;
 
+	string map_name_;
+
 	string goal_file_name_;
 	TiXmlDocument* doc_;
 
-	vector<GoalArea> list_goals_;
+	vector<inhus::Goal> pose_goals_;
+	vector<inhus::Goal> named_goals_;
 	vector<Scenario> scenarios_;
-	vector<vector<GoalArea>> endless_goals_;
+	vector<vector<inhus::Goal>> endless_goals_;
 };
 //////////////////////////////////////////////////
 

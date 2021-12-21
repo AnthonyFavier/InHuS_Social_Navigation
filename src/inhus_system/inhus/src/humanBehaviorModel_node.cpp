@@ -583,7 +583,7 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 
 	// Init
 
-	current_goal_.type = 	"navigation";
+	current_goal_.type = "pose_goal";
 
 	previous_goal_=current_goal_;
 
@@ -667,41 +667,65 @@ HumanBehaviorModel::HumanBehaviorModel(ros::NodeHandle nh)
 
 	// INIT GOALS
 	goal_file_name_ = "goals.xml";
-	std::string goal_file_path = ros::package::getPath("inhus") + "/config/" + goal_file_name_;
+	std::string goal_file_path = ros::package::getPath("inhus_navigation") + "/maps/" + map_name_ + "/" + goal_file_name_;
 	doc_ = new TiXmlDocument(goal_file_path);
 	if(!doc_->LoadFile())
-		ROS_ERROR("Failed to load %s", goal_file_path.c_str());
+		ROS_ERROR("HBM: Failed to load %s. Error : %s", goal_file_path.c_str(), doc_->ErrorDesc());
 	else
 		ROS_INFO("HBM: Goals file loaded");
+	// Check if file is corresponding with map_name
+	TiXmlHandle docHandle(doc_);
+	TiXmlElement* l_map = docHandle.FirstChild("map_name").ToElement();
+	std::string map_name_read = "";
+	if(NULL != l_map->Attribute("name"))
+		map_name_read = l_map->Attribute("name");
+	if(map_name_read != map_name_)
+		ROS_ERROR("HBM: Goals file mismatches the map_name");
+	else
+		ROS_INFO("HBM: Goals file corresponds with map_name");
+	// Extract goals
 	this->readGoalsFromXML();
+	ROS_INFO("HBM: Goals extracted");
+	// Show goals extracted
 	// this->showGoals();
 }
 
 void HumanBehaviorModel::readGoalsFromXML()
 {
 	TiXmlHandle docHandle(doc_);
-	GoalArea area;
+	inhus::Goal goal;
 
-	// Extracting the list of goals
-	TiXmlElement* l_goal = docHandle.FirstChild("goals").FirstChild("goal_list").FirstChild("goal").ToElement();
+	// Extracting pose_goals
+	TiXmlElement* l_goal = docHandle.FirstChild("goals").FirstChild("pose_goals").FirstChild("pose_goal").ToElement();
 	while(l_goal)
 	{
 		if(NULL != l_goal->Attribute("type"))
-			area.goal.type = l_goal->Attribute("type");
-		if(area.goal.type == "navigation")
-		{
+			goal.type = l_goal->Attribute("type");
+		if(goal.type == "pose_goal")
 			if(NULL != l_goal->Attribute("x"))
-				area.goal.x = std::stof(l_goal->Attribute("x"));
+				goal.pose_goal.pose.x = std::stof(l_goal->Attribute("x"));
 			if(NULL != l_goal->Attribute("y"))
-				area.goal.y = std::stof(l_goal->Attribute("y"));
+				goal.pose_goal.pose.y = std::stof(l_goal->Attribute("y"));
 			if(NULL != l_goal->Attribute("theta"))
-				area.goal.theta = std::stof(l_goal->Attribute("theta"));
+				goal.pose_goal.pose.theta = std::stof(l_goal->Attribute("theta"));
 			if(NULL != l_goal->Attribute("radius"))
-				area.radius = std::stof(l_goal->Attribute("radius"));
-		}
-		known_goals_.push_back(area);
+				goal.pose_goal.radius = std::stof(l_goal->Attribute("radius"));
+		known_goals_.push_back(goal);
 
-		l_goal = l_goal->NextSiblingElement("goal");
+		l_goal = l_goal->NextSiblingElement("pose_goal");
+	}
+
+	// Extracting named_goals
+	TiXmlElement* l_named_goal = docHandle.FirstChild("goals").FirstChild("named_goals").FirstChild().ToElement();
+	while(l_named_goal)
+	{
+		// Get type
+		if(NULL != l_named_goal->Attribute("type"))
+			goal.type = l_named_goal->Attribute("type");
+		if(goal.type == "named_goal")
+			goal.named_goal.name = l_named_goal->Value();
+		known_goals_.push_back(goal);
+		l_named_goal = l_named_goal->NextSiblingElement();
 	}
 }
 
@@ -710,14 +734,21 @@ void HumanBehaviorModel::showGoals()
 	// list goals
 	std::cout << "=> list_goals <=" << std::endl;
 	for(unsigned int i=0; i<known_goals_.size(); i++)
-		std::cout << "\t" << known_goals_[i].goal.type << " " << known_goals_[i].goal.x << " " << known_goals_[i].goal.y << " " << known_goals_[i].goal.theta << " " << known_goals_[i].radius << std::endl;
+	{
+		std::cout << "\t" << known_goals_[i].type << " ";
+		if(known_goals_[i].type == "pose_goal")
+			std::cout << known_goals_[i].pose_goal.pose.x << " " << known_goals_[i].pose_goal.pose.y << " " << known_goals_[i].pose_goal.pose.theta << " " << known_goals_[i].pose_goal.radius << std::endl;
+		else if(known_goals_[i].type == "named_goal")
+			std::cout << known_goals_[i].named_goal.name << std::endl;
+	}
 }
 
-void HumanBehaviorModel::publishGoal(GoalArea goal)
+void HumanBehaviorModel::publishGoal(inhus::Goal goal)
 {
-	goal = computeGoalWithRadius(goal);
+	previous_goal_ = 	current_goal_;
+	current_goal_ = 	goal;
 	executing_plan_ = true;
-	pub_new_goal_.publish(goal.goal);
+	pub_new_goal_.publish(goal);
 }
 
 void HumanBehaviorModel::processSimData()
@@ -1434,13 +1465,7 @@ void HumanBehaviorModel::goalDoneCallback(const inhus::Goal::ConstPtr& msg)
 
 void HumanBehaviorModel::newGoalCallback(const inhus::Goal::ConstPtr& goal)
 {
-	previous_goal_ = 	current_goal_;
-	current_goal_ = 	*goal;
-
-	GoalArea goal_area;
-	goal_area.goal = *goal;
-	goal_area.radius = 0.0;
-	this->publishGoal(goal_area);
+	this->publishGoal(*goal);
 }
 
 void HumanBehaviorModel::setAttitudeCallback(const std_msgs::Int32::ConstPtr& msg)

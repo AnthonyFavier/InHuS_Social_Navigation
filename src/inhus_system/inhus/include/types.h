@@ -5,25 +5,37 @@
 
 #define PI 3.1415926535897932384626433832795
 
-struct GoalArea
+inhus::Goal computeGoalWithRadius(inhus::Goal goal)
 {
-	inhus::Goal goal;
-	float radius;
-};
+	inhus::Goal new_goal = goal;
 
-GoalArea computeGoalWithRadius(GoalArea goal)
-{
-	if(goal.radius > 0)
+	if(goal.pose_goal.radius > 0)
 	{
 		float alpha = (rand()%(2*314))/100 - PI;
-		float r = (rand()%(int(goal.radius*100)))/100.0;
+		float r = (rand()%(int(goal.pose_goal.radius*100)))/100.0;
 
-		goal.goal.x = goal.goal.x + r * cos(alpha);
-		goal.goal.y = goal.goal.y + r * sin(alpha);
-
-		goal.radius = 0;
+		new_goal.pose_goal.pose.x = goal.pose_goal.pose.x + r * cos(alpha);
+		new_goal.pose_goal.pose.y = goal.pose_goal.pose.y + r * sin(alpha);
 	}
-	return goal;
+	return new_goal;
+}
+
+inhus::Action computeActionWithRadius(inhus::Action action)
+{
+	inhus::Action rand_action = action;
+
+	if(action.type == "nav_action")
+	{
+		if(action.nav_action.radius > 0)
+		{
+			float alpha = (rand()%(2*314))/100 - PI;
+			float r = (rand()%(int(action.nav_action.radius*100)))/100.0;
+
+			rand_action.nav_action.pose.x += r * cos(alpha);
+			rand_action.nav_action.pose.y += r * sin(alpha);
+		}
+	}
+	return rand_action;
 }
 
 #endif
