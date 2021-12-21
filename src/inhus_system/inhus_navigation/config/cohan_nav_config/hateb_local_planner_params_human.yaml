@@ -23,10 +23,10 @@ acc_lim_y: 0.3
 max_vel_x: 0.9
 min_vel_x: 0.02
 max_vel_x_backwards: 0.6
-max_vel_theta: 1.2
+max_vel_theta: 2.0
 min_vel_theta: 0.1
 acc_lim_x: 0.3
-acc_lim_theta: 0.4
+acc_lim_theta: 1.5
 min_turning_radius: 0.0
 footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
   type: "circular"
