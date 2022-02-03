@@ -1,0 +1,8 @@
+<launch>
+
+  <include file="$(find inhus_navigation)/launch/other_launch/_locate_odom.launch"/>
+  <node name="rqt_robot_steering" type="rqt_robot_steering" pkg="rqt_robot_steering" output="screen">
+    <remap from="/cmd_vel" to="/stage_agents/human1/cmd_vel"/>
+  </node>
+
+</launch>

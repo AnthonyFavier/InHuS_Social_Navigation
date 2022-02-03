@@ -39,7 +39,6 @@
       <wait_action type="wait_action" duration="2.0"/>
       <nav_action type="nav_action" x="7.3" y="9.2" theta="1.57" radius="0.0"/>
       <nav_action type="nav_action" x="3.4" y="9.5" theta="-3.14" radius="0.0"/>
-
     </activity>
   </named_goals>
 
