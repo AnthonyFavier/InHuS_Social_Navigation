@@ -32,9 +32,9 @@ catkin_make
 
 The Stage simulator is in-build in the package and can be used without any additional actions. However, to be able to start the system with the MORSE simulator you will need a separated installation and thus to follow the next instructions. Despite the fact MORSE is heavier, it gives more precise movements and we recommend to use it for experimenting. But you can skip this step if you only want to use the way lighter Stage simulator for a quick test.
 
-You first need to clone the following repository :
+You first need to clone the following repository and checkout the "cohan_melodic_multi" branch :
 ```
-git clone https://github.com/sphanit/morse
+git clone -b cohan_melodic_multi https://github.com/AnthonyFavier/morse
 ```
 Then go in the downloaded directory to build and install the simulator (Make sure *python-dev* and *python3-dev* are installed) :
 ```
