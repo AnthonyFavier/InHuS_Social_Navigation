@@ -1,6 +1,7 @@
 <launch>
 	<arg name="ns_human" default="human1"/>
-	<arg name="ns_robot" default=""/>
+	<arg name="ns_robot" default="smb"/>
+	<!-- ns_robot = "" or "smb" -->
 	<arg name="map_name" default="laas_adream"/>
 
 	<node name="boss_node" type="boss_node" pkg="inhus" output="screen" launch-prefix="xterm -geometry '80x25' -e">

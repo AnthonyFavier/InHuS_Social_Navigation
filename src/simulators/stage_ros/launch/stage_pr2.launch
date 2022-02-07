@@ -18,4 +18,6 @@
   <!-- start pr2 robot description -->
   <include file="$(find inhus_navigation)/launch/other_launch/_robot_description.launch"/>
 
+  <node name="stage_joints" pkg="stage_ros" type="stage_joints.py"/>
+
 </launch>
