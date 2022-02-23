@@ -342,12 +342,14 @@ void Boss::readGoalsFromXML()
 		vector<inhus::Goal> endless_scenario;
 
 		// Extract goals
-		TiXmlElement *l_goal = l_endless_scenario->FirstChildElement("goal");
+		TiXmlElement *l_goal = l_endless_scenario->FirstChildElement();
 		while(l_goal)
 		{
 			if(NULL != l_goal->Attribute("type"))
 				goal.type = l_goal->Attribute("type");
-			if(goal.type == "pose_goal")
+			if(goal.type == "named_goal")
+				goal.named_goal.name = l_goal->Value();
+			else if(goal.type == "pose_goal")
 			{
 				if(NULL != l_goal->Attribute("x"))
 					goal.pose_goal.pose.x = stof(l_goal->Attribute("x"));
