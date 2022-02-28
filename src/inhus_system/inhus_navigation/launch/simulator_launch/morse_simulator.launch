@@ -3,6 +3,8 @@
   <arg name="map_name" default="laas_adream"/>
   <arg name="num_agents" default="1"/>
 
+  <param name="map_name" value="$(arg map_name)"/>
+
   <include file="$(find morse_ros)/launch/morse_pr2.launch">
     <arg name="map_name" value="$(arg map_name)"/>
   </include>

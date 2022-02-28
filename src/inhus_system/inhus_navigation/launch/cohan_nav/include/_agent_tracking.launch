@@ -1,6 +1,7 @@
 <launch>
 
   <arg name="ns" default="human1"/>
+  <arg name="map_name" default="laas_adream"/>
 
   <!-- Global Planner for the agent path prediction -->
   <node pkg="global_planner" type="planner" name="global_planner_for_agent_path_prediction">
@@ -25,7 +26,7 @@
     <param name="~robot_frame_id" value="$(arg ns)/base_footprint"/>
   </node>
 
-  <node pkg="agent_path_prediction" type="predict_goal.py" name="agent_goal_predict" output="screen">
+  <node pkg="agent_path_prediction" type="predict_goal.py" name="agent_goal_predict" output="screen" args="$(arg map_name)">
     <remap from="/tracked_agents" to="/$(arg ns)/tracked_agents"/>
   </node>
 

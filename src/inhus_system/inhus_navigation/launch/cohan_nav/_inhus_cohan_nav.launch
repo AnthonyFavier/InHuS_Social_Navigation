@@ -1,0 +1,44 @@
+<launch>
+  <arg name="ns" default="human1"/>
+  <arg name="map_name" default="laas_adream"/>
+  <arg name="node_start_delay" default="2.0"/>
+
+  <!-- Global Planner for the path blockage -->
+  <node pkg="global_planner" type="planner" ns="$(arg ns)" name="global_planner_path_blockage">
+    <remap from="/map" to="map_static"/>
+		<rosparam file="$(find inhus_navigation)/config/path_blockage_global_planner.yaml" command="load" ns="costmap"/>
+  </node>
+
+  <!-- Load InHuS parameters -->
+	<rosparam command="load" file="$(find inhus)/config/params.yaml" ns="$(arg ns)"/>
+  <!-- Deactivate replanning in supervisor -->
+	<rosparam command="load" file="$(find inhus)/config/deactivate_replan.yaml" ns="$(arg ns)"/>
+
+  <!-- human controller and boss -->
+  <include file="$(find inhus)/launch/all.launch">
+    <arg name="ns" value="$(arg ns)"/>
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+
+  <!-- visualization with Rviz -->
+  <include file="$(find inhus_navigation)/launch/other_launch/_rviz.launch"/>
+
+  <!-- MAP SERVERS -->
+  <!-- static map server -->
+  <include file="$(find inhus_navigation)/launch/other_launch/_map_static.launch">
+    <arg name="ns" value="$(arg ns)"/>
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+  <!-- pov map server -->
+  <include file="$(find inhus_navigation)/launch/other_launch/_map_pov.launch">
+    <arg name="ns" value="$(arg ns)"/>
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+
+  <include file="$(find inhus_navigation)/launch/cohan_nav/include/_agent_with_ns.launch">
+    <arg name="ns" value="$(arg ns)"/>
+    <arg name="node_start_delay" value="$(arg node_start_delay)" />
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+
+</launch>
