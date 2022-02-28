@@ -80,6 +80,7 @@ private:
 	ros::Publisher pub_cancel_goal_;
 	ros::Publisher pub_goal_move_base_;
 	ros::Publisher pub_vel_cmd_;
+	ros::Publisher pub_perturbed_cmd_;
 
 	// Other
 	enum StateGlobal{IDLE, APPROACH, BLOCKED};

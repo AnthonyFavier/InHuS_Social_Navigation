@@ -46,6 +46,7 @@ ConflictManager::ConflictManager(ros::NodeHandle nh, bool* want_robot_placed)
 	pub_cancel_goal_ =	nh.advertise<actionlib_msgs::GoalID>("move_base/cancel", 100);
 	pub_goal_move_base_ = nh_.advertise<move_base_msgs::MoveBaseActionGoal>("move_base/goal", 100);
 	pub_vel_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("perturbed_cmd", 100);
+	pub_perturbed_cmd_ = 	nh_.advertise<geometry_msgs::Twist>("perturbed_cmd", 100);
 
 	// Service servers
 	server_check_conflict_ =	nh_.advertiseService("check_conflict", &ConflictManager::srvCheckConflict, this);
@@ -196,35 +197,39 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 				nb++;
 				mean_vel_.linear.x += last_vels_[i].linear.x;
 				mean_vel_.linear.y += last_vels_[i].linear.y;
-				// ROS_INFO("CM: linear.x=%f linear.y=%f", last_vels_[i].linear.x, last_vels_[i].linear.y);
+				ROS_INFO("CM: linear.x=%f linear.y=%f", last_vels_[i].linear.x, last_vels_[i].linear.y);
 			}
 		}
 		mean_vel_.linear.x /= nb;
 		mean_vel_.linear.y /= nb;
-		geometry_msgs::Vector3 vel_global_frame, vel_local_frame;
-		vel_global_frame.x = mean_vel_.linear.x;
-		vel_global_frame.y = mean_vel_.linear.y;
-		vel_global_frame.z = 0;
-		tf2::Quaternion qq;
-		qq.setRPY(0,0,h_pose_vel_.pose.theta);
-		qq.normalize();
-		geometry_msgs::TransformStamped transform;
-		transform.header.frame_id = "map";
-		transform.header.stamp = ros::Time::now();
-		transform.child_frame_id = "map";
-		transform.transform.rotation.x = qq.x();
-		transform.transform.rotation.y = qq.y();
-		transform.transform.rotation.z = qq.z();
-		transform.transform.rotation.w = qq.w();
-		tf2::doTransform(vel_global_frame, vel_local_frame, transform);
+
+		// geometry_msgs::Vector3 vel_global_frame, vel_local_frame;
+		// vel_global_frame.x = mean_vel_.linear.x;
+		// vel_global_frame.y = mean_vel_.linear.y;
+		// vel_global_frame.z = 0;
+		// tf2::Quaternion qq;
+		// qq.setRPY(0,0,h_pose_vel_.pose.theta);
+		// qq.normalize();
+		// geometry_msgs::TransformStamped transform;
+		// transform.header.frame_id = "map";
+		// transform.header.stamp = ros::Time::now();
+		// transform.child_frame_id = "map";
+		// transform.transform.rotation.x = qq.x();
+		// transform.transform.rotation.y = qq.y();
+		// transform.transform.rotation.z = qq.z();
+		// transform.transform.rotation.w = qq.w();
+		// tf2::doTransform(vel_global_frame, vel_local_frame, transform);
 		geometry_msgs::Twist mean_local_vel;
-		mean_local_vel.linear.x = vel_local_frame.x;
-		mean_local_vel.linear.y = vel_local_frame.y;
-		mean_vel_ = mean_local_vel;
+		// mean_local_vel.linear.x = vel_local_frame.x;
+		// mean_local_vel.linear.y = vel_local_frame.y;
+		// mean_vel_ = mean_local_vel;
 		// ROS_INFO("mean_vel = (%f,%f)", mean_vel_.linear.x, mean_vel_.linear.y);
 		// ROS_INFO("mean_local_vel = (%f,%f)", mean_local_vel.linear.x, mean_local_vel.linear.y);
 
-		// ROS_INFO("CM: mean after = %f", mean_vel_.linear.x);
+		mean_local_vel.linear.x = mean_vel_.linear.x*cos(h_pose_vel_.pose.theta) + mean_vel_.linear.y*sin(h_pose_vel_.pose.theta);
+		mean_local_vel.linear.y = mean_vel_.linear.y*cos(h_pose_vel_.pose.theta) - mean_vel_.linear.x*sin(h_pose_vel_.pose.theta);
+
+		ROS_INFO("CM: mean after = %f", mean_vel_.linear.x);
 		pub_vel_cmd_.publish(mean_local_vel);
 		ROS_INFO("CM: ######=> CONFLICT : publish cmd = %f, %f", mean_local_vel.linear.x, mean_local_vel.linear.y);
 		
