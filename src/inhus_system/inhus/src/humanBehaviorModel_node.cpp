@@ -412,6 +412,50 @@ void ConflictManager::loop()
 			msg_.data = "CONFLICT_MANAGER STATE BLOCKED " + std::to_string(ros::Time::now().toSec());
 			pub_log_.publish(msg_);
 
+			float qy = r_pose_vel_.pose.y - h_pose_vel_.pose.y;
+			float qx = r_pose_vel_.pose.x - h_pose_vel_.pose.x;
+
+			float q;
+			float alpha;
+
+			if(qx==0)
+			{
+				if(qy>0)
+					alpha = PI/2;
+				else
+					alpha = -PI/2;
+			}
+			else
+			{
+				q = abs(qy/qx);
+				if(qx>0)
+				{
+					if(qy>0)
+						alpha = atan(q);
+					else
+						alpha = -atan(q);
+				}
+				else
+				{
+					if(qy>0)
+						alpha = PI - atan(q);
+					else
+						alpha = atan(q) - PI;
+				}
+			}
+
+			geometry_msgs::Twist cmd;
+			if(abs(alpha-h_pose_vel_.pose.theta)>0.1)
+			{
+				cmd.angular.z=1;
+				if(alpha-h_pose_vel_.pose.theta<0)
+					cmd.angular.z=-cmd.angular.z;
+
+				if(abs(alpha-h_pose_vel_.pose.theta)>PI)
+					cmd.angular.z=-cmd.angular.z;
+			}
+			pub_perturbed_cmd_.publish(cmd);
+
 			// back to APPROACH if too far
 			float dist_to_robot = sqrt(pow(h_pose_vel_.pose.x - r_pose_vel_.pose.x,2) + pow(h_pose_vel_.pose.y - r_pose_vel_.pose.y,2));
 			//ROS_INFO("CM: dist=%f", dist_to_robot);
