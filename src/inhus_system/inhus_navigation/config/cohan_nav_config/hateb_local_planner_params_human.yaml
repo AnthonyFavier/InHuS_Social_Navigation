@@ -52,8 +52,8 @@ agent_acc_lim_x: 0.6
 agent_acc_lim_y: 0.3
 agent_acc_lim_theta: 0.8
 use_external_prediction: True
-predict_agent_behind_robot: True
-predict_agent_goal: False
+predict_agent_behind_robot: False
+predict_agent_goal: True
 agent_robot_ttc_scale_alpha: 1.0
 agent_robot_ttcplus_scale_alpha: 1.0
 agent_min_samples: 3
@@ -80,7 +80,7 @@ yaw_goal_tolerance: 0.1
 free_goal_vel: True
 
 # Obstacles
-min_obstacle_dist: 0.1
+min_obstacle_dist: 0.15
 include_costmap_obstacles: True
 costmap_obstacles_behind_robot_dist: 0.5
 obstacle_poses_affected: 1

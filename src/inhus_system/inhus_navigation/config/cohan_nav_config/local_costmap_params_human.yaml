@@ -23,8 +23,8 @@ plugins:
 #   footprint_clearing_enabled: true
 #   track_unknown_space: true
 inflater:
-  inflation_radius:     0.2
-  cost_scaling_factor:  9.0
+  inflation_radius:     0.8
+  cost_scaling_factor:  1.0
 static:
   enabled:              true
   map_topic:            "/map"

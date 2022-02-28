@@ -65,7 +65,7 @@ humanBehaviorModel_node: ##
 ### Attitude HARASS
   b_harass_dist_in_front: 2.0
     #=> distance in front of robot as goal
-  b_harass_replan_freq: 2.0
+  b_harass_replan_freq: 5.0
     #=> frequency to replan for goal in front of robot
 
 #####################
@@ -73,7 +73,7 @@ humanBehaviorModel_node: ##
 #####################
 
 ### Changed too much
-  blocked_ask_path_freq: 2.0
+  blocked_ask_path_freq: 10.0
     #=> frequency ask global path when blocked
   absolute_path_length_diff: 1.0
     #=> if length difference between the path received and the previous stored path is less than this then concidered as "good global path"
@@ -81,7 +81,7 @@ humanBehaviorModel_node: ##
     #=> if length of received path is less than the length of previous stored path times this ratio then concidered as "good global path"
 
 ### Approach
-  approach_dist: 2.5
+  approach_dist: 1.5
     #=> when blocked, get close until this distance to the robot by ignoring it
   approach_freq: 3.0
     #=> frequency at which we either check if still block or replan w/o the robot
