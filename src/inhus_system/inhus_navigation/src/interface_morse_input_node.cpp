@@ -25,38 +25,38 @@ inhus::PoseVel r_pose_vel;
 /////////////////////////
 //// Input Callbacks //// Part to modify for another simulator
 /////////////////////////
-void humanCallback(const cohan_msgs::AgentMarkerStamped::ConstPtr& msg)
+void humanOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
-	tf::Quaternion q(msg->agent.pose.orientation.x,msg->agent.pose.orientation.y,msg->agent.pose.orientation.z,msg->agent.pose.orientation.w);
+	tf::Quaternion q(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
 	tf::Matrix3x3 m(q);
 	double h_roll, h_pitch, h_yaw;
 	m.getRPY(h_roll, h_pitch, h_yaw);
 	h_pose_vel.pose.theta=h_yaw;
-	h_pose_vel.pose.x=msg->agent.pose.position.x;
-	h_pose_vel.pose.y=msg->agent.pose.position.y;
-	h_pose_vel.vel = msg->agent.velocity;
-
+	h_pose_vel.pose.x=msg->pose.pose.position.x;
+	h_pose_vel.pose.y=msg->pose.pose.position.y;
+	h_pose_vel.vel.linear.x = msg->twist.twist.linear.x*cos(h_pose_vel.pose.theta) - msg->twist.twist.linear.y*sin(h_pose_vel.pose.theta);
+	h_pose_vel.vel.linear.y = msg->twist.twist.linear.x*sin(h_pose_vel.pose.theta) - msg->twist.twist.linear.y*cos(h_pose_vel.pose.theta); // In global frame now
+	h_pose_vel.vel.angular.z = msg->twist.twist.angular.z;
 	pub_sim_human_pose_vel.publish(h_pose_vel);
-}
 
-void humanOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
-{
 	pub_sim_human_odom.publish(*msg);
 }
 
-void robotCallback(const cohan_msgs::AgentMarkerStamped::ConstPtr& msg)
+void robotOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
-	tf::Quaternion q(msg->agent.pose.orientation.x,msg->agent.pose.orientation.y,msg->agent.pose.orientation.z,msg->agent.pose.orientation.w);
+	tf::Quaternion q(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
 	tf::Matrix3x3 m(q);
 	double r_roll, r_pitch, r_yaw;
 	m.getRPY(r_roll, r_pitch, r_yaw);
 	r_pose_vel.pose.theta=r_yaw;
-	r_pose_vel.pose.x=msg->agent.pose.position.x;
-	r_pose_vel.pose.y=msg->agent.pose.position.y;
-	r_pose_vel.vel = msg->agent.velocity;
-
+	r_pose_vel.pose.x=msg->pose.pose.position.x;
+	r_pose_vel.pose.y=msg->pose.pose.position.y;
+	r_pose_vel.vel.linear.x = msg->twist.twist.linear.x*cos(r_pose_vel.pose.theta) - msg->twist.twist.linear.y*sin(r_pose_vel.pose.theta);
+	r_pose_vel.vel.linear.y = msg->twist.twist.linear.x*sin(r_pose_vel.pose.theta) - msg->twist.twist.linear.y*cos(r_pose_vel.pose.theta); // In global frame now
+	h_pose_vel.vel.angular.z = msg->twist.twist.angular.z;
 	pub_sim_robot_pose_vel.publish(r_pose_vel);
 }
+
 /////////////////////////
 /////////////////////////
 /////////////////////////
@@ -70,9 +70,8 @@ int main(int argc, char** argv)
 	////////////////////////////
 	////  Input Subscribers //// Part to modify for another simulator
   	////////////////////////////
-	ros::Subscriber sub_human_marker = nh.subscribe("/morse_agents/human1/marker", 10, humanCallback);
-	ros::Subscriber sub_robot_marker = nh.subscribe("/morse_agents/pr2/marker", 10, robotCallback);
-	ros::Subscriber sub_human_odom = nh.subscribe("/morse_agents/human1/odom", 10, humanOdomCallback);
+	ros::Subscriber sub_robot_odom = nh.subscribe("/odom", 10, robotOdomCallback);
+	ros::Subscriber sub_human_odom = nh.subscribe("/human1/odom", 10, humanOdomCallback);
 	////////////////////////////
 	////////////////////////////
 	////////////////////////////

@@ -1,6 +1,6 @@
 <launch>
 	<arg name="ns_human" default="human1"/>
-	<arg name="ns_robot" default="smb"/>
+	<arg name="ns_robot" default=""/>
 	<!-- ns_robot = "" or "smb" -->
 	<arg name="map_name" default="laas_adream"/>
 

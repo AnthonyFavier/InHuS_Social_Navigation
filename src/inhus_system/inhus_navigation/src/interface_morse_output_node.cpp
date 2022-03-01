@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 
 	ros::Subscriber sub_final_cmd_vel = nh.subscribe("out/final_cmd", 10, finalCmdCB);
-	pub_cmd_vel = nh.advertise<geometry_msgs::Twist>("/morse_agents/human1/cmd_vel", 10);
+	pub_cmd_vel = nh.advertise<geometry_msgs::Twist>("/human1/cmd_vel", 10);
 
 	ros::spin();
 
