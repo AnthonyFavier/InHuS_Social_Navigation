@@ -1,0 +1,6 @@
+image: mall.png
+size: 2200 2200
+resolution: 0.02000
+offset: -1.9 -2.0 
+angle: 0.0
+
