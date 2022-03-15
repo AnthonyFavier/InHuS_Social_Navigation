@@ -76,10 +76,7 @@ roslaunch inhus_navigation inhus_nav.launch
 ```
 * With enhanced navigation (CoHAN)
 ```
-roslaunch inhus_navigation inhus_wo_nav.launch
-```
-```
-roslaunch inhus_navigation cohan_human_agent.launch
+roslaunch inhus_navigation inhus_cohan_nav.launch
 ```
 **3. Send goals**
 
