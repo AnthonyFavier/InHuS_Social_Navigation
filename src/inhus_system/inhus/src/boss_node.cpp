@@ -221,37 +221,36 @@ void Boss::readGoalsFromXML()
 	TiXmlElement* l_goal = docHandle.FirstChild("goals").FirstChild("pose_goals").FirstChild("pose_goal").ToElement();
 	while(l_goal)
 	{
-		if(NULL != l_goal->Attribute("type"))
-			goal.type = l_goal->Attribute("type");
-		if(goal.type == "pose_goal")
-		{
-			if(NULL != l_goal->Attribute("x"))
-				goal.pose_goal.pose.x = stof(l_goal->Attribute("x"));
-			if(NULL != l_goal->Attribute("y"))
-				goal.pose_goal.pose.y = stof(l_goal->Attribute("y"));
-			if(NULL != l_goal->Attribute("theta"))
-				goal.pose_goal.pose.theta = stof(l_goal->Attribute("theta"));
-			if(NULL != l_goal->Attribute("radius"))
-				goal.pose_goal.radius = stof(l_goal->Attribute("radius"));
-		}
+		// Set type
+		goal.type = "pose_goal";
+		// Set coordinates
+		if(NULL != l_goal->Attribute("x"))
+			goal.pose_goal.pose.x = stof(l_goal->Attribute("x"));
+		if(NULL != l_goal->Attribute("y"))
+			goal.pose_goal.pose.y = stof(l_goal->Attribute("y"));
+		if(NULL != l_goal->Attribute("theta"))
+			goal.pose_goal.pose.theta = stof(l_goal->Attribute("theta"));
+		if(NULL != l_goal->Attribute("radius"))
+			goal.pose_goal.radius = stof(l_goal->Attribute("radius"));
+		// Add goal
 		pose_goals_.push_back(goal);
 
-		l_goal = l_goal->NextSiblingElement("pose_goal");
+		// Move to next goal
+		l_goal = l_goal->NextSiblingElement();
 	}
 
 	// Extracting named_goals
 	TiXmlElement* l_named_goal = docHandle.FirstChild("goals").FirstChild("named_goals").FirstChild().ToElement();
 	while(l_named_goal)
 	{
-		// Get type
-		if(NULL != l_named_goal->Attribute("type"))
-			goal.type = l_named_goal->Attribute("type");
-		if(goal.type == "named_goal")
-		{
-			// Get Name
-			goal.named_goal.name = l_named_goal->Value();
-		}
+		// Set type
+		goal.type = "named_goal";
+		// Set Name
+		goal.named_goal.name = l_named_goal->Value();
+		// Add goal
 		named_goals_.push_back(goal);
+
+		// Move to next goal
 		l_named_goal = l_named_goal->NextSiblingElement();
 	}
 
@@ -270,9 +269,12 @@ void Boss::readGoalsFromXML()
 		{
 			string type;
 			string which = l_goal->Value();
+
+			// Get type
 			if(NULL != l_goal->Attribute("type"))
 				type = l_goal->Attribute("type");
 
+			// Init goals must be positions (pose_goal)
 			if(which == "init_h" && type == "pose_goal")
 			{
 				scenario.init_h.type = type;
@@ -301,7 +303,7 @@ void Boss::readGoalsFromXML()
 			{
 				scenario.goal_h.type = type;
 				if(type == "named_goal")
-					scenario.goal_h.named_goal.name = l_goal->Value();
+					scenario.goal_h.named_goal.name = l_goal->Attribute("name");
 				else if(type == "pose_goal")
 					if(NULL != l_goal->Attribute("x"))
 						scenario.goal_h.pose_goal.pose.x = stof(l_goal->Attribute("x"));
@@ -316,7 +318,7 @@ void Boss::readGoalsFromXML()
 			{
 				scenario.goal_r.type = type;
 				if(type == "named_goal")
-					scenario.goal_h.named_goal.name = l_goal->Value();
+					scenario.goal_h.named_goal.name = l_goal->Attribute("name");
 				else if(type == "pose_goal")
 					if(NULL != l_goal->Attribute("x"))
 						scenario.goal_r.pose_goal.pose.x = stof(l_goal->Attribute("x"));
