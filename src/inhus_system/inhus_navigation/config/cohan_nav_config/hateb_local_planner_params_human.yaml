@@ -52,8 +52,8 @@ agent_acc_lim_x: 0.6
 agent_acc_lim_y: 0.3
 agent_acc_lim_theta: 0.8
 use_external_prediction: True
-predict_agent_behind_robot: False
-predict_agent_goal: True
+predict_agent_behind_robot: True
+predict_agent_goal: False
 agent_robot_ttc_scale_alpha: 1.0
 agent_robot_ttcplus_scale_alpha: 1.0
 agent_min_samples: 3
