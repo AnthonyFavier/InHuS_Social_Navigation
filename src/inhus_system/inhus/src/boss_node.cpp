@@ -115,8 +115,17 @@ RobotManager::RobotManager(string name) : AgentManager(name)
 
 void RobotManager::publishGoal(inhus::Goal goal)
 {
-	inhus::Goal randomized_goal = computeGoalWithRadius(goal);
-	pub_goal_.publish(this->getPose(randomized_goal));
+	if(goal.type=="pose_goal")
+	{
+		inhus::Goal randomized_goal;
+		randomized_goal.type = "pose_goal";
+		randomized_goal.pose_goal = computeGoalWithRadius(goal.pose_goal);
+		pub_goal_.publish(this->getPose(randomized_goal));
+	}
+	else if(goal.type=="named_goal")
+		ROS_ERROR("Boss::RobotManager::PublishGoal: named_goal type isn't supported for robot!");
+	else
+		ROS_ERROR("Boss::RobotManager::PublishGoal: goal type unknown!");
 }
 
 void RobotManager::showState()
@@ -205,6 +214,8 @@ Boss::Boss()
 	endless_agent2_on_ = false;
 	endless_agent1_i_ = endless_goals_[0].size()-1;
 	endless_agent2_i_ = endless_goals_[1].size()-1;
+
+	ROS_INFO("Init done");
 }
 
 Boss::~Boss()

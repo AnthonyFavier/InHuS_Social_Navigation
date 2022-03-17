@@ -82,18 +82,13 @@
 
   <endless>
     <endless_agent1>
-      <pose_goal type="pose_goal" x="13.0" y="10.0" theta="1.57" radius="1.0"/>
-      <pose_goal type="pose_goal" x="7.0" y="10.0" theta="1.57" radius="1.0"/>
-      <pose_goal type="pose_goal" x="7.0" y="4.0" theta="-1.57" radius="1.0"/>
-      <pose_goal type="pose_goal" x="13.0" y="4.0" theta="-1.57" radius="1.0"/>
+      <pose_goal type="pose_goal" x="2.0" y="2.0" theta="0" radius="1.0"/>
+      <pose_goal type="pose_goal" x="6.0" y="2.0" theta="0" radius="1.0"/>
     </endless_agent1>
 
     <endless_agent2>
-      <pose_goal type="pose_goal" x="7.0" y="10.0" theta="1.57" radius="1.0"/>
-      <pose_goal type="pose_goal" x="13.0" y="10.0" theta="1.57" radius="1.0"/>
-      <pose_goal type="pose_goal" x="13.0" y="4.0" theta="-1.57" radius="1.0"/>
-      <pose_goal type="pose_goal" x="7.0" y="7.0" theta="0.0" radius="1.0"/>
-      <pose_goal type="pose_goal" x="5.0" y="4.0" theta="-1.57" radius="1.0"/>
+      <pose_goal type="pose_goal" x="8.0" y="2.0" theta="0" radius="1.0"/>
+      <pose_goal type="pose_goal" x="8.0" y="2.0" theta="0" radius="1.0"/>
     </endless_agent2>
   </endless>
 

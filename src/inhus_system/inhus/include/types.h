@@ -5,17 +5,17 @@
 
 #define PI 3.1415926535897932384626433832795
 
-inhus::Goal computeGoalWithRadius(inhus::Goal goal)
+inhus::PoseGoal computeGoalWithRadius(inhus::PoseGoal goal)
 {
-	inhus::Goal new_goal = goal;
+	inhus::PoseGoal new_goal = goal;
 
-	if(goal.pose_goal.radius > 0)
+	if(goal.radius > 0)
 	{
 		float alpha = (rand()%(2*314))/100 - PI;
-		float r = (rand()%(int(goal.pose_goal.radius*100)))/100.0;
+		float r = (rand()%(int(goal.radius*100)))/100.0;
 
-		new_goal.pose_goal.pose.x = goal.pose_goal.pose.x + r * cos(alpha);
-		new_goal.pose_goal.pose.y = goal.pose_goal.pose.y + r * sin(alpha);
+		new_goal.pose.x = goal.pose.x + r * cos(alpha);
+		new_goal.pose.y = goal.pose.y + r * sin(alpha);
 	}
 	return new_goal;
 }
