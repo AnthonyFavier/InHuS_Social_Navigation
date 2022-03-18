@@ -115,8 +115,11 @@ bool ConflictManager::srvCheckConflict(inhus::ActionBool::Request &req, inhus::A
 	
 	if(client_make_plan_.call(srv_make_plan_))
 	{
+		if(srv_make_plan_.response.path.size()==0)
+			ROS_WARN_NAMED("ConflictManager", "Failed to get path in Conflict Manager");
 		// Get path //
 		nav_msgs::Path path;
+		
 		path.poses = srv_make_plan_.response.path;
 		float path_length = computePathLength(&path);
 
