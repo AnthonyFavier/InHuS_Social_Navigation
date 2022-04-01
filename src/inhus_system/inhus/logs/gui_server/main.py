@@ -318,8 +318,10 @@ def treatData():
                 else:
                     break
         surprise_data[i] = seen_ratio_data[j_min]
-    min_x_default = min(dist_time[0], vel_h_time[0], vel_r_time[0], rel_spd_time[0], seen_ratio_time[0])
-    max_x_default = max(dist_time[-1], vel_h_time[-1], vel_r_time[-1], rel_spd_time[-1], seen_ratio_time[-1])
+    min_x_default = min(dist_time[0], vel_h_time[0], vel_r_time[0], rel_spd_time[0])
+    # min_x_default = min(dist_time[0], vel_h_time[0], vel_r_time[0], rel_spd_time[0], seen_ratio_time[0])
+    max_x_default = max(dist_time[-1], vel_h_time[-1], vel_r_time[-1], rel_spd_time[-1])
+    # max_x_default = max(dist_time[-1], vel_h_time[-1], vel_r_time[-1], rel_spd_time[-1], seen_ratio_time[-1])
     t_min_g = min_x_default
     t_max_g = max_x_default
     max_vel = max(computeYMax(vel_h_data), computeYMax(vel_r_data))
@@ -1019,6 +1021,132 @@ time_path_pretext = PreText(text=init_text_time_path_pretext)
 init_playing_div_text = "<b>Animation : </b>"
 playing_div = Div(text=init_playing_div_text + "stopped")
 
+# Button compute metrics
+compute_metrics_button = Button(label="Compute", button_type="danger", width_policy="min", align="center")
+def computeTotalTime():
+    eps = 0.01
+    start_found = False
+    start_time = 0
+    end_found=False
+    end_time = 0
+    last_not_null = False
+    for i, time in enumerate(vel_h_time):
+        if time < t_min_g:
+            continue
+        if time > t_max_g:
+            break
+        if start_found==False and vel_h_data[i] > 0:
+            start_found = True
+            start_time = time
+            end_time = time
+            last_not_null = True
+        if last_not_null and vel_h_data[i]>-eps and vel_h_data[i]<eps :
+            end_time=time
+            end_found=True
+        if vel_h_data[i]<-eps or vel_h_data[i]>eps:
+            last_not_null=True
+        else:
+            last_not_null=False
+    if end_found == False:
+        print("\t-total_time not found")
+    else:
+        print("start_time={}".format(start_time))
+        print("end_time={}".format(end_time))
+        print("\t-total_time:\t{:.2f} start={:.2f}s end={:.2f}s".format(end_time-start_time, start_time, end_time))
+def computeMinTTC():
+    found = False
+    ttc_min = ttc_data[0]
+    ttc_min_time = ttc_time[0]
+    for i, time in enumerate(ttc_time):
+        if time < t_min_g:
+            continue
+        if time > t_max_g:
+            break
+        if ttc_data[i] < ttc_min:
+            found = True
+            ttc_min = ttc_data[i]
+            ttc_min_time = time
+    if found == False:
+        print("\t-ttc_min not found")
+    else:
+        print("\t-ttc_min:\t{:.2f}, {:.2f}s".format(ttc_min, ttc_min_time))
+def computeMinHRDist():
+    found = False
+    hrdist_min = dist_data[0]
+    hrdist_min_time = dist_time[0]
+    for i, time in enumerate(dist_time):
+        if time < t_min_g:
+            continue
+        if time > t_max_g:
+            break
+        if dist_data[i] < hrdist_min:
+            found = True
+            hrdist_min = dist_data[i]
+            hrdist_min_time = time
+    if found == False:
+        print("\t-hrdist_min not found")
+        return False
+    else:
+        print("\t-hrdist_min:\t{:.2f}, {:.2f}s".format(hrdist_min, hrdist_min_time))
+        return hrdist_min, hrdist_min_time
+def getClosestDist(t):
+    index_closest = -1
+    for i, time in enumerate(dist_time):
+        if time < t:
+            continue
+        else:
+            index_closest = i
+            if abs(dist_time[i-1]-t) < abs(time-t):
+                index_closest-=1
+    if index_closest == -1:
+        print("ERREUR index_closest")
+    else:
+        return dist_data[index_closest]
+def computeRVelAtMinDist(hrdist_min,hrdist_min_time):
+    if hrdist_min_time == False:
+        print("ERROR input")
+        return False
+    i_vel_r = -1
+    for i, time in enumerate(vel_r_time):
+        if time > hrdist_min_time:
+            i_vel_r = i-1
+            break
+    if i_vel_r==-1:
+        print("\t-velR_mindist not found")
+    else:
+        average_vel = 0
+        for i in range(-2,3):
+            average_vel+=vel_r_data[i_vel_r+i]
+        average_vel/=5
+
+        count = 1
+        average_one_sec_vel = vel_r_data[i_vel_r]
+        av_one_ratio = vel_r_data[i_vel_r]/getClosestDist(vel_r_time[i_vel_r])
+        i = i_vel_r-1
+        while vel_r_time[i_vel_r]-vel_r_time[i]<1:
+            average_one_sec_vel+=vel_r_data[i]
+            av_one_ratio+=vel_r_data[i]/getClosestDist(vel_r_time[i])
+            count+=1
+            i-=1
+        average_one_sec_vel/=count
+        
+        print("\t-velR_mindist:\t{:.2f}, {:.2f}s".format(vel_r_data[i_vel_r], vel_r_time[i_vel_r]))
+        print("\t-av_velR_min:\t{:.2f}".format(average_vel))
+        print("\t-av_one:\t{:.2f}".format(average_one_sec_vel))
+        print("\t-av_one_ratio:\t{:.2f}".format(av_one_ratio))
+def compute_metrics_buttonCB(event):
+    print("Metrics:")
+    computeTotalTime()
+    computeMinTTC()
+    hrdist_min, hrdist_min_time = computeMinHRDist()
+    computeRVelAtMinDist(hrdist_min, hrdist_min_time)
+
+compute_metrics_button.on_click(compute_metrics_buttonCB)
+
+# Div metrics
+metrics_div_text_init = "Metrics:"
+metrics_div = Div(text=metrics_div_text_init)
+
 ######################################################################################################
 ######################################################################################################
 ############
@@ -1032,9 +1160,11 @@ t_range = row(column(t_min_input, row(t_min_minus_button, t_min_plus_button, ali
 range_column = column(range_div, t_range, reset_range_button)
 first_row_graph = row(plot_size_column, legend_column, range_column, other_column)
 graph_column = column(first_row_graph, p1, p2, p3, p4)
-anim_row = row(play_button, column(pause_button, resume_button, align="center"), stop_play_button, align="center")
+anim_row = row(play_button, column(pause_button, resume_button, align="center"), stop_play_button, playing_div, time_path_pretext, align="start")
 
-path_column = column(time_colored_path_div, p_path, anim_row, playing_div, time_path_pretext)
+metrics_row = row(compute_metrics_button, metrics_div)
+
+path_column = column(time_colored_path_div, p_path, anim_row, metrics_row)
 
 layout = layout(
     [
