@@ -455,7 +455,7 @@ void ConflictManager::loop()
 			geometry_msgs::Twist cmd;
 			if(abs(alpha-h_pose_vel_.pose.theta)>0.1)
 			{
-				cmd.angular.z=1;
+				cmd.angular.z=0.5;
 				if(alpha-h_pose_vel_.pose.theta<0)
 					cmd.angular.z=-cmd.angular.z;
 
