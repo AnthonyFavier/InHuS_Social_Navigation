@@ -22,6 +22,28 @@ inhus::PoseVel h_pose_vel;
 ros::Publisher pub_sim_robot_pose_vel;
 inhus::PoseVel r_pose_vel;
 
+////////////////////////////////
+// Callback example with Odom //
+////////////////////////////////
+void humanOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
+{
+	tf::Quaternion q(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
+	tf::Matrix3x3 m(q);
+	double h_roll, h_pitch, h_yaw;
+	m.getRPY(h_roll, h_pitch, h_yaw);
+	// Currently, vel is in local frame
+	h_pose_vel.pose.theta=h_yaw;
+	h_pose_vel.pose.x=msg->pose.pose.position.x;
+	h_pose_vel.pose.y=msg->pose.pose.position.y;
+	h_pose_vel.vel.linear.x = msg->twist.twist.linear.x*cos(h_pose_vel.pose.theta) - msg->twist.twist.linear.y*sin(h_pose_vel.pose.theta);
+	h_pose_vel.vel.linear.y = msg->twist.twist.linear.x*sin(h_pose_vel.pose.theta) - msg->twist.twist.linear.y*cos(h_pose_vel.pose.theta); // In global frame now
+	h_pose_vel.vel.angular.z = msg->twist.twist.angular.z;
+	pub_sim_human_pose_vel.publish(h_pose_vel);
+
+	pub_sim_human_odom.publish(*msg);
+}
+////////////////////////////////
+
 /////////////////////////
 //// Input Callbacks //// Part to modify for another simulator
 /////////////////////////
