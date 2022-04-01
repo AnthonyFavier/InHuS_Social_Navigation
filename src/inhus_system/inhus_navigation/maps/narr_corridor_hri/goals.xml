@@ -6,6 +6,7 @@
 
   <pose_goals>
     <pose_goal x="16.0" y="0.9" theta="-3.14" radius="0.0"/>
+    <pose_goal x="3.0" y="0.9" theta="-3.14" radius="0.0"/>
   </pose_goals>
 
   <named_goals>
