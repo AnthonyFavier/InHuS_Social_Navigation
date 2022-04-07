@@ -25,7 +25,7 @@ inhus::PoseVel r_pose_vel;
 ////////////////////////////////
 // Callback example with Odom //
 ////////////////////////////////
-void humanOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
+void humanOdomExampleCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
 	tf::Quaternion q(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
 	tf::Matrix3x3 m(q);
