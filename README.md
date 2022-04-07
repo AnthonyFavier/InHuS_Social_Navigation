@@ -85,20 +85,13 @@ Now use the Boss interface to send goals individually to different agents, start
 ![boss](https://github.com/AnthonyFavier/images/blob/master/boss.png)
 
 **4. View logs**
-Once the system is shut down. Go to *InHuS_Social_Navigation/src/inhus_system/inhus/logs/* and run the following python script to show both the time colored path of agents and graphs of the metrics :
+At any time you can run the following roslaunch to launch the GUI and start the data visualization:
 ```
-cd InHuS_Social_Navigation/src/inhus_system/inhus/logs/
-python all.py
+roslaunch inhus gui.launch 
 ```
-Note that you can add 2 arguments to show only a specified temporal window :
-```
-python all.py 175 180
-```
-![graph](https://github.com/AnthonyFavier/images/blob/master/graphs_OO_smb_replan.png)
-![path](https://github.com/AnthonyFavier/images/blob/master/paths_OO_smb_replan_new.png)
+Note that you just have to refresh the page to update the data. So the GUI can be left open while testing and restarting inhus, and you just have to refresh the page to update to the most revent data.
+![gui](https://github.com/AnthonyFavier/images/blob/master/InHuS_GUI.png)
 ![legend](https://github.com/AnthonyFavier/images/blob/master/legend.png)
-
-More details about show the log data are available in the file *readme.txt* in the same folder.
 
 ## Examples to run
 
@@ -132,8 +125,7 @@ This example launches InHuS with the enhanced navigation and uses the Human Awar
 
 ```
 roslaunch inhus_navigation morse_simulator.launch
-roslaunch inhus_navigation inhus_wo_nav.launch
-roslaunch inhus_navigation cohan_pr2 with_human_agent.launch
+roslaunch inhus_navigation inhus_cohan_nav.launch
 ```
 In the Boss interface :
 
@@ -143,10 +135,11 @@ Then, once both agents are in place (there should already be and thus not move),
 
 > "2-Scenario (2) => 4-narrow_corridor (4) => 2-Start (2) => 0 seconds (0)"
 
-## InHuS : A generic architecture
+## InHuS System
 
-InHuS is an architecture thought to be as generic and modular as possible. It's purpose is to control a simulated autonomous human agent which is both reactive and rational. Given a goal, the agent plans and executes a set of actions in order to fulfill its goal. A user interface is provided to easily send goals to both other agents and the human one present in the scene. The interface makes it easy to repeat scenarios and run long term activity. A log manager is also part of the system. It records and computes execution data.
-![global archi](https://github.com/AnthonyFavier/images/blob/master/global_archi_grand.png)
+The InHuS System works along with a human operator, a chosen simulator, and the challenged robot controller. The system is majorly implemented using ROS. Besides, note that the InHuS  System is three-sided. First, the system comes with a high-level interface called Boss that helps manage the simulated agents. Secondly, there is the main part which is the intelligent human avatar controller itself, called InHuS. Finally, a GUI provides an interactive visualization of the data and metrics computed by InHuS during execution that can help to evaluate interactions. We present below some details for each component.
+
+<img src="https://github.com/AnthonyFavier/images/blob/master/inhus_complete.png" width="600">
 
 ## Tailored to navigation
 
