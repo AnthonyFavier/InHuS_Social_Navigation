@@ -139,7 +139,7 @@ Then, once both agents are in place (there should already be and thus not move),
 
 The InHuS System works along with a human operator, a chosen simulator, and the challenged robot controller. The system is majorly implemented using ROS. Besides, note that the InHuS  System is three-sided. First, the system comes with a high-level interface called Boss that helps manage the simulated agents. Secondly, there is the main part which is the intelligent human avatar controller itself, called InHuS. Finally, a GUI provides an interactive visualization of the data and metrics computed by InHuS during execution that can help to evaluate interactions. We present below some details for each component.
 
-<img src="https://github.com/AnthonyFavier/images/blob/master/inhus_complete.png" width="600">
+<img src="https://github.com/AnthonyFavier/images/blob/master/inhus_complete.png">
 
 ## Tailored to navigation
 
